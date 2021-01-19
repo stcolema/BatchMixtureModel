@@ -22,9 +22,9 @@ double invGammaLogLikelihood(double x, double shape, double scale) {
   return ( (-shape - 1) * x - scale / x );
 };
 
-double logNormalLogProbability(double x, double mu, double tau) {
-  return(std::log(tau) - std::log(x) - tau * std::pow((std::log(x) - mu), 2.0));
-}
+double logNormalLogProbability(double x, double mu, double sigma2) {
+  return(-std::log(sigma2) - std::log(x) - (1 / sigma2) * std::pow((std::log(x) - mu), 2.0));
+};
 
 class sampler {
   
@@ -121,8 +121,6 @@ public:
       w(k) = arma::randg( arma::distr_param(a, 1.0) );
     }
     
-    // std::cout << "N_k: \n" << N_k << "\n\n";
-    
     // Convert the cluster weights (previously gamma distributed) to Beta
     // distributed by normalising
     w = w / arma::sum(w);
@@ -136,7 +134,7 @@ public:
     arma::vec comp_prob(K);
     
     for(arma::uword n = 0; n < N; n++){
-
+      
       ll = itemLogLikelihood(X.row(n).t(), batch_vec(n));
     
       // Update with weights
@@ -217,7 +215,7 @@ public:
   
   double xi, kappa, alpha, beta, g, h, a, delta, lambda, rho, theta, proposal_window, proposal_window_for_logs;
   // arma::vec beta;
-  arma::mat mu, mu_proposed, batch_shift, batch_shift_proposed, tau, tau_proposed, batch_scale, batch_scale_proposed;
+  arma::mat mu, mu_proposed, m, m_proposed, tau, tau_proposed, t, t_proposed;
   
   using sampler::sampler;
   
@@ -240,10 +238,10 @@ public:
     
     double data_range = X.max() - X.min(), data_range_inv = std::pow(1.0 / data_range, 2);
     
-    xi = 0.0; // arma::accu(X)/(N * P);
+    xi = arma::accu(X)/(N * P);
     kappa = 0.01;
-    alpha = 2.0; // 0.5 * (2 + P);
-    beta = 2.0; // arma::stddev(arma::vectorise(X)) / std::pow(K, 2);
+    alpha = 0.5 * (2 + P);
+    beta = arma::stddev(arma::vectorise(X)) / std::pow(K, 2);
     
     g = 0.2;
     a = 10;
@@ -275,17 +273,17 @@ public:
     tau_proposed.set_size(P, K);
     tau_proposed.zeros();
     
-    batch_shift.set_size(P, B);
-    batch_shift.zeros();
+    m.set_size(P, B);
+    m.zeros();
     
-    batch_shift_proposed.set_size(P, B);
-    batch_shift_proposed.zeros();
+    m_proposed.set_size(P, B);
+    m_proposed.zeros();
     
-    batch_scale.set_size(P, B);
-    batch_scale.zeros();
+    t.set_size(P, B);
+    t.zeros();
     
-    batch_scale_proposed.set_size(P, B);
-    batch_scale_proposed.zeros();
+    t_proposed.set_size(P, B);
+    t_proposed.zeros();
     
     
   }
@@ -304,13 +302,13 @@ public:
     for(arma::uword p = 0; p < P; p++){
       // beta(p) = arma::randg<double>( arma::distr_param(g, 1.0 / h) );
       for(arma::uword b = 0; b < B; b++){
-        batch_scale(p, b) =  1.0 / arma::randg<double>( arma::distr_param(rho, 1.0 / theta ) );
-        batch_shift(p, b) = (arma::randn<double>() * batch_scale(p, b) / lambda ) + delta;
+        t(p, b) = arma::randg<double>( arma::distr_param(rho, 1.0 / theta ) );
+        m(p, b) = arma::randn<double>() / (t(p, b) * lambda ) + delta;
       }
       for(arma::uword k = 0; k < K; k++){
         // tau(p, k) = 1.0 / arma::randg<double>( arma::distr_param(alpha, 1.0 / arma::as_scalar(beta(p))) );
-        tau(p, k) = 1.0 / arma::randg<double>( arma::distr_param(alpha, 1.0 / beta) );
-        mu(p, k) = (arma::randn<double>() * tau(p, k) / kappa ) + xi;
+        tau(p, k) = arma::randg<double>( arma::distr_param(alpha, 1.0 / beta) );
+        mu(p, k) = arma::randn<double>() / ( tau(p, k) * kappa ) + xi;
       }
       
     }
@@ -337,67 +335,67 @@ public:
     for(arma::uword p = 0; p < P; p++){
       
       for(arma::uword b = 0; b < B; b++){
-        // batch_scale_proposed(p, b) = std::exp((arma::randn() / proposal_window_for_logs) + batch_scale(p, b));
-        batch_scale_proposed(p, b) = 1.0 / arma::randg(arma::distr_param(batch_scale(p, b) * proposal_window, 1.0 / proposal_window));
-        batch_shift_proposed(p, b) = (arma::randn() / proposal_window) + batch_shift(p, b);
+        // t_proposed(p, b) = std::exp((arma::randn() / proposal_window_for_logs) + t(p, b));
+        t_proposed(p, b) = arma::randg(arma::distr_param(proposal_window * t(p,b), 1.0 / proposal_window));
+        m_proposed(p, b) = (arma::randn() * proposal_window) + m(p, b);
       }
       
       // std::cout << "\nProposing to components.\n";
       
       for(arma::uword k = 0; k < K; k++){
         // tau_proposed(p, k) = std::exp((arma::randn() / proposal_window_for_logs) + tau(p, k));
-        tau_proposed(p, k) = 1.0 / arma::randg(arma::distr_param(tau(p, k) * proposal_window, 1.0 / proposal_window));
-        mu_proposed(p, k) = (arma::randn() / proposal_window) + mu(p, k);
+        tau_proposed(p, k) = arma::randg(arma::distr_param(proposal_window * tau(p, k), 1.0 / proposal_window));
+        mu_proposed(p, k) = (arma::randn() * proposal_window) + mu(p, k);
       }
       
     }
     // std::cout << "\nProposed.\n";
   }
   
-  double modelLogLikelihood(arma::mat mu, 
-                         arma::mat tau,
-                         arma::mat batch_shift,
-                         arma::mat batch_scale) {
-    
-    double model_log_likelihood = 0;
-    arma::uword c_n, b_n;
-    arma::rowvec x_n;
-
-    for(arma::uword n = 0; n < N; n++){
-      c_n = labels(n);
-      b_n = batch_vec(n);
-      x_n = X.row(n);
-      for(arma::uword p = 0; p < P; p++){
-
-        model_log_likelihood += -0.5 * (std::log(2) + std::log(PI)
-                                    + std::log(arma::as_scalar(tau(p, c_n)))
-                                    + std::log(arma::as_scalar(batch_scale(p, b_n)))
-                                    + arma::as_scalar(tau(p, c_n) 
-                                      * batch_scale(p, b_n)
-                                      * pow((x_n(p) - (mu(p, c_n) + batch_shift(p, b_n))), 2.0)
-                                    )
-                                  );
-                                    
-      }
-      
-    }
-    
-    return model_log_likelihood;
-    
-  };
+  // double modelLogLikelihood(arma::mat mu, 
+  //                        arma::mat tau,
+  //                        arma::mat m,
+  //                        arma::mat t) {
+  //   
+  //   double model_log_likelihood = 0;
+  //   arma::uword c_n, b_n;
+  //   arma::rowvec x_n;
+  // 
+  //   for(arma::uword n = 0; n < N; n++){
+  //     c_n = labels(n);
+  //     b_n = batch_vec(n);
+  //     x_n = X.row(n);
+  //     for(arma::uword p = 0; p < P; p++){
+  // 
+  //       model_log_likelihood += -0.5 * (std::log(2) + std::log(PI)
+  //                                   + std::log(arma::as_scalar(tau(p, c_n)))
+  //                                   + std::log(arma::as_scalar(t(p, b_n)))
+  //                                   + arma::as_scalar(tau(p, c_n) 
+  //                                     * t(p, b_n)
+  //                                     * pow((x_n(p) - (mu(p, c_n) + m(p, b_n))), 2.0)
+  //                                   )
+  //                                 );
+  //                                   
+  //     }
+  //     
+  //   }
+  //   
+  //   return model_log_likelihood;
+  //   
+  // };
   
   double priorLogProbability(arma::mat mu, 
                           arma::mat tau,
-                          arma::mat batch_shift,
-                          arma::mat batch_scale){
+                          arma::mat m,
+                          arma::mat t){
     
     double prior_score = 0.0;
     
     for(arma::uword p = 0; p < P; p++){
       
       for(arma::uword b = 0; b < B; b++){
-        prior_score += invGammaLogLikelihood(batch_scale(p, b), rho, 1.0 / theta);
-        prior_score += arma::log_normpdf(batch_shift(p, b), delta, lambda * batch_scale(p, b));
+        prior_score += invGammaLogLikelihood(t(p, b), rho, 1.0 / theta);
+        prior_score += arma::log_normpdf(m(p, b), delta, lambda * t(p, b));
       }
       for(arma::uword k = 0; k < K; k++){
         // tau(p, k) = 1.0 / arma::randg<double>( arma::distr_param(alpha, 1.0 / arma::as_scalar(beta(p))) );
@@ -468,54 +466,54 @@ public:
       
       for(arma::uword j = 0; j < dim; j++){
         // score += logNormalLogProbability(x(p, j), y(p, j), window);
-        score += invGammaLogLikelihood(x(p, j), y(p, j) * window, window);
+        score += invGammaLogLikelihood(x(p, j), window, y(p, j)  * (window - 1.0));
       }
     }
     return score;
   }
   
-  void metropolisStep(){
-      
-    double u = 0.0, proposed_model_score = 0.0, acceptance_prob = 0.0, current_model_score = 0.0;
+  // void metropolisStep(){
+  //     
+  //   double u = 0.0, proposed_model_score = 0.0, acceptance_prob = 0.0, current_model_score = 0.0;
+  // 
+  //   u = arma::randu();
+  //   proposed_model_score = modelLogLikelihood(mu_proposed, 
+  //       tau_proposed, 
+  //       m_proposed, 
+  //       t_proposed) +
+  //     priorLogProbability(mu_proposed, 
+  //       tau_proposed, 
+  //       m_proposed, 
+  //       t_proposed);
+  //   
+  //   proposed_model_score += proposalScore(tau, tau_proposed, proposal_window_for_logs, K);
+  //   proposed_model_score += proposalScore(t, t_proposed, proposal_window_for_logs, B);
+  // 
+  //   // Set upt the value for the denominator
+  //   current_model_score += model_score;
+  //   current_model_score += proposalScore(tau_proposed, tau, proposal_window_for_logs, K);
+  //   current_model_score += proposalScore(t_proposed, t, proposal_window_for_logs, B);
+  //   
+  //   acceptance_prob = std::min(1.0, std::exp(proposed_model_score - current_model_score));
+  //   
+  //   if(u < acceptance_prob){
+  //     mu = mu_proposed;
+  //     tau = tau_proposed;
+  //     m = m_proposed;
+  //     t = t_proposed;
+  //     model_score = proposed_model_score;
+  //     accepted++;
+  //   }
+  // };
   
-    u = arma::randu();
-    proposed_model_score = modelLogLikelihood(mu_proposed, 
-        tau_proposed, 
-        batch_shift_proposed, 
-        batch_scale_proposed) +
-      priorLogProbability(mu_proposed, 
-        tau_proposed, 
-        batch_shift_proposed, 
-        batch_scale_proposed);
+  arma::vec itemLogLikelihood(arma::vec item, arma::uword b) {
     
-    proposed_model_score += proposalScore(tau, tau_proposed, proposal_window_for_logs, K);
-    proposed_model_score += proposalScore(batch_scale, batch_scale_proposed, proposal_window_for_logs, B);
+    arma::vec ll(K);
+    ll.zeros();
 
-    // Set upt the value for the denominator
-    current_model_score += model_score;
-    current_model_score += proposalScore(tau_proposed, tau, proposal_window_for_logs, K);
-    current_model_score += proposalScore(batch_scale_proposed, batch_scale, proposal_window_for_logs, B);
-    
-    acceptance_prob = std::min(1.0, std::exp(proposed_model_score - current_model_score));
-    
-    if(u < acceptance_prob){
-      mu = mu_proposed;
-      tau = tau_proposed;
-      batch_shift = batch_shift_proposed;
-      batch_scale = batch_scale_proposed;
-      model_score = proposed_model_score;
-      accepted++;
-    }
-  };
-  
-  arma::vec itemLogLikelihood(arma::vec item, arma::uword batch) {
-    
-    // arma::vec my_ll(K);
-    // ll.zeros();
-    // 
     for(arma::uword k = 0; k < K; k++){
       for (arma::uword p = 0; p < P; p++){
-        ll(k) += -0.5*(std::log(2) + std::log(PI) - std::log(arma::as_scalar(tau(p, k))) - std::log(arma::as_scalar(batch_scale(p, batch)))+ arma::as_scalar(tau(p, k) * batch_scale(p, batch) *  std::pow(item(p) - (mu(p, k) + batch_shift(p, batch) ), 2))); 
+        ll(k) += -0.5*(std::log(2) + std::log(PI) - std::log(arma::as_scalar(tau(p, k))) - std::log(arma::as_scalar(t(p, b)))+ arma::as_scalar((tau(p, k) * t(p, b)) *  std::pow(item(p) - (mu(p, k) + m(p, b) ), 2.0))); 
       }
     }
     return ll;
@@ -528,58 +526,67 @@ public:
     
   };
   
-  double batchShiftKernel(arma::uword b, arma::vec a_b) {
+  double mKernel(arma::uword b, arma::vec m_b) {
     
     double score = 0.0;
     arma::uvec batch_ind = arma::find(batch_vec == b);
-    for(arma::uword p = 0; p < P; p++) {
-      for (auto& n : batch_ind) {
-        score += (1.0 / tau(p, labels(n))) * std::pow((X(n, p) - (mu(p, labels(n)) + a_b(p))), 2.0);
+    for (auto& n : batch_ind) {
+      for(arma::uword p = 0; p < P; p++) {
+        score += tau(p, labels(n)) * std::pow((X(n, p) - (mu(p, labels(n)) + m_b(p))), 2.0);
       }
-      score += lambda * (a_b(p) - delta);
-      score = -0.5 * (1.0 / batch_scale(p, b)) *  score;
+    }
+    for(arma::uword p = 0; p < P; p++) {
+      score += lambda * std::pow(m_b(p) - delta, 2.0);
+      score = -0.5 * t(p, b) *  score;
     }
   return score;
   };
   
-  double batchScaleKernel(arma::uword b, arma::vec s_b) {
+  double tKernel(arma::uword b, arma::vec t_b) {
     
     double score = 0.0;
     arma::uvec batch_ind = find(batch_vec == b);
-    for(arma::uword p = 0; p < P; p++) {
-      for (auto& n : batch_ind) {
-        score += (1.0 / tau(p, labels(n))) * std::pow((X(n, p) - (mu(p, labels(n)) + batch_shift(p, b))), 2.0);
+    
+    for (auto& n : batch_ind) {
+      for(arma::uword p = 0; p < P; p++) {
+        score += tau(p, labels(n)) * std::pow((X(n, p) - (mu(p, labels(n)) + m(p, b))), 2.0);
       }
-      score += lambda * (batch_shift(p, b) - delta) + 2 * theta;
-      score = (1.0 / s_b(p)) * (-0.5 * score + (N_b(b) + rho - 0.5));
+    }
+    for(arma::uword p = 0; p < P; p++) {
+      score += lambda * std::pow(m(p, b) - delta, 2.0) + 2 * theta;
+      score =  0.5 * ((N_b(b) + 2 * rho - 1) * std::log(t_b(p)) - t_b(p) * score);
     }
     return score;
   };
   
-  double clusterMeanKernel(arma::uword k, arma::vec mu_k) {
+  double muLogKernel(arma::uword k, arma::vec mu_k) {
     
     double score = 0.0;
     arma::uvec cluster_ind = arma::find(labels == k);
+    for (auto& n : cluster_ind) {
+      for(arma::uword p = 0; p < P; p++) {
+          score +=  t(p, batch_vec(n))* std::pow((X(n, p) - (mu_k(p) + m(p, batch_vec(n)))), 2.0);
+        }
+    }
     for(arma::uword p = 0; p < P; p++) {
-      for (auto& n : cluster_ind) {
-        score +=  (1.0 / batch_scale(p, batch_vec(n)))* std::pow((X(n, p) - (mu_k(p) + batch_shift(p, batch_vec(n)))), 2.0);
-      }
-      score += kappa * (mu_k(p) - xi);
-      score = -0.5 *( 1.0 / tau(p, k)) *  score;
+      score += kappa * std::pow(mu_k(p) - xi, 2.0);
+      score = -0.5 * tau(p, k) *  score;
     }
     return score;
   };
   
-  double clusterPrecisionKernel(arma::uword k, arma::vec tau_k) {
+  double tauKernel(arma::uword k, arma::vec tau_k) {
     
     double score = 0.0;
     arma::uvec cluster_ind = arma::find(labels == k);
-    for(arma::uword p = 0; p < P; p++) {
-      for (auto& n : cluster_ind) {
-        score += (1.0 /  batch_scale(p, batch_vec(n))) * std::pow((X(n, p) - (mu(p, k) + batch_shift(p, batch_vec(n)))), 2.0);
+    for (auto& n : cluster_ind) {
+      for(arma::uword p = 0; p < P; p++) {
+        score += t(p, batch_vec(n)) * std::pow((X(n, p) - (mu(p, k) + m(p, batch_vec(n)))), 2.0);
       }
-      score += kappa * (mu(p, k) - xi) + 2 * beta;
-      score = (1.0 / tau_k(p)) * (-0.5 * score + N_k(k) + alpha - 0.5);
+    }
+    for(arma::uword p = 0; p < P; p++) {
+      score += kappa * std::pow(mu(p, k) - xi, 2.0) + 2 * beta;
+      score =  0.5 * ((N_k(k) + 2 * alpha - 1) * std::log(tau_k(p)) - tau_k(p) * score);
     }
     return score;
   };
@@ -588,53 +595,57 @@ public:
     
     double u = 0.0, proposed_model_score = 0.0, acceptance_prob = 0.0, current_model_score = 0.0;
     
-    current_model_score += model_score;
-    
     for(arma::uword b = 0; b < B ; b++) {
+      
+      proposed_model_score = 0.0, acceptance_prob = 0.0, current_model_score = 0.0;
+      
       for(arma::uword p = 0; p < P; p++){
-        // batch_scale_proposed(p, b) = std::exp((arma::randn() / proposal_window_for_logs) + batch_scale(p, b));
-        batch_scale_proposed(p, b) = 1.0 / arma::randg(arma::distr_param(proposal_window_for_logs, 1.0 /(batch_scale(p, b) * (proposal_window_for_logs - 1))));
+        t_proposed(p, b) = std::exp((arma::randn() * proposal_window_for_logs) + t(p, b));
+        // t_proposed(p, b) = arma::randg(arma::distr_param(proposal_window_for_logs * t(p, b),  1.0 / proposal_window_for_logs));
         
-        // Prior log probability
-        proposed_model_score += invGammaLogLikelihood(batch_scale_proposed(p, b), rho, 1.0 / theta);
-        current_model_score += invGammaLogLikelihood(batch_scale(p, b), rho, 1.0 / theta);
+        // Prior log probability is included in the kernel
+        // proposed_model_score += gammaLogLikelihood(t_proposed(p, b), rho, theta);
+        // current_model_score += gammaLogLikelihood(t(p, b), rho, theta);
         
         // Log probability under the proposal density
-        // proposed_model_score += logNormalLogProbability(batch_scale(p, b), batch_scale_proposed(p, b), proposal_window_for_logs);
-        // current_model_score += logNormalLogProbability(batch_scale_proposed(p, b), batch_scale(p, b), proposal_window_for_logs);
+        proposed_model_score += logNormalLogProbability(t(p, b), t_proposed(p, b), proposal_window_for_logs);
+        current_model_score += logNormalLogProbability(t_proposed(p, b), t(p, b), proposal_window_for_logs);
         
-        proposed_model_score += invGammaLogLikelihood(batch_scale(p, b), proposal_window_for_logs, 1.0 /(batch_scale_proposed(p, b) * (proposal_window_for_logs - 1)));
-        current_model_score += invGammaLogLikelihood(batch_scale_proposed(p, b), proposal_window_for_logs, 1.0 /(batch_scale(p, b) * (proposal_window_for_logs - 1)));
+        // Assymetric proposal density
+        // proposed_model_score += gammaLogLikelihood(t(p, b), proposal_window_for_logs * t_proposed(p, b), proposal_window_for_logs);
+        // current_model_score += gammaLogLikelihood(t_proposed(p, b), proposal_window_for_logs * t(p, b), proposal_window_for_logs);
 
       }
-      proposed_model_score += batchScaleKernel(b, batch_scale_proposed.col(b));
-      current_model_score += batchScaleKernel(b, batch_scale.col(b));
+      proposed_model_score += tKernel(b, t_proposed.col(b));
+      current_model_score += tKernel(b, t.col(b));
+      
+      u = arma::randu();
+      
+      acceptance_prob = std::min(1.0, std::exp(proposed_model_score - current_model_score));
+      
+      if(u < acceptance_prob){
+        t.col(b) = t_proposed.col(b);
+        // t_score = proposed_model_score;
+      }
+      
     }
 
-    u = arma::randu();
-    
-    acceptance_prob = std::min(1.0, std::exp(proposed_model_score - current_model_score));
-    
-    if(u < acceptance_prob){
-      batch_scale = batch_scale_proposed;
-      // batch_scale_score = proposed_model_score;
-    }
     
   };
   
-  arma::vec batchScaleScore(arma::mat batch_scale) {
+  arma::vec batchScaleScore(arma::mat t) {
     
     arma::vec score(B);
     score.zeros();
     
     for(arma::uword b = 0; b < B ; b++) {
-      for(arma::uword p = 0; p < P; p++){
-        score(b) += invGammaLogLikelihood(batch_scale(p, b), rho, 1.0 / theta);
-      }
-      score(b) += batchScaleKernel(b, batch_scale.col(b));
+      // for(arma::uword p = 0; p < P; p++){
+      //   score(b) += gammaLogLikelihood(t(p, b), rho, theta);
+      // }
+      score(b) += tKernel(b, t.col(b));
     }
     return score;
-  }
+  };
   
   void batchShiftMetorpolis() {
     
@@ -644,36 +655,42 @@ public:
     
     for(arma::uword b = 0; b < B ; b++) {
       for(arma::uword p = 0; p < P; p++){
-        batch_shift_proposed(p, b) = (arma::randn() / proposal_window) + batch_shift(p, b);
-        proposed_model_score += arma::log_normpdf(batch_shift_proposed(p, b), delta, lambda * batch_scale(p, b) );
-        current_model_score += arma::log_normpdf(batch_shift(p, b), delta, lambda * batch_scale(p, b) ); 
+        m_proposed(p, b) = (arma::randn() / proposal_window) + m(p, b);
+        // m_proposed(p, b) = 0.0; // 
+        
+        // Prior included in kernel
+        // proposed_model_score += arma::log_normpdf(m_proposed(p, b), delta, t(p, b) / lambda );
+        // current_model_score += arma::log_normpdf(m(p, b), delta, t(p, b) / lambda ); 
         
       }
-      proposed_model_score += batchShiftKernel(b, batch_shift_proposed.col(b));
-      current_model_score += batchShiftKernel(b, batch_shift.col(b));
+      proposed_model_score = mKernel(b, m_proposed.col(b));
+      current_model_score = mKernel(b, m.col(b));
+      
+      u = arma::randu();
+      
+      acceptance_prob = std::min(1.0, std::exp(proposed_model_score - current_model_score));
+      
+      if(u < acceptance_prob){
+        m.col(b) = m_proposed.col(b);
+        // m_score = proposed_model_score;
+      }
+      
     }
     
-    u = arma::randu();
     
-    acceptance_prob = std::min(1.0, std::exp(proposed_model_score - current_model_score));
-    
-    if(u < acceptance_prob){
-      batch_shift = batch_shift_proposed;
-      // batch_shift_score = proposed_model_score;
-    }
     
   };
   
-  arma::vec batchShiftScore(arma::mat batch_shift) {
+  arma::vec batchShiftScore(arma::mat m) {
     
     arma::vec score(B);
     score.zeros();
     
     for(arma::uword b = 0; b < B ; b++) {
-      for(arma::uword p = 0; p < P; p++){
-        score(b) += arma::log_normpdf(batch_shift(p, b), delta, lambda * batch_scale(p, b) );
-      }
-      score(b) += batchShiftKernel(b, batch_shift.col(b));
+      // for(arma::uword p = 0; p < P; p++){
+      //   score(b) += arma::log_normpdf(m(p, b), delta,  t(p, b) / lambda );
+      // }
+      score(b) += mKernel(b, m.col(b));
     }
     return score;
   };
@@ -682,45 +699,51 @@ public:
     
     double u = 0.0, proposed_model_score = 0.0, acceptance_prob = 0.0, current_model_score = 0.0;
     
-    current_model_score += model_score;
+    // current_model_score += model_score;
     
     for(arma::uword k = 0; k < K ; k++) {
+      
+      acceptance_prob = 0.0, proposed_model_score = 0.0, current_model_score = 0.0;
 
       for(arma::uword p = 0; p < P; p++){
         if(N_k(k) == 0){
-          tau(p, k) = 1.0 / arma::randg<double>( arma::distr_param(alpha, 1.0 / beta) );
+          tau(p, k) = arma::randg<double>( arma::distr_param(alpha, 1.0 / beta) );
         } else {
-          // tau_proposed(p, k) = std::exp((arma::randn() / proposal_window_for_logs) + tau(p, k));
-          tau_proposed(p, k) = 1.0 / arma::randg( arma::distr_param(proposal_window_for_logs, 1.0 / (tau(p, k) * (proposal_window_for_logs - 1))));
+          tau_proposed(p, k) = std::exp((arma::randn() * proposal_window_for_logs) + tau(p, k));
+          // tau_proposed(p, k) = arma::randg( arma::distr_param(proposal_window_for_logs * tau(p, k), proposal_window_for_logs));
+          // tau_proposed(p, k) = 1.0;
           
           // Log probability under the proposal density
-          // proposed_model_score += logNormalLogProbability(tau(p, k), tau_proposed(p, k), proposal_window_for_logs);
-          // current_model_score += logNormalLogProbability(tau_proposed(p, k), tau(p, k), proposal_window_for_logs);
+          proposed_model_score += logNormalLogProbability(tau(p, k), tau_proposed(p, k), proposal_window_for_logs);
+          current_model_score += logNormalLogProbability(tau_proposed(p, k), tau(p, k), proposal_window_for_logs);
           
-          proposed_model_score += invGammaLogLikelihood(tau(p, k), proposal_window_for_logs, 1.0 / (tau_proposed(p, k) * (proposal_window_for_logs - 1)));
-          current_model_score += invGammaLogLikelihood(tau_proposed(p, k), proposal_window_for_logs, 1.0 / (tau(p, k) * (proposal_window_for_logs - 1)));
+          // Asymmetric proposal density
+          // proposed_model_score += gammaLogLikelihood(tau(p, k), proposal_window_for_logs * tau_proposed(p, k), proposal_window_for_logs);
+          // current_model_score += gammaLogLikelihood(tau_proposed(p, k), proposal_window_for_logs * tau(p, k), proposal_window_for_logs);
         }
         
-        // Prior log probability
-        proposed_model_score += invGammaLogLikelihood(tau_proposed(p, k), alpha, 1.0 / beta);
-        current_model_score += invGammaLogLikelihood(tau(p, k), alpha, 1.0 / beta);
+        // Prior log probability included in kernel
+        // proposed_model_score += invGammaLogLikelihood(tau_proposed(p, k), alpha, 1.0 / beta);
+        // current_model_score += invGammaLogLikelihood(tau(p, k), alpha, 1.0 / beta);
         
-        // proposed_model_score += invGammaLogLikelihood(batch_scale(p, b), batch_scale_proposed(p, b) * window, window);
-        // current_model_score += invGammaLogLikelihood(batch_scale_proposed(p, b), batch_scale(p, b) * window, window);
+        // proposed_model_score += invGammaLogLikelihood(t(p, b), t_proposed(p, b) * window, window);
+        // current_model_score += invGammaLogLikelihood(t_proposed(p, b), t(p, b) * window, window);
         
       }
-      proposed_model_score += clusterPrecisionKernel(k, tau_proposed.col(k));
-      current_model_score += clusterPrecisionKernel(k, tau.col(k));
+      proposed_model_score += tauKernel(k, tau_proposed.col(k));
+      current_model_score += tauKernel(k, tau.col(k));
+      
+      u = arma::randu();
+      
+      acceptance_prob = std::min(1.0, std::exp(proposed_model_score - current_model_score));
+      
+      if(u < acceptance_prob){
+        tau.col(k) = tau_proposed.col(k);
+        // t_score = proposed_model_score;
+      }
     }
     
-    u = arma::randu();
     
-    acceptance_prob = std::min(1.0, std::exp(proposed_model_score - current_model_score));
-    
-    if(u < acceptance_prob){
-      tau = tau_proposed;
-      // batch_scale_score = proposed_model_score;
-    }
     
   };
   
@@ -730,10 +753,10 @@ public:
     score.zeros();
     
     for(arma::uword k = 0; k < K ; k++) {
-      for(arma::uword p = 0; p < P; p++){
-        score(k) += invGammaLogLikelihood(tau(p, k), alpha, 1.0 / beta);
-      }
-      score(k) += clusterPrecisionKernel(k, tau.col(k));
+      // for(arma::uword p = 0; p < P; p++){
+      //   score(k) += gammaLogLikelihood(tau(p, k), alpha, beta);
+      // }
+      score(k) += tauKernel(k, tau.col(k));
     }
     return score;
   };
@@ -742,33 +765,39 @@ public:
     
     double u = 0.0, proposed_model_score = 0.0, acceptance_prob = 0.0, current_model_score = 0.0;
     
-    current_model_score += model_score;
+    // current_model_score += model_score;
     
     for(arma::uword k = 0; k < K ; k++) {
+      
+      // proposed_model_score = 0.0, acceptance_prob = 0.0, current_model_score = 0.0;
+      
       for(arma::uword p = 0; p < P; p++){
         if(N_k(k) == 0){
-            mu_proposed(p, k) = (arma::randn<double>() * tau(p, k)  / kappa) + xi;
+            mu_proposed(p, k) = arma::randn<double>() / (tau(p, k) * kappa) + xi;
         } else {
-          mu_proposed(p, k) = (arma::randn() / proposal_window) + mu(p, k);
+          mu_proposed(p, k) = (arma::randn() * proposal_window) + mu(p, k);
         }
         
         // Prior log probability
-        proposed_model_score += arma::log_normpdf(mu_proposed(p, k), delta, kappa * 1.0 / tau(p, k) );
-        current_model_score += arma::log_normpdf(mu(p, k), delta, kappa * 1.0 / tau(p, k) ); 
+        // proposed_model_score += arma::log_normpdf(mu_proposed(p, k), delta, tau(p, k) / kappa);
+        // current_model_score += arma::log_normpdf(mu(p, k), delta, tau(p, k) / kappa ); 
           
       }
-      proposed_model_score += clusterMeanKernel(k, mu_proposed.col(k));
-      current_model_score += clusterMeanKernel(k, mu.col(k));
+      // The prior is included in the kernel
+      proposed_model_score = muLogKernel(k, mu_proposed.col(k));
+      current_model_score = muLogKernel(k, mu.col(k));
+      
+      u = arma::randu();
+      
+      acceptance_prob = std::min(1.0, std::exp(proposed_model_score - current_model_score));
+      
+      if(u < acceptance_prob){
+        mu.col(k) = mu_proposed.col(k);
+        // mu_score = proposed_model_score;
+      }
     }
       
-    u = arma::randu();
     
-    acceptance_prob = std::min(1.0, std::exp(proposed_model_score - current_model_score));
-    
-    if(u < acceptance_prob){
-      mu = mu_proposed;
-      // mu_score = proposed_model_score;
-    }
     
   };
   
@@ -778,10 +807,10 @@ public:
     score.zeros();
     
     for(arma::uword k = 0; k < K ; k++) {
-      for(arma::uword p = 0; p < P; p++){
-        score(k) += arma::log_normpdf(mu(p, k), delta, kappa / tau(p, k) ); 
-      }
-      score(k) += clusterMeanKernel(k, mu.col(k));
+      // for(arma::uword p = 0; p < P; p++){
+      //   score(k) += arma::log_normpdf(mu(p, k), delta, tau(p, k) / kappa); 
+      // }
+      score(k) += muLogKernel(k, mu.col(k));
     }
     return score;
   };
@@ -847,10 +876,13 @@ Rcpp::List sampleMixtureModel (
   // We save the BIC at each iteration
   arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin));
   arma::uvec acceptance_vec = arma::zeros<arma::uvec>(floor(R / thin));
+  arma::mat weights_saved = arma::zeros<arma::mat>(floor(R / thin), K);
   
-  arma::cube mu_saved(my_sampler.P, K, floor(R / thin)), tau_saved(my_sampler.P, K, floor(R / thin));
+  arma::cube mu_saved(my_sampler.P, K, floor(R / thin)), tau_saved(my_sampler.P, K, floor(R / thin)), m_saved(my_sampler.P, B, floor(R / thin)), t_saved(my_sampler.P, B, floor(R / thin));
   mu_saved.zeros();
   tau_saved.zeros();
+  m_saved.zeros();
+  t_saved.zeros();
   
   arma::uword save_int = 0;
   
@@ -861,13 +893,13 @@ Rcpp::List sampleMixtureModel (
   // my_sampler.model_score = my_sampler.modelLogLikelihood(
   //   my_sampler.mu,
   //   my_sampler.tau,
-  //   my_sampler.batch_shift,
-  //   my_sampler.batch_scale
+  //   my_sampler.m,
+  //   my_sampler.t
   // ) + my_sampler.priorLogProbability(
   //     my_sampler.mu,
   //     my_sampler.tau,
-  //     my_sampler.batch_shift,
-  //     my_sampler.batch_scale
+  //     my_sampler.m,
+  //     my_sampler.t
   // );
   
     // sample_prt.model_score->sampler_ptr.modelLo
@@ -908,8 +940,11 @@ Rcpp::List sampleMixtureModel (
       BIC_record( save_int ) = my_sampler.BIC;
       class_record.row( save_int ) = my_sampler.labels.t();
       acceptance_vec( save_int ) = my_sampler.accepted;
+      weights_saved.row( save_int ) = my_sampler.w.t();
       mu_saved.slice( save_int ) = my_sampler.mu;
       tau_saved.slice( save_int ) = my_sampler.tau;
+      m_saved.slice( save_int ) = my_sampler.m;
+      t_saved.slice( save_int ) = my_sampler.t;
       
       save_int++;
     }
@@ -917,6 +952,9 @@ Rcpp::List sampleMixtureModel (
   return(List::create(Named("samples") = class_record, 
                       Named("means") = mu_saved,
                       Named("precisions") = tau_saved,
+                      Named("batch_shift") = m_saved,
+                      Named("batch_scale") = t_saved,
+                      Named("weights") = weights_saved,
                       Named("acceptance") = acceptance_vec,
                       Named("BIC") = BIC_record));
   

@@ -13,8 +13,11 @@ library(magrittr)
 library(pheatmap)
 library(mcclust)
 library(mclust)
+# library(BatchMixtureModel)
+library(ggplot2)
+setMyTheme()
 
-Rcpp::sourceCpp('Model ideas/model_metropolis_hastings.cpp')
+# Rcpp::sourceCpp('Model ideas/model_metropolis_hastings.cpp')
 
 transition_kernel <- function(curr_theta, proposed_width = 0.5) {
   n_param <- length(curr_theta)
@@ -253,15 +256,11 @@ generateBatchData <- function(N, P, cluster_means, std_dev, batch_shift, batch_v
 
       # point_mean <- reordered_cluster_means[cluster_IDs[n]] + batch_shift[batch_IDs[n]]
       # point_sd <- std_dev * batch_var
+      
+      x <- rnorm(1)
 
-      my_corrected_data[n, p] <- x <- rnorm(1,
-        mean = reordered_cluster_means[cluster_IDs[n]],
-        sd = reordered_std_devs[cluster_IDs[n]]
-      )
-      my_data[n, p] <- x + rnorm(1,
-        mean = batch_shift[batch_IDs[n]],
-        sd = batch_var[batch_IDs[n]]
-      )
+      my_corrected_data[n, p] <- x * reordered_std_devs[cluster_IDs[n]] + reordered_cluster_means[cluster_IDs[n]]
+      my_data[n, p] <- x * reordered_std_devs[cluster_IDs[n]] * batch_var[batch_IDs[n]] + reordered_cluster_means[cluster_IDs[n]] + batch_shift[batch_IDs[n]]
     }
   }
 
@@ -284,7 +283,7 @@ generateBatchData <- function(N, P, cluster_means, std_dev, batch_shift, batch_v
   )
 }
 
-# === Clustering ===============================================================
+# === Data generation ==========================================================
 set.seed(1)
 
 N <- 200
@@ -292,7 +291,7 @@ P <- 2
 K <- 2
 B <- 5
 mean_dist <- 5
-batch_dist <- 1
+batch_dist <- 2
 cluster_means <- 1:K * mean_dist
 batch_shift <- 1:B * batch_dist
 std_dev <- rep(1, K)
@@ -325,8 +324,7 @@ my_df <- data.frame(
   batch = factor(my_data$batch_IDs)
 )
 
-library(ggplot2)
-setMyTheme()
+# Look at the data with and without batch effects
 my_df %>% 
   ggplot(aes(x = x, y = y, shape = cluster, colour = batch)) +
   geom_point() +
@@ -343,43 +341,88 @@ my_df %>%
     subtitle = "Batch effects removed"
   )
 
+my_df %>% 
+  ggplot(aes(x = x, fill = cluster)) +
+  geom_histogram() +
+  labs(
+    title = "Generated data",
+    subtitle = "Batch effects present"
+  )
 
-# Look at the data with and without batch effects
-plot(X)
-plot(X_true)
+my_df %>% 
+  ggplot(aes(x = x_true, fill = cluster)) +
+  geom_histogram() +
+  labs(
+    title = "Generated data",
+    subtitle = "Batch effects removed"
+  )
 
+# Some random initialisation
 c_init <- sample(1:K, N, replace = T)
 
-# samples <- my_sampler(my_data$data,
-#   R = 50,
-#   thin = 1,
-#   K = K,
-#   c_init = c_init,
-#   b = my_data$batch_IDs
-# )
+# === Clustering ===============================================================
 
-proposal_window <- 1.5
-proposal_window_for_logs <- 4
+proposal_window <- 0.5
+proposal_window_for_logs <- 0.3
 
 samples <- sampleMixtureModel(
-  scale(X_true),
+  matrix(X[,1], ncol = 1),
+  # X_true,
   K,
   B,
-  my_data$cluster_IDs - 1,
-  rep(1, N), # my_data$batch_IDs - 1,
+  c_init - 1,
+  my_data$batch_IDs - 1,
   proposal_window,
   proposal_window_for_logs,
-  5000,
-  50,
+  500000,
+  1000,
   rep(1, K),
   1
 )
+
+# samples
+hist(samples$weights[,1])
+
+psm <- createSimilarityMat(samples$samples[-c(1:100),]) %>%
+  set_rownames(row.names(my_data$data)) %>%
+  set_colnames(row.names(my_data$data))
+
+annotatedHeatmap(psm, my_data$cluster_IDs, col_pal = simColPal())
+
+sample_df <- data.frame(
+  Mu_1 = samples$means[, 1, -c(1:100)],
+  Mu_2 = samples$means[, 2, -c(1:100)],
+  m_1 = samples$batch_shift[, 1, -c(1:100)],
+  m_2 = samples$batch_shift[, 2, -c(1:100)],
+  m_3 = samples$batch_shift[, 3, -c(1:100)],
+  m_4 = samples$batch_shift[, 4, -c(1:100)],
+  m_5 = samples$batch_shift[, 5, -c(1:100)]
+)
+
+sample_df %>% 
+  tidyr::pivot_longer(dplyr::contains("m_")) %>% 
+  ggplot(aes(x = value, fill = name)) +
+  geom_histogram(alpha = 0.3) +
+  geom_vline(xintercept = c(2, -2))
+
 
 # samples$acceptance %>% 
 #   max()
 # 
 samples$means[, 1, ]
+hist(samples$means[, 1, -c(1:100)])
+
 samples$means[, 2, ]
+hist(samples$means[, 2, -c(1:100)])
+
+hist(samples$batch_shift[, 1, -c(1:100)])
+hist(samples$batch_shift[, 2, -c(1:100)])
+
+
+samples$precisions[, 1, ] %>% unique()
+hist(samples$precisions[, 1, ])
+samples$precisions[, 2, ] %>% unique()
+hist(samples$precisions[, 2, ])
 
 plot(t(samples$means[, 1, ]))
 plot(t(samples$means[, 2, ]))
@@ -387,18 +430,6 @@ plot(t(samples$means[, 2, ]))
 plot(t(samples$precisions[, 1, ]))
 plot(t(samples$precisions[, 2, ]))
 
-samples$precisions[, 1, ]
-samples$precisions[, 2, ]
-
-samples_mat <- samples$samples %>%
-  unlist() %>%
-  matrix(ncol = N, byrow = T)
-
-psm <- createSimilarityMat(samples_mat) %>%
-  set_rownames(row.names(my_data$data)) %>%
-  set_colnames(row.names(my_data$data))
-
-annotatedHeatmap(psm, my_data$cluster_IDs)
 annotatedHeatmap(psm, my_data$batch_IDs)
 
 pred_cl <- maxpear(psm, max.k = 5)$cl
