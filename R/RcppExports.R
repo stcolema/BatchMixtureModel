@@ -25,6 +25,29 @@
 #' }
 NULL
 
+#' @name mvnSampler
+#' @title Multivariate Normal mixture type
+#' @description The sampler for the Multivariate Normal mixture model.
+#' @field new Constructor \itemize{
+#' \item Parameter: K - the number of components to model
+#' \item Parameter: labels - the initial clustering of the data
+#' \item Parameter: concentration - the vector for the prior concentration of 
+#' the Dirichlet distribution of the component weights
+#' \item Parameter: X - the data to model
+#' }
+#' @field printType Print the sampler type called.
+#' @field updateWeights Update the weights of each component based on current 
+#' clustering.
+#' @field updateAllocation Sample a new clustering. 
+#' @field sampleFromPrior Sample from the priors for the multivariate normal
+#' density.
+#' @field calcBIC Calculate the BIC of the model.
+#' @field logLikelihood Calculate the likelihood of a given data point in each
+#' component. \itemize{
+#' \item Parameter: point - a data point.
+#' }
+NULL
+
 #' @title Mixture model
 #' @description Performs MCMC sampling for a mixture model.
 #' @param X The data matrix to perform clustering upon (items to cluster in rows).
