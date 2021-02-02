@@ -59,8 +59,8 @@ NULL
 #' @param concentration Vector of concentrations for mixture weights (recommended to be symmetric).
 #' @return Named list of the matrix of MCMC samples generated (each row 
 #' corresponds to a different sample) and BIC for each saved iteration.
-sampleMixtureModel <- function(X, K, B, labels, batch_vec, proposal_window, proposal_window_for_logs, R, thin, concentration, seed) {
-    .Call(`_BatchMixtureModel_sampleMixtureModel`, X, K, B, labels, batch_vec, proposal_window, proposal_window_for_logs, R, thin, concentration, seed)
+sampleMixtureModel <- function(X, K, B, labels, batch_vec, proposal_window, proposal_window_for_logs, proposal_window_for_S, R, thin, concentration, seed) {
+    .Call(`_BatchMixtureModel_sampleMixtureModel`, X, K, B, labels, batch_vec, proposal_window, proposal_window_for_logs, proposal_window_for_S, R, thin, concentration, seed)
 }
 
 rcpparma_hello_world <- function() {
