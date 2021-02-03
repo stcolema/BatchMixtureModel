@@ -1,7 +1,9 @@
 #!/usr/bin/Rscript
 #
 #' @title Generate batch data
-#' @description Generate data from clusters across batches.
+#' @description Generate data from clusters across batches. Assumes independence
+#' across columns. In each column the parameters are randomly permuted for both
+#' the clusters and batches.
 #' @param N The number of items (rows) to generate.
 #' @param P The number of columns in the generated dataset.
 #' @param cluster_means A vector of the cluster means for a column.
