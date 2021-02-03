@@ -301,11 +301,11 @@ set.seed(1)
 N <- 400
 P <- 2
 K <- 3
-B <- 5
+B <- 10
 mean_dist <- 7
-batch_dist <- 1
+batch_dist <- 2
 cluster_means <- 1:K * mean_dist
-batch_shift <- rnorm(B) #   1:B * batch_dist
+batch_shift <- rnorm(B, mean = batch_dist) #   1:B * batch_dist
 std_dev <- rep(2, K)
 batch_var <- rep(1, B) #  rgamma(n = B, shape = 1, scale = 1)
 cluster_weights <- rep(1 / K, K)
@@ -414,7 +414,7 @@ mus %>%
     subtitle = paste0(n_draw, " draws")
   )
 
-ggsave("../prior_mu_k.png")
+# ggsave("../prior_mu_k.png")
 
 # Batch variables
 S_samples <- rgamma(n_draw, rho, theta)
@@ -512,14 +512,14 @@ S_samples_2 %>%
 R <- 10000
 thin <- 100
 
-K_max <- K
+K_max <- 15
 # Some random initialisation
 c_init <- sample(1:K_max, N, replace = T)
 
 samples <- sampleMixtureModel(
-  matrix(X[,1], ncol = 1),
+  # matrix(X[,1], ncol = 1),
   # X_true,
-  # X,
+  X,
   # K,
   K_max,
   # 1,
