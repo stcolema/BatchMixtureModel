@@ -27,9 +27,10 @@ NULL
 
 #' @name mvnSampler
 #' @title Multivariate Normal mixture type
-#' @description The sampler for the Multivariate Normal mixture model.
+#' @description The sampler for the Multivariate Normal mixture model for batch effects.
 #' @field new Constructor \itemize{
 #' \item Parameter: K - the number of components to model
+#' \item Parameter: B - the number of batches present
 #' \item Parameter: labels - the initial clustering of the data
 #' \item Parameter: concentration - the vector for the prior concentration of 
 #' the Dirichlet distribution of the component weights
@@ -59,8 +60,8 @@ NULL
 #' @param concentration Vector of concentrations for mixture weights (recommended to be symmetric).
 #' @return Named list of the matrix of MCMC samples generated (each row 
 #' corresponds to a different sample) and BIC for each saved iteration.
-sampleMixtureModel <- function(X, K, B, labels, batch_vec, proposal_window, proposal_window_for_logs, proposal_window_for_S, R, thin, concentration, seed) {
-    .Call(`_BatchMixtureModel_sampleMixtureModel`, X, K, B, labels, batch_vec, proposal_window, proposal_window_for_logs, proposal_window_for_S, R, thin, concentration, seed)
+sampleMixtureModel <- function(X, K, B, labels, batch_vec, proposal_window, proposal_window_for_logs, proposal_window_for_S, R, thin, concentration, verbose = TRUE) {
+    .Call(`_BatchMixtureModel_sampleMixtureModel`, X, K, B, labels, batch_vec, proposal_window, proposal_window_for_logs, proposal_window_for_S, R, thin, concentration, verbose)
 }
 
 rcpparma_hello_world <- function() {

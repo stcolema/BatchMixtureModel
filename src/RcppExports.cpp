@@ -7,8 +7,8 @@
 using namespace Rcpp;
 
 // sampleMixtureModel
-Rcpp::List sampleMixtureModel(arma::mat X, arma::uword K, arma::uword B, arma::uvec labels, arma::uvec batch_vec, double proposal_window, double proposal_window_for_logs, double proposal_window_for_S, arma::uword R, arma::uword thin, arma::vec concentration, arma::uword seed);
-RcppExport SEXP _BatchMixtureModel_sampleMixtureModel(SEXP XSEXP, SEXP KSEXP, SEXP BSEXP, SEXP labelsSEXP, SEXP batch_vecSEXP, SEXP proposal_windowSEXP, SEXP proposal_window_for_logsSEXP, SEXP proposal_window_for_SSEXP, SEXP RSEXP, SEXP thinSEXP, SEXP concentrationSEXP, SEXP seedSEXP) {
+Rcpp::List sampleMixtureModel(arma::mat X, arma::uword K, arma::uword B, arma::uvec labels, arma::uvec batch_vec, double proposal_window, double proposal_window_for_logs, double proposal_window_for_S, arma::uword R, arma::uword thin, arma::vec concentration, bool verbose);
+RcppExport SEXP _BatchMixtureModel_sampleMixtureModel(SEXP XSEXP, SEXP KSEXP, SEXP BSEXP, SEXP labelsSEXP, SEXP batch_vecSEXP, SEXP proposal_windowSEXP, SEXP proposal_window_for_logsSEXP, SEXP proposal_window_for_SSEXP, SEXP RSEXP, SEXP thinSEXP, SEXP concentrationSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -23,8 +23,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::uword >::type R(RSEXP);
     Rcpp::traits::input_parameter< arma::uword >::type thin(thinSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type concentration(concentrationSEXP);
-    Rcpp::traits::input_parameter< arma::uword >::type seed(seedSEXP);
-    rcpp_result_gen = Rcpp::wrap(sampleMixtureModel(X, K, B, labels, batch_vec, proposal_window, proposal_window_for_logs, proposal_window_for_S, R, thin, concentration, seed));
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(sampleMixtureModel(X, K, B, labels, batch_vec, proposal_window, proposal_window_for_logs, proposal_window_for_S, R, thin, concentration, verbose));
     return rcpp_result_gen;
 END_RCPP
 }

@@ -753,9 +753,10 @@ public:
 
 //' @name mvnSampler
 //' @title Multivariate Normal mixture type
-//' @description The sampler for the Multivariate Normal mixture model.
+//' @description The sampler for the Multivariate Normal mixture model for batch effects.
 //' @field new Constructor \itemize{
 //' \item Parameter: K - the number of components to model
+//' \item Parameter: B - the number of batches present
 //' \item Parameter: labels - the initial clustering of the data
 //' \item Parameter: concentration - the vector for the prior concentration of 
 //' the Dirichlet distribution of the component weights
@@ -1292,7 +1293,7 @@ public:
     clusterMeanMetropolis();
     
     // Update the matrix combinations (should be redundant.)
-    matrixCombinations();
+    // matrixCombinations();
   };
   
 };
@@ -1322,7 +1323,7 @@ Rcpp::List sampleMixtureModel (
     arma::uword R,
     arma::uword thin,
     arma::vec concentration,
-    arma::uword seed
+    bool verbose = true
 ) {
   
   // The random seed is set at the R level via set.seed() apparently.
@@ -1435,11 +1436,12 @@ Rcpp::List sampleMixtureModel (
     }
   }
   
-  std::cout << "\n\nCovariance acceptance vector:\n" << my_sampler.cov_count;
-  std::cout << "\n\ncluster mean acceptance:\n" << my_sampler.mu_count;
-  std::cout << "\n\nBatch covariance acceptance:\n" << my_sampler.S_count;
-  std::cout << "\n\nBatch mean acceptance:\n" << my_sampler.m_count;
-  
+  if(verbose) {
+    std::cout << "\n\nCovariance acceptance vector:\n" << my_sampler.cov_count;
+    std::cout << "\n\ncluster mean acceptance:\n" << my_sampler.mu_count;
+    std::cout << "\n\nBatch covariance acceptance:\n" << my_sampler.S_count;
+    std::cout << "\n\nBatch mean acceptance:\n" << my_sampler.m_count;
+  }
   
   return(List::create(Named("samples") = class_record, 
                       Named("means") = mu_saved,
