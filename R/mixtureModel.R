@@ -85,7 +85,6 @@ mixtureModel <- function(X, R, thin, batch_vec,
     R,
     thin,
     concentration,
-    seed,
     verbose
   )
 
