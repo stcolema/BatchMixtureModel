@@ -8,7 +8,7 @@ Author: c(person("Stephen", "Coleman", role=c("aut","cre"),
 Maintainer: Stephen Coleman <stephen.coleman@mrc-bsu.cam.ac.uk>
 Description: This package is for Bayesian mixture models extended to model batch effects.
 License: GPL
-Imports: Rcpp (>= 1.0.5), RcppArmadillo, RcppParallel
+Imports: Rcpp (>= 1.0.5), RcppArmadillo, RcppParallel, tidyr, ggplot2
 LinkingTo: Rcpp, RcppArmadillo, RcppThread, RcppParallel
 biocViews:
 SystemRequirements: GNU make
