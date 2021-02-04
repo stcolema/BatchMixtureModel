@@ -6,9 +6,9 @@
 
 using namespace Rcpp;
 
-// sampleMixtureModel
-Rcpp::List sampleMixtureModel(arma::mat X, arma::uword K, arma::uword B, arma::uvec labels, arma::uvec batch_vec, double proposal_window, double proposal_window_for_logs, double proposal_window_for_S, arma::uword R, arma::uword thin, arma::vec concentration, bool verbose);
-RcppExport SEXP _BatchMixtureModel_sampleMixtureModel(SEXP XSEXP, SEXP KSEXP, SEXP BSEXP, SEXP labelsSEXP, SEXP batch_vecSEXP, SEXP proposal_windowSEXP, SEXP proposal_window_for_logsSEXP, SEXP proposal_window_for_SSEXP, SEXP RSEXP, SEXP thinSEXP, SEXP concentrationSEXP, SEXP verboseSEXP) {
+// sampleBatchMixtureModel
+Rcpp::List sampleBatchMixtureModel(arma::mat X, arma::uword K, arma::uword B, arma::uvec labels, arma::uvec batch_vec, double mean_proposal_window, double cov_proposal_window, double S_proposal_window, double rho, double theta, double lambda, arma::uword R, arma::uword thin, arma::vec concentration, bool verbose, bool doCombinations, bool printCovariance);
+RcppExport SEXP _BatchMixtureModel_sampleBatchMixtureModel(SEXP XSEXP, SEXP KSEXP, SEXP BSEXP, SEXP labelsSEXP, SEXP batch_vecSEXP, SEXP mean_proposal_windowSEXP, SEXP cov_proposal_windowSEXP, SEXP S_proposal_windowSEXP, SEXP rhoSEXP, SEXP thetaSEXP, SEXP lambdaSEXP, SEXP RSEXP, SEXP thinSEXP, SEXP concentrationSEXP, SEXP verboseSEXP, SEXP doCombinationsSEXP, SEXP printCovarianceSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -17,14 +17,19 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::uword >::type B(BSEXP);
     Rcpp::traits::input_parameter< arma::uvec >::type labels(labelsSEXP);
     Rcpp::traits::input_parameter< arma::uvec >::type batch_vec(batch_vecSEXP);
-    Rcpp::traits::input_parameter< double >::type proposal_window(proposal_windowSEXP);
-    Rcpp::traits::input_parameter< double >::type proposal_window_for_logs(proposal_window_for_logsSEXP);
-    Rcpp::traits::input_parameter< double >::type proposal_window_for_S(proposal_window_for_SSEXP);
+    Rcpp::traits::input_parameter< double >::type mean_proposal_window(mean_proposal_windowSEXP);
+    Rcpp::traits::input_parameter< double >::type cov_proposal_window(cov_proposal_windowSEXP);
+    Rcpp::traits::input_parameter< double >::type S_proposal_window(S_proposal_windowSEXP);
+    Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
+    Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
     Rcpp::traits::input_parameter< arma::uword >::type R(RSEXP);
     Rcpp::traits::input_parameter< arma::uword >::type thin(thinSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type concentration(concentrationSEXP);
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
-    rcpp_result_gen = Rcpp::wrap(sampleMixtureModel(X, K, B, labels, batch_vec, proposal_window, proposal_window_for_logs, proposal_window_for_S, R, thin, concentration, verbose));
+    Rcpp::traits::input_parameter< bool >::type doCombinations(doCombinationsSEXP);
+    Rcpp::traits::input_parameter< bool >::type printCovariance(printCovarianceSEXP);
+    rcpp_result_gen = Rcpp::wrap(sampleBatchMixtureModel(X, K, B, labels, batch_vec, mean_proposal_window, cov_proposal_window, S_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -73,7 +78,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_BatchMixtureModel_sampleMixtureModel", (DL_FUNC) &_BatchMixtureModel_sampleMixtureModel, 12},
+    {"_BatchMixtureModel_sampleBatchMixtureModel", (DL_FUNC) &_BatchMixtureModel_sampleBatchMixtureModel, 17},
     {"_BatchMixtureModel_rcpparma_hello_world", (DL_FUNC) &_BatchMixtureModel_rcpparma_hello_world, 0},
     {"_BatchMixtureModel_rcpparma_outerproduct", (DL_FUNC) &_BatchMixtureModel_rcpparma_outerproduct, 1},
     {"_BatchMixtureModel_rcpparma_innerproduct", (DL_FUNC) &_BatchMixtureModel_rcpparma_innerproduct, 1},

@@ -21,7 +21,7 @@
 #' plotSampledBatchMeans(samples, R, thin)
 #' @importFrom ggplot2 ggplot aes geom_point facet_wrap labs
 #' @export
-plotSampledBatchMeans <- function(samples, R = NULL, thin = 1) {
+plotSampledBatchMeans <- function(samples, R = NULL, thin = 1, burn_in = 0) {
   B <- ncol(samples$batch_shift[, , 1])
   P <- nrow(samples$batch_shift[, , 1])
   
@@ -35,6 +35,8 @@ plotSampledBatchMeans <- function(samples, R = NULL, thin = 1) {
   }
   
   sampled_batch_shift <- getSampledBatchShift(samples$batch_shift, B, P, R = R, thin = thin)
+  
+  sampled_batch_shift <- sampled_batch_shift[sampled_batch_shift$Iteration > burn_in, ]
   
   p <- ggplot2::ggplot(sampled_batch_shift, ggplot2::aes(x = Iteration, y = value)) +
     ggplot2::geom_point() +

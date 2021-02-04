@@ -37,15 +37,15 @@ getSampledBatchShift <- function(sampled_batch_shift,
   }
   
   # Stack the sampled matrices on top of each other
-  sampled_batch_shift <- as.data.frame(t(apply(sampled_batch_shift, 3L, rbind)))
+  sample_df <- data.frame(t(apply(sampled_batch_shift, 3L, rbind)))
   
   # Give sensible column names
-  colnames(sampled_batch_shift) <- suppressWarnings(paste0("M_", sort(levels(interaction(1:B, 1:P, sep = "")))))
+  colnames(sample_df) <- suppressWarnings(paste0("M_", sort(levels(interaction(1:B, 1:P, sep = "")))))
   
   # Add a variable for the iteration the sample comes from
-  sampled_batch_shift$Iteration <- c(1:(R / thin)) * thin
+  sample_df$Iteration <- c(1:(R / thin)) * thin
 
   # Pivot to a long format ready for ``ggplot2``
-  long_format_sampled_batch_shift <- tidyr::pivot_longer(sampled_batch_shift, contains("M_"))
-  long_format_sampled_batch_shift
+  long_sample_df <- tidyr::pivot_longer(sample_df, contains("M_"))
+  long_sample_df
 }

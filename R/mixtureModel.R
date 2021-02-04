@@ -1,6 +1,6 @@
 #!/usr/bin/Rscript
-#' @title Mixture model
-#' @description A Bayesian mixture model.
+#' @title Batch mixture model
+#' @description A Bayesian mixture model with batch effects.
 #' @param X Data to cluster as a matrix with the items to cluster held in rows.
 #' @param R The number of iterations in the sampler.
 #' @param thin The factor by which the samples generated are thinned, e.g. if ``thin=50`` only every 50th sample is kept.
@@ -9,9 +9,9 @@
 #' @param K_max The number of components to include (the upper bound on the number of clusters found).
 #' @param alpha The concentration parameter for the stick-breaking prior and the weights in the model.
 #' @param verbose The random seed for reproducibility.
-#' @param mean_proposal_windows The proposal window for the mean proposal kernel.
-#' @param cov_proposal_windows The proposal window for the cluster covariance proposal kernel.
-#' @param S_proposal_windows The proposal window for the batch standard deviation proposal kernel.
+#' @param mean_proposal_window The proposal window for the mean proposal kernel.
+#' @param cov_proposal_window The proposal window for the cluster covariance proposal kernel.
+#' @param S_proposal_window The proposal window for the batch standard deviation proposal kernel.
 #' @param verbose A bool indicating if the acceptance count for each parameter should be printed or not.
 #' @return Named list of the matrix of MCMC samples generated (each row
 #' corresponds to a different sample) and BIC for each saved iteration.
@@ -30,17 +30,42 @@
 #' pred_cl <- mcclust::maxpear(samples$samples)$cl
 #' psm <- createSimilarityMatrix(pred_cl)
 #' @export
-mixtureModel <- function(X, R, thin, batch_vec,
+batchMixtureModel <- function(X, R, thin, batch_vec,
                          initial_labels = NULL,
                          K_max = 50,
                          alpha = 1,
                          mean_proposal_window = 0.5**2,
                          cov_proposal_window = 100,
                          S_proposal_window = 100,
-                         verbose = FALSE) {
+                         rho = 41.0,
+                         theta = 40.0,
+                         lambda = 1.0,
+                         verbose = FALSE,
+                         doCombinations = FALSE,
+                         printCovariance = FALSE) {
   if (!is.matrix(X)) {
     stop("X is not a matrix. Data should be in matrix format.")
   }
+  
+  if(length(batch_vec) != nrow(X)){
+    stop("The number of rows in X and the number of batch labels are not equal.")
+  }
+  
+  if(rho < 2.0) {
+    stop("rho parameter must be a whole number greater than or equal to 2.")
+  }
+  
+  if(theta < 1.0) {
+    stop("rho parameter must be a positive whole.")
+  }
+  
+  if(lambda <= 0.0) {
+    stop("lambda must be a positive real number.")
+  }
+  
+  # if(theta != (rho - 1)) {
+  #   warning("The prior on the batch mean parameters is no longer expected to be standard normal.")
+  # }
 
   if (R < thin) {
     warning("Iterations to run less than thinning factor. No samples recorded.")
@@ -49,6 +74,10 @@ mixtureModel <- function(X, R, thin, batch_vec,
   if (is.null(initial_labels)) {
     # Sample the stick breaking prior
     initial_labels <- priorLabels(alpha, K_max, nrow(X))
+  } else {
+    if(length(initial_labels) != nrow(X)){
+      stop("Number of membership labels does not equal the number of items in X.")
+    }
   }
 
   # Check that the initial labels starts at 0, if not remedy this.
@@ -73,7 +102,7 @@ mixtureModel <- function(X, R, thin, batch_vec,
   concentration <- rep(alpha, K_max)
 
   # Pull samples from the mixture model
-  samples <- sampleMixtureModel(
+  samples <- sampleBatchMixtureModel(
     X,
     K_max,
     B,
@@ -82,10 +111,15 @@ mixtureModel <- function(X, R, thin, batch_vec,
     mean_proposal_window,
     cov_proposal_window,
     S_proposal_window,
+    rho,
+    theta,
+    lambda,
     R,
     thin,
     concentration,
-    verbose
+    verbose,
+    doCombinations,
+    printCovariance
   )
 
   samples

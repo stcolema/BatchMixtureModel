@@ -21,7 +21,7 @@
 #' plotSampledClusterMeans(samples, R, thin)
 #' @importFrom ggplot2 ggplot aes geom_point facet_wrap labs
 #' @export
-plotSampledClusterMeans <- function(samples, R = NULL, thin = 1) {
+plotSampledClusterMeans <- function(samples, R = NULL, thin = 1, burn_in = 0) {
   
   K <- ncol(samples$means[, , 1])
   P <- nrow(samples$means[, , 1])
@@ -37,6 +37,8 @@ plotSampledClusterMeans <- function(samples, R = NULL, thin = 1) {
   
   sampled_cluster_means <- getSampledClusterMeans(samples$means, K, P, R = R, thin = thin)
   
+  sampled_cluster_means <- sampled_cluster_means[sampled_cluster_means$Iteration > burn_in, ]
+                                             
   p <- ggplot(sampled_cluster_means, aes(x = Iteration, y = value)) +
     geom_point() +
     facet_wrap(~name, ncol = P) +

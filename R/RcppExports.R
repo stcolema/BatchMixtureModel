@@ -49,8 +49,8 @@ NULL
 #' }
 NULL
 
-#' @title Mixture model
-#' @description Performs MCMC sampling for a mixture model.
+#' @title Sample batch mixture model
+#' @description Performs MCMC sampling for a mixture model with batch effects.
 #' @param X The data matrix to perform clustering upon (items to cluster in rows).
 #' @param K The number of components to model (upper limit on the number of clusters found).
 #' @param labels Vector item labels to initialise from.
@@ -60,8 +60,8 @@ NULL
 #' @param concentration Vector of concentrations for mixture weights (recommended to be symmetric).
 #' @return Named list of the matrix of MCMC samples generated (each row 
 #' corresponds to a different sample) and BIC for each saved iteration.
-sampleMixtureModel <- function(X, K, B, labels, batch_vec, proposal_window, proposal_window_for_logs, proposal_window_for_S, R, thin, concentration, verbose = TRUE) {
-    .Call(`_BatchMixtureModel_sampleMixtureModel`, X, K, B, labels, batch_vec, proposal_window, proposal_window_for_logs, proposal_window_for_S, R, thin, concentration, verbose)
+sampleBatchMixtureModel <- function(X, K, B, labels, batch_vec, mean_proposal_window, cov_proposal_window, S_proposal_window, rho, theta, lambda, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
+    .Call(`_BatchMixtureModel_sampleBatchMixtureModel`, X, K, B, labels, batch_vec, mean_proposal_window, cov_proposal_window, S_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance)
 }
 
 rcpparma_hello_world <- function() {
