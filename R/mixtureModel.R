@@ -9,8 +9,9 @@
 #' @param K_max The number of components to include (the upper bound on the number of clusters found).
 #' @param alpha The concentration parameter for the stick-breaking prior and the weights in the model.
 #' @param verbose The random seed for reproducibility.
-#' @param mean_proposal_window The proposal window for the mean proposal kernel.
+#' @param mu_proposal_window The proposal window for the cluster mean proposal kernel.
 #' @param cov_proposal_window The proposal window for the cluster covariance proposal kernel.
+#' @param m_proposal_window The proposal window for the batch mean proposal kernel.
 #' @param S_proposal_window The proposal window for the batch standard deviation proposal kernel.
 #' @param verbose A bool indicating if the acceptance count for each parameter should be printed or not.
 #' @return Named list of the matrix of MCMC samples generated (each row
@@ -34,8 +35,9 @@ batchMixtureModel <- function(X, R, thin, batch_vec,
                          initial_labels = NULL,
                          K_max = 50,
                          alpha = 1,
-                         mean_proposal_window = 0.5**2,
+                         mu_proposal_window = 0.5**2,
                          cov_proposal_window = 100,
+                         m_proposal_window = 0.3**2,
                          S_proposal_window = 100,
                          rho = 41.0,
                          theta = 40.0,
@@ -108,8 +110,9 @@ batchMixtureModel <- function(X, R, thin, batch_vec,
     B,
     initial_labels,
     batch_vec,
-    mean_proposal_window,
+    mu_proposal_window,
     cov_proposal_window,
+    m_proposal_window,
     S_proposal_window,
     rho,
     theta,
