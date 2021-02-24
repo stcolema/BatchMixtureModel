@@ -64,8 +64,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // samplePredictiveSkewNormalMixtureModel
-Rcpp::List samplePredictiveSkewNormalMixtureModel(arma::mat X, arma::uword K, arma::uword B, arma::uvec labels, arma::uvec batch_vec, arma::uvec fixed, double mu_proposal_window, double cov_proposal_window, double m_proposal_window, double S_proposal_window, double omega_proposal_window, double rho, double theta, double lambda, arma::uword R, arma::uword thin, arma::vec concentration, bool verbose, bool doCombinations, bool printCovariance);
-RcppExport SEXP _BatchMixtureModel_samplePredictiveSkewNormalMixtureModel(SEXP XSEXP, SEXP KSEXP, SEXP BSEXP, SEXP labelsSEXP, SEXP batch_vecSEXP, SEXP fixedSEXP, SEXP mu_proposal_windowSEXP, SEXP cov_proposal_windowSEXP, SEXP m_proposal_windowSEXP, SEXP S_proposal_windowSEXP, SEXP omega_proposal_windowSEXP, SEXP rhoSEXP, SEXP thetaSEXP, SEXP lambdaSEXP, SEXP RSEXP, SEXP thinSEXP, SEXP concentrationSEXP, SEXP verboseSEXP, SEXP doCombinationsSEXP, SEXP printCovarianceSEXP) {
+Rcpp::List samplePredictiveSkewNormalMixtureModel(arma::mat X, arma::uword K, arma::uword B, arma::uvec labels, arma::uvec batch_vec, arma::uvec fixed, double mu_proposal_window, double cov_proposal_window, double m_proposal_window, double S_proposal_window, double phi_proposal_window, double rho, double theta, double lambda, arma::uword R, arma::uword thin, arma::vec concentration, bool verbose, bool doCombinations, bool printCovariance);
+RcppExport SEXP _BatchMixtureModel_samplePredictiveSkewNormalMixtureModel(SEXP XSEXP, SEXP KSEXP, SEXP BSEXP, SEXP labelsSEXP, SEXP batch_vecSEXP, SEXP fixedSEXP, SEXP mu_proposal_windowSEXP, SEXP cov_proposal_windowSEXP, SEXP m_proposal_windowSEXP, SEXP S_proposal_windowSEXP, SEXP phi_proposal_windowSEXP, SEXP rhoSEXP, SEXP thetaSEXP, SEXP lambdaSEXP, SEXP RSEXP, SEXP thinSEXP, SEXP concentrationSEXP, SEXP verboseSEXP, SEXP doCombinationsSEXP, SEXP printCovarianceSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -79,7 +79,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type cov_proposal_window(cov_proposal_windowSEXP);
     Rcpp::traits::input_parameter< double >::type m_proposal_window(m_proposal_windowSEXP);
     Rcpp::traits::input_parameter< double >::type S_proposal_window(S_proposal_windowSEXP);
-    Rcpp::traits::input_parameter< double >::type omega_proposal_window(omega_proposal_windowSEXP);
+    Rcpp::traits::input_parameter< double >::type phi_proposal_window(phi_proposal_windowSEXP);
     Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
     Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
     Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
@@ -89,13 +89,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
     Rcpp::traits::input_parameter< bool >::type doCombinations(doCombinationsSEXP);
     Rcpp::traits::input_parameter< bool >::type printCovariance(printCovarianceSEXP);
-    rcpp_result_gen = Rcpp::wrap(samplePredictiveSkewNormalMixtureModel(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, omega_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance));
+    rcpp_result_gen = Rcpp::wrap(samplePredictiveSkewNormalMixtureModel(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, phi_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance));
     return rcpp_result_gen;
 END_RCPP
 }
 // sampleBatchSkewNormalMixtureModel
-Rcpp::List sampleBatchSkewNormalMixtureModel(arma::mat X, arma::uword K, arma::uword B, arma::uvec labels, arma::uvec batch_vec, double mu_proposal_window, double cov_proposal_window, double m_proposal_window, double S_proposal_window, double omega_proposal_window, double rho, double theta, double lambda, arma::uword R, arma::uword thin, arma::vec concentration, bool verbose, bool doCombinations, bool printCovariance);
-RcppExport SEXP _BatchMixtureModel_sampleBatchSkewNormalMixtureModel(SEXP XSEXP, SEXP KSEXP, SEXP BSEXP, SEXP labelsSEXP, SEXP batch_vecSEXP, SEXP mu_proposal_windowSEXP, SEXP cov_proposal_windowSEXP, SEXP m_proposal_windowSEXP, SEXP S_proposal_windowSEXP, SEXP omega_proposal_windowSEXP, SEXP rhoSEXP, SEXP thetaSEXP, SEXP lambdaSEXP, SEXP RSEXP, SEXP thinSEXP, SEXP concentrationSEXP, SEXP verboseSEXP, SEXP doCombinationsSEXP, SEXP printCovarianceSEXP) {
+Rcpp::List sampleBatchSkewNormalMixtureModel(arma::mat X, arma::uword K, arma::uword B, arma::uvec labels, arma::uvec batch_vec, double mu_proposal_window, double cov_proposal_window, double m_proposal_window, double S_proposal_window, double phi_proposal_window, double rho, double theta, double lambda, arma::uword R, arma::uword thin, arma::vec concentration, bool verbose, bool doCombinations, bool printCovariance);
+RcppExport SEXP _BatchMixtureModel_sampleBatchSkewNormalMixtureModel(SEXP XSEXP, SEXP KSEXP, SEXP BSEXP, SEXP labelsSEXP, SEXP batch_vecSEXP, SEXP mu_proposal_windowSEXP, SEXP cov_proposal_windowSEXP, SEXP m_proposal_windowSEXP, SEXP S_proposal_windowSEXP, SEXP phi_proposal_windowSEXP, SEXP rhoSEXP, SEXP thetaSEXP, SEXP lambdaSEXP, SEXP RSEXP, SEXP thinSEXP, SEXP concentrationSEXP, SEXP verboseSEXP, SEXP doCombinationsSEXP, SEXP printCovarianceSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -108,7 +108,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type cov_proposal_window(cov_proposal_windowSEXP);
     Rcpp::traits::input_parameter< double >::type m_proposal_window(m_proposal_windowSEXP);
     Rcpp::traits::input_parameter< double >::type S_proposal_window(S_proposal_windowSEXP);
-    Rcpp::traits::input_parameter< double >::type omega_proposal_window(omega_proposal_windowSEXP);
+    Rcpp::traits::input_parameter< double >::type phi_proposal_window(phi_proposal_windowSEXP);
     Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
     Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
     Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
@@ -118,7 +118,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
     Rcpp::traits::input_parameter< bool >::type doCombinations(doCombinationsSEXP);
     Rcpp::traits::input_parameter< bool >::type printCovariance(printCovarianceSEXP);
-    rcpp_result_gen = Rcpp::wrap(sampleBatchSkewNormalMixtureModel(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, omega_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance));
+    rcpp_result_gen = Rcpp::wrap(sampleBatchSkewNormalMixtureModel(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, phi_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance));
     return rcpp_result_gen;
 END_RCPP
 }

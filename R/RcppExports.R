@@ -104,12 +104,12 @@ sampleSemisupervisedMixtureModel <- function(X, K, B, labels, batch_vec, fixed, 
     .Call(`_BatchMixtureModel_sampleSemisupervisedMixtureModel`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance)
 }
 
-samplePredictiveSkewNormalMixtureModel <- function(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, omega_proposal_window, rho, theta, lambda, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
-    .Call(`_BatchMixtureModel_samplePredictiveSkewNormalMixtureModel`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, omega_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance)
+samplePredictiveSkewNormalMixtureModel <- function(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, phi_proposal_window, rho, theta, lambda, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
+    .Call(`_BatchMixtureModel_samplePredictiveSkewNormalMixtureModel`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, phi_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance)
 }
 
-sampleBatchSkewNormalMixtureModel <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, omega_proposal_window, rho, theta, lambda, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
-    .Call(`_BatchMixtureModel_sampleBatchSkewNormalMixtureModel`, X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, omega_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance)
+sampleBatchSkewNormalMixtureModel <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, phi_proposal_window, rho, theta, lambda, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
+    .Call(`_BatchMixtureModel_sampleBatchSkewNormalMixtureModel`, X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, phi_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance)
 }
 
 rcpparma_hello_world <- function() {
