@@ -45,12 +45,6 @@ double logNormalLogProbability(double x, double mu, double sigma2) {
 // }
 
 double logWishartProbability(arma::mat X, arma::mat V, double n, arma::uword P){
-  // double a = 0.0, b = 0.0, c = 0.0, out = 0.0;
-  // a = (n - P - 1) * arma::log_det(X).real();
-  // b = arma::trace(arma::inv(V) * X);
-  // c = n * arma::log_det(V).real();
-  // out = 0.5 * (a - b - c);
-  // return out;
   double out = 0.5*((n - P - 1) * arma::log_det(X).real() - arma::trace(arma::inv(V) * X) - n * arma::log_det(V).real());
   return out;
 }
@@ -936,9 +930,9 @@ public:
         //   S(p, b) = 1.0;
         //   m(p, b) = 0.0;
         // } else {
-          S(p, b) = 1.0 / arma::randg<double>( arma::distr_param(rho, 1.0 / theta ) );
+            S(p, b) = 1.0 / arma::randg<double>( arma::distr_param(rho, 1.0 / theta ) );
         // S(p, b) = 1.0;
-        m(p, b) = arma::randn<double>() * S(p, b) / lambda + delta(p);
+          m(p, b) = arma::randn<double>() * S(p, b) / lambda + delta(p);
         // m(p, b) = arma::randn<double>() / lambda + delta(p);
         // }
       }
@@ -996,6 +990,8 @@ public:
   
   virtual void calcBIC(){
     
+    // Each component has a mean vector and a symmetric covariance matrix. 
+    // Each batch has a mean and standard deviations vector.
     arma::uword n_param = (P + P * (P + 1) * 0.5) * K_occ + (2 * P) * B;
     BIC = n_param * std::log(N) - 2 * model_likelihood;
     
@@ -1062,10 +1058,10 @@ public:
   };
   
   virtual double covLogKernel(arma::uword k, arma::mat cov_k, 
-                      double cov_log_det,
-                      arma::mat cov_inv,
-                      arma::vec cov_comb_log_det,
-                      arma::cube cov_comb_inv) {
+                              double cov_log_det,
+                              arma::mat cov_inv,
+                              arma::vec cov_comb_log_det,
+                              arma::cube cov_comb_inv) {
     
     arma::uword b = 0;
     double score = 0.0;
@@ -1093,7 +1089,7 @@ public:
     proposed_cov_comb.zeros();
     proposed_cov_comb_inv.zeros();
     
-    for(arma::uword b = 0; b < B ; b++) {
+    for(arma::uword b = 0; b < B; b++) {
       
       acceptance_prob = 0.0, proposed_model_score = 0.0, current_model_score = 0.0;
       
@@ -1117,15 +1113,15 @@ public:
       }
       
       proposed_model_score += sLogKernel(b, 
-                                         S_proposed, 
-                                         proposed_cov_comb_log_det,
-                                         proposed_cov_comb_inv
+        S_proposed, 
+        proposed_cov_comb_log_det,
+        proposed_cov_comb_inv
       );
       
       current_model_score += sLogKernel(b, 
-                                        S.col(b), 
-                                        cov_comb_log_det.col(b),
-                                        cov_comb_inv.slices(KB_inds + b)
+        S.col(b), 
+        cov_comb_log_det.col(b),
+        cov_comb_inv.slices(KB_inds + b)
       );
       
       u = arma::randu();
@@ -1153,14 +1149,11 @@ public:
     arma::mat proposed_mean_sum(P, K);
     m_proposed.zeros();
     
-    for(arma::uword b = 0; b < B ; b++) {
+    for(arma::uword b = 0; b < B; b++) {
+      // std::cout << "\nIn here.\n";
       for(arma::uword p = 0; p < P; p++){
-        // if((m(p, b) < X_min(p)) || (m(p, b) > X_max(p))) {
-        //   m(p, b) = arma::randn<double>() * S(p, b) / lambda + delta(p);
-        // } else {
         // The proposal window is now a diagonal matrix of common entries.
         m_proposed(p) = (arma::randn() * m_proposal_window) + m(p, b);
-        // }
       }
       
       for(arma::uword k = 0; k < K; k++) {
@@ -1168,8 +1161,11 @@ public:
       }
       
       proposed_model_score = mLogKernel(b, m_proposed, proposed_mean_sum);
-      
       current_model_score = mLogKernel(b, m.col(b), mean_sum.cols(KB_inds + b));
+      
+      // std::cout << "\nProposed value:\n\n" << m_proposed << 
+      //   "\n\nProposed model score: " <<  proposed_model_score << 
+      //     "nCurrent model score: " <<  current_model_score;
       
       u = arma::randu();
       acceptance_prob = std::min(1.0, std::exp(proposed_model_score - current_model_score));
@@ -1217,9 +1213,9 @@ public:
           proposed_cov_comb_inv.slice(b) = arma::inv(proposed_cov_comb.slice(b));
         }
       } else {
-        
+
         cov_proposed = arma::wishrnd(cov.slice(k) / cov_proposal_window, cov_proposal_window);
-        
+
         // Log probability under the proposal density
         proposed_model_score = logWishartProbability(cov.slice(k), cov_proposed / cov_proposal_window, cov_proposal_window, P);
         current_model_score = logWishartProbability(cov_proposed, cov.slice(k) / cov_proposal_window, cov_proposal_window, P);
@@ -1238,19 +1234,19 @@ public:
         // The boolean variables indicate use of the old manipulated matrix or the 
         // proposed.
         proposed_model_score += covLogKernel(k, 
-                                             cov_proposed,
-                                             proposed_cov_log_det,
-                                             proposed_cov_inv,
-                                             proposed_cov_comb_log_det,
-                                             proposed_cov_comb_inv
+          cov_proposed,
+          proposed_cov_log_det,
+          proposed_cov_inv,
+          proposed_cov_comb_log_det,
+          proposed_cov_comb_inv
         );
         
         current_model_score += covLogKernel(k, 
-                                            cov.slice(k), 
-                                            cov_log_det(k),
-                                            cov_inv.slice(k),
-                                            cov_comb_log_det.row(k).t(),
-                                            cov_comb_inv.slices(k * B + B_inds)
+          cov.slice(k), 
+          cov_log_det(k),
+          cov_inv.slice(k),
+          cov_comb_log_det.row(k).t(),
+          cov_comb_inv.slices(k * B + B_inds)
         );
         
         // std::cout << "\n\nProposed Cov:\n"<< cov_proposed << "\n\nCurrent cov:\n" << cov.slice(k) << "\n\nProposed score: " << proposed_model_score << "\nCurrent score: " << current_model_score;
@@ -1323,21 +1319,6 @@ public:
   
   virtual void metropolisStep(bool doCombinations) {
     
-    // Metropolis step for batch parameters if more than 1 batch
-    if(B > 1){
-      // std::cout << "\n\nBatch covariance.\n";
-      batchScaleMetropolis();
-      // std::cout << "\nBatch mean.\n";
-    
-      // Update the matrix combinations (should be redundant.)
-      if(doCombinations) {
-        matrixCombinations();
-      }
-      
-      batchShiftMetorpolis();
-      
-    }
-    
     // Metropolis step for cluster parameters
     // std::cout << "\nCluster covariance.\n";
     clusterCovarianceMetropolis();
@@ -1354,6 +1335,21 @@ public:
     if(doCombinations) {
       matrixCombinations();
     }
+    
+    // Metropolis step for batch parameters if more than 1 batch
+    // if(B > 1){
+    // std::cout << "\n\nBatch covariance.\n";
+    batchScaleMetropolis();
+    // std::cout << "\nBatch mean.\n";
+    
+    // Update the matrix combinations (should be redundant.)
+    if(doCombinations) {
+      matrixCombinations();
+    }
+    
+    batchShiftMetorpolis();
+    
+    // }
   };
   
 };
@@ -1366,7 +1362,8 @@ public:
   
   arma::uword N_fixed = 0;
   arma::uvec fixed, unfixed_ind;
-
+  arma::mat alloc_prob;
+  
   using sampler::sampler;
   
   semisupervisedSampler(
@@ -1380,16 +1377,25 @@ public:
   ) : 
     sampler(_K, _B, _labels, _batch_vec, _concentration, _X) {
     
+    arma::uvec fixed_ind(N);
+    
     fixed = _fixed;
     N_fixed = arma::sum(fixed);
+    fixed_ind = arma::find(_fixed == 1);
     unfixed_ind = find(fixed == 0);
-
+    
+    alloc_prob.set_size(N, K);
+    alloc_prob.zeros();
+    
+    for (auto& n : fixed_ind) {
+      alloc_prob(n, labels(n)) = 1.0;
+    }
   };
   
   // Destructor
   virtual ~semisupervisedSampler() { };
   
-  void updateAllocation() {
+  virtual void updateAllocation() {
     
     double u = 0.0;
     arma::uvec uniqueK;
@@ -1406,13 +1412,16 @@ public:
       comp_prob = exp(comp_prob - max(comp_prob));
       comp_prob = comp_prob / sum(comp_prob);
       
+      // Save the allocation probabilities
+      alloc_prob.row(n) = comp_prob.t();
+      
       // Prediction and update
       u = arma::randu<double>( );
       
       labels(n) = sum(u > cumsum(comp_prob));
       alloc.row(n) = comp_prob.t();
       
-      // Record the likelihood of the item in it's allocated component
+      // Record the log likelihood of the item in it's allocated component
       likelihood(n) = ll(labels(n));
     }
     
@@ -1474,7 +1483,7 @@ public:
 };
 
 
-//' @name mvSkewNormal
+//' @name msnSampler
 //' @title Multivariate Skew Normal mixture type
 //' @description The sampler for the Multivariate Normal mixture model for batch effects.
 //' @field new Constructor \itemize{
@@ -1496,23 +1505,16 @@ public:
 //' component. \itemize{
 //' \item Parameter: point - a data point.
 //' }
-class mvSkewNormal: virtual public mvnSampler {
+class msnSampler: virtual public mvnSampler {
   
 public:
-  // double kappa, nu, lambda, rho, theta, omega, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, phi_proposal_window, proposed_cov_log_det, proposed_batch_cov_log_det;
-  // arma::vec xi, delta, mu_proposed, m_proposed, S_proposed, cov_log_det, proposed_cov_comb_log_det, proposed_batch_cov_comb_log_det;
-  // arma::umat S_acceptance;
-  // arma::mat scale, mu, m, S, phi, cov_proposed, cov_comb_log_det, mean_sum, cov_comb_inv_diag_sqrt, I_pp, proposed_mean_sum, proposed_batch_mean_sum, proposed_cov_inv;
-  // arma::cube cov, cov_inv, cov_comb, cov_comb_inv, proposed_cov_comb, proposed_cov_comb_inv, proposed_batch_cov_comb, proposed_batch_cov_comb_inv;
-
   double omega, phi_proposal_window;
   arma::uvec phi_count;
   arma::mat cov_comb_inv_diag_sqrt;
   
-  
   using mvnSampler::mvnSampler;
   
-  mvSkewNormal(                           
+  msnSampler(                           
     arma::uword _K,
     arma::uword _B,
     double _mu_proposal_window,
@@ -1548,137 +1550,35 @@ public:
       _X
   ) {
     
-    // // Default values for hyperparameters
-    // // Cluster hyperparameters for the Normal-inverse Wishart
-    // // Prior shrinkage
-    // kappa = 0.01;
-    // // Degrees of freedom
-    // nu = P + 2;
-    // 
-    // // Mean
-    // arma::mat mean_mat = arma::mean(_X, 0).t();
-    // xi = mean_mat.col(0);
-    // 
-    // // Empirical Bayes for a diagonal covariance matrix
-    // arma::mat scale_param = _X.each_row() - xi.t();
-    // arma::rowvec diag_entries = arma::sum(scale_param % scale_param, 0) / (N * std::pow(K, 1.0 / (double) P));
-    // scale = arma::diagmat( diag_entries );
-    // scale = arma::inv( arma::cov(X) / std::pow(K, 2.0 / P) );
-    // scale = arma::cov(X) / std::pow(K, 2.0 / P);
-    
-    // std::cout << "\n\nPrior scale:\n" << scale;
-    
-    // The mean of the prior distribution for the batch shift, m, parameter
-    // delta = arma::zeros<arma::vec>(P);
-    // lambda = _lambda; // 1.0;
-    // 
-    // // The shape and scale of the prior for the batch scale, S
-    // rho = _rho; // 41.0; // 3.0 / 2.0;
-    // theta = _theta; // 40.0; // arma::stddev(X.as_col()) / std::pow(B, 2.0 / B ); // 2.0;
-    
     // Hyperparameter for the prior on the shape of the skew normal
     omega = 0.5;
-    
-    // // Set the size of the objects to hold the component specific parameters
-    // mu.set_size(P, K);
-    // mu.zeros();
-    // 
-    // cov.set_size(P, P, K);
-    // cov.zeros();
-    // 
-    // // Set the size of the objects to hold the batch specific parameters
-    // m.set_size(P, B);
-    // m.zeros();
-    // 
-    // // We are assuming a diagonal structure in the batch scale
-    // S.set_size(P, B);
-    // S.zeros();
     
     // The shape of the skew normal
     phi.set_size(P, K);
     phi.zeros();
     
-    // // The variables to hold the batch/cluster specific proposed values
-    // mu_proposed = arma::zeros<arma::vec>(P);
-    // m_proposed = arma::zeros<arma::vec>(P);
-    // S_proposed = arma::zeros<arma::vec>(P);
-    // 
-    // cov_proposed.set_size(P, P);
-    // cov_proposed.zeros();
-    
     // Count the number of times proposed values are accepted
-    // cov_count = arma::zeros<arma::uvec>(K);
-    // mu_count = arma::zeros<arma::uvec>(K);
     phi_count = arma::zeros<arma::uvec>(K);
-    // m_count = arma::zeros<arma::uvec>(B);
-    // S_count = arma::zeros<arma::uvec>(B);
     
-    // // These will hold vertain matrix operations to avoid computational burden
-    // // The log determinant of each cluster covariance
-    // cov_log_det = arma::zeros<arma::vec>(K);
-    // 
-    // // The log determinant of the covariance combination
-    // cov_comb_log_det.set_size(K, B);
-    // cov_comb_log_det.zeros();
-    // 
-    // // The possible combinations for the sum of the cluster and batch means
-    // mean_sum.set_size(P, K * B);
-    // mean_sum.zeros();
-    // 
-    // // The combination of each possible cluster and batch covariance
-    // cov_comb.set_size(P, P, K * B);
-    // cov_comb.zeros();
-    // 
-    // // Inverse of the cluster covariance
-    // cov_inv.set_size(P, P, K);
-    // cov_inv.zeros();
-    // 
-    // // The inverse of the covariance combination
-    // cov_comb_inv.set_size(P, P, K * B);
-    // cov_comb_inv.zeros();
-    // 
+    // These will hold vertain matrix operations to avoid computational burden
     // The standard deviations of the data
     cov_comb_inv_diag_sqrt.set_size(P, K * B);
     cov_comb_inv_diag_sqrt.zeros();
-    
-    // As above for a proposed cluster covariance; thus each object as above with 
-    // K = 1.
-    // proposed_cov_log_det = 0.0;
-    // proposed_cov_comb_log_det = arma::zeros<arma::vec>(B);
-    // proposed_mean_sum  = arma::zeros<arma::mat>(P, B);
-    // proposed_cov_comb.set_size(P, P, B);
-    // proposed_cov_comb.zeros();
-    // proposed_cov_inv = arma::zeros<arma::mat>(P, P);
-    // proposed_cov_comb_inv.set_size(P, P, B);
-    // proposed_cov_comb_inv.zeros();
-    // 
-    // // As above for a proposed batch covariance, i.e. B = 1.
-    // proposed_batch_cov_log_det = 0.0;
-    // proposed_batch_cov_comb_log_det = arma::zeros<arma::vec>(K);
-    // proposed_batch_mean_sum = arma::zeros<arma::mat>(P, K);
-    // proposed_batch_cov_comb.set_size(P, P, K);
-    // proposed_batch_cov_comb.zeros();
-    // proposed_batch_cov_comb_inv.set_size(P, P, K);
-    // proposed_batch_cov_comb_inv.zeros();
-    
+  
     // The proposal windows for the cluster and batch parameters
-    // mu_proposal_window = _mu_proposal_window;
-    // cov_proposal_window = _cov_proposal_window;
-    // m_proposal_window = _m_proposal_window;
-    // S_proposal_window = _S_proposal_window;
     phi_proposal_window = _phi_proposal_window;
   };
   
   
   // Destructor
-  virtual ~mvSkewNormal() { };
+  virtual ~msnSampler() { };
   
   // Print the sampler type.
   virtual void printType() {
     std::cout << "\nType: Multivariate Skew Normal.\n";
   }
   
-  void sampleFromPriors() {
+  virtual void sampleFromPriors() {
     
     for(arma::uword k = 0; k < K; k++){
       cov.slice(k) = arma::iwishrnd(scale, nu);
@@ -1697,24 +1597,20 @@ public:
         //   m(p, b) = 0.0;
         // } else {
           S(p, b) = 1.0 / arma::randg<double>( arma::distr_param(rho, 1.0 / theta ) );
-          // S(p, b) = 1.0;
           m(p, b) = arma::randn<double>() * S(p, b) / lambda + delta(p);
-          // m(p, b) = arma::randn<double>() / lambda + delta(p);
         // }
       }
     }
-    
-    // std::cout << "\n\nPrior covariance:\n" << cov << "\n\nPrior mean:\n" << mu << "\n\nPrior S:\n" << S << "\n\nPrior m:\n" << m;
   };
   
   // Update the common matrix manipulations to avoid recalculating N times
-  void matrixCombinations() {
+  virtual void matrixCombinations() {
     
     for(arma::uword k = 0; k < K; k++) {
       cov_inv.slice(k) = arma::inv(cov.slice(k));
       cov_log_det(k) = arma::log_det(cov.slice(k)).real();
       for(arma::uword b = 0; b < B; b++) {
-        cov_comb.slice(k * B + b) = cov.slice(k); // + arma::diagmat(S.col(b))
+        cov_comb.slice(k * B + b) = cov.slice(k);
         for(arma::uword p = 0; p < P; p++) {
           cov_comb.slice(k * B + b)(p, p) *= S(p, b);
         }
@@ -1727,7 +1623,7 @@ public:
   };
   
   // The log likelihood of a item belonging to each cluster given the batch label.
-  arma::vec itemLogLikelihood(arma::vec item, arma::uword b) {
+  virtual arma::vec itemLogLikelihood(arma::vec item, arma::uword b) {
     
     double exponent = 0.0;
     arma::vec ll(K), dist_to_mean(P);
@@ -1738,12 +1634,7 @@ public:
       
       // The exponent part of the MVN pdf
       dist_to_mean = item - mean_sum.col(k * B + b);
-      // std::cout << "\n\nItem:\n" << item;
-      // std::cout << "\n\nMu_k:\n" << mu.col(k);
-      // std::cout << "\n\nM_b:\n" << m.col(b);
-      // std::cout << "\n\nDistance to mean:\n" << dist_to_mean;
-      // std::cout << "\n\nInverse combined covariance:\n" << cov_comb_inv.slice(k * B + b);
-      // std::cout << "\n\nLog determinant of combined covariance:\n" << cov_comb_log_det(k, b);
+
       exponent = arma::as_scalar(dist_to_mean.t() * cov_comb_inv.slice(k * B + b) * dist_to_mean);
       
       // Normal log likelihood
@@ -1755,14 +1646,16 @@ public:
     return(ll);
   };
   
-  void calcBIC(){
+  virtual void calcBIC(){
     
+    // Each component has a mean and shape vector and a symmetric covariance 
+    // matrix. Each batch has a mean and standard deviations vector.
     arma::uword n_param = (2 * P + P * (P + 1) * 0.5) * K_occ + (2 * P) * B;
     BIC = n_param * std::log(N) - 2 * model_likelihood;
     
   };
   
-  double mLogKernel(arma::uword b, arma::vec m_b, arma::mat mean_sum) {
+  virtual double mLogKernel(arma::uword b, arma::vec m_b, arma::mat mean_sum) {
     
     arma::uword k = 0;
     double score = 0.0;
@@ -1781,7 +1674,7 @@ public:
     return score;
   };
   
-  double sLogKernel(arma::uword b, arma::vec S_b, 
+  virtual double sLogKernel(arma::uword b, arma::vec S_b, 
                     arma::vec cov_comb_log_det,
                     arma::mat cov_comb_inv_diag_sqrt,
                     arma::cube cov_comb_inv) {
@@ -1805,7 +1698,7 @@ public:
     return score;
   };
   
-  double muLogKernel(arma::uword k, arma::vec mu_k, arma::mat mean_sum) {
+  virtual double muLogKernel(arma::uword k, arma::vec mu_k, arma::mat mean_sum) {
     
     arma::uword b = 0;
     double score = 0.0;
@@ -1822,7 +1715,7 @@ public:
     return score;
   };
   
-  double covLogKernel(arma::uword k, arma::mat cov_k, 
+  virtual double covLogKernel(arma::uword k, arma::mat cov_k, 
                       double cov_log_det,
                       arma::mat cov_inv,
                       arma::vec cov_comb_log_det,
@@ -1844,7 +1737,7 @@ public:
     return score;
   };
   
-  double phiLogKernel(arma::uword k, arma::vec phi_k) {
+  virtual double phiLogKernel(arma::uword k, arma::vec phi_k) {
     
     arma::uword b = 0;
     double score = 0.0;
@@ -1863,7 +1756,7 @@ public:
     return score;
   };
   
-  void batchScaleMetropolis() {
+  virtual void batchScaleMetropolis() {
 
     double u = 0.0, proposed_model_score = 0.0, acceptance_prob = 0.0, current_model_score = 0.0;
     arma::vec S_proposed(P), proposed_cov_comb_log_det(K);
@@ -1974,7 +1867,7 @@ public:
   //   }
   // };
 
-  void clusterCovarianceMetropolis() {
+  virtual void clusterCovarianceMetropolis() {
 
     double u = 0.0, proposed_model_score = 0.0, acceptance_prob = 0.0, current_model_score = 0.0, proposed_cov_log_det = 0.0;
     arma::vec proposed_cov_comb_log_det(B);
@@ -2114,7 +2007,7 @@ public:
   //   }
   // };
   // 
-  void clusterShapeMetropolis() {
+  virtual void clusterShapeMetropolis() {
     
     double u = 0.0, proposed_model_score = 0.0, acceptance_prob = 0.0, current_model_score = 0.0;
     arma::vec phi_proposed(P);
@@ -2149,19 +2042,7 @@ public:
     
   };
   
-  void metropolisStep(bool doCombinations) {
-    
-    // Metropolis step for batch parameters if more than 1 batch
-    if(B > 1){
-      batchScaleMetropolis();
-      
-      // Update the matrix combinations (should be redundant.)
-      if(doCombinations) {
-        matrixCombinations();
-      }
-      
-      batchShiftMetorpolis();
-    }
+  virtual void metropolisStep(bool doCombinations) {
     
     // Metropolis step for cluster parameters
     clusterCovarianceMetropolis();
@@ -2180,19 +2061,31 @@ public:
     
     // Update the shape parameter of the skew normal
     clusterShapeMetropolis();
+    
+    // Metropolis step for batch parameters if more than 1 batch
+    // if(B > 1){
+    batchScaleMetropolis();
+    
+    // Update the matrix combinations (should be redundant.)
+    if(doCombinations) {
+      matrixCombinations();
+    }
+    
+    batchShiftMetorpolis();
+    // }
   };
   
 };
 
-class mSkewNormalPredictive : public mvSkewNormal, public semisupervisedSampler {
+class msnPredictive : public msnSampler, public semisupervisedSampler {
   
 private:
   
 public:
   
-  using mvSkewNormal::mvSkewNormal;
+  using msnSampler::msnSampler;
   
-  mSkewNormalPredictive(
+  msnPredictive(
     arma::uword _K,
     arma::uword _B,
     double _mu_proposal_window,
@@ -2225,7 +2118,7 @@ public:
       _concentration,
       _X
     ),
-    mvSkewNormal(_K,
+    msnSampler(_K,
      _B,
      _mu_proposal_window,
      _cov_proposal_window,
@@ -2243,9 +2136,606 @@ public:
   {
   };
   
-  virtual ~mSkewNormalPredictive() { };
+  virtual ~msnPredictive() { };
   
 };
+
+
+class mvtSampler: virtual public mvnSampler {
+  
+public:
+
+  // arma::uword t_df = 4;
+  double psi = 2.0, chi = 0.01, t_df_proposal_window = 0.0, pdf_const = 0.0, t_loc = 2.0;
+  arma::uvec t_df_count;
+  arma::vec t_df, pdf_coef;
+  
+  
+  using mvnSampler::mvnSampler;
+  
+  mvtSampler(                           
+    arma::uword _K,
+    arma::uword _B,
+    double _mu_proposal_window,
+    double _cov_proposal_window,
+    double _m_proposal_window,
+    double _S_proposal_window,
+    double _t_df_proposal_window,
+    double _rho,
+    double _theta,
+    double _lambda,
+    arma::uvec _labels,
+    arma::uvec _batch_vec,
+    arma::vec _concentration,
+    arma::mat _X
+  ) : sampler(_K,
+  _B,
+  _labels,
+  _batch_vec,
+  _concentration,
+  _X), mvnSampler(
+      _K,
+      _B,
+      _mu_proposal_window,
+      _cov_proposal_window,
+      _m_proposal_window,
+      _S_proposal_window,
+      _rho,
+      _theta,
+      _lambda,
+      _labels,
+      _batch_vec,
+      _concentration,
+      _X
+  ) {
+    
+    // Hyperparameter for the d.o.f for the t-distn
+    // psi = 0.5;
+    // chi = 0.5;
+    
+    t_df.set_size(K);
+    t_df.zeros();
+    
+    pdf_coef.set_size(K);
+    pdf_coef.zeros();
+    
+    t_df_count.set_size(K);
+    t_df_count.zeros();
+    
+    // The shape of the skew normal
+    // phi.set_size(P, K);
+    // phi.zeros();
+    
+    // Count the number of times proposed values are accepted
+    // phi_count = arma::zeros<arma::uvec>(K);
+    
+    // The proposal windows for the cluster and batch parameters
+    t_df_proposal_window = _t_df_proposal_window;
+    
+    // The constant for the item likelihood (changes if t_df != const)
+    // pdf_const = logGamma(0.5 * (t_df + P)) - logGamma(0.5 * t_df) - 0.5 * P * log(t_df);
+  };
+  
+  
+  // Destructor
+  virtual ~mvtSampler() { };
+  
+  // Print the sampler type.
+  virtual void printType() {
+    std::cout << "\nType: Multivariate T.\n";
+  };
+  
+  double calcPDFCoef(double t_df){
+    double x = logGamma(0.5 * (t_df + P)) - logGamma(0.5 * t_df) - 0.5 * P * log(t_df);
+    return x;
+  }
+  
+  virtual void sampleFromPriors() {
+    
+    for(arma::uword k = 0; k < K; k++){
+      cov.slice(k) = arma::iwishrnd(scale, nu);
+      mu.col(k) = arma::mvnrnd(xi, (1.0/kappa) * cov.slice(k), 1);
+      
+      // Draw from a shifted gamma distribution (i.e. gamma with location parameter)
+      t_df(k) = t_loc + arma::randg<double>( arma::distr_param(psi, 1.0 / chi));
+    }
+    for(arma::uword b = 0; b < B; b++){
+      for(arma::uword p = 0; p < P; p++){
+        S(p, b) = 1.0 / arma::randg<double>( arma::distr_param(rho, 1.0 / theta ) );
+        m(p, b) = arma::randn<double>() * S(p, b) / lambda + delta(p);
+      }
+    }
+  };
+  
+  // Update the common matrix manipulations to avoid recalculating N times
+  virtual void matrixCombinations() {
+    
+    for(arma::uword k = 0; k < K; k++) {
+      pdf_coef(k) = calcPDFCoef(t_df(k));
+      cov_inv.slice(k) = arma::inv(cov.slice(k));
+      cov_log_det(k) = arma::log_det(cov.slice(k)).real();
+      
+      for(arma::uword b = 0; b < B; b++) {
+        cov_comb.slice(k * B + b) = cov.slice(k); // + arma::diagmat(S.col(b))
+        for(arma::uword p = 0; p < P; p++) {
+          cov_comb.slice(k * B + b)(p, p) *= S(p, b);
+        }
+        cov_comb_log_det(k, b) = arma::log_det(cov_comb.slice(k * B + b)).real();
+        cov_comb_inv.slice(k * B + b) = arma::inv(cov_comb.slice(k * B + b));
+ 
+        mean_sum.col(k * B + b) = mu.col(k) + m.col(b);
+      }
+    }
+  };
+    
+  
+  // The log likelihood of a item belonging to each cluster given the batch label.
+  arma::vec itemLogLikelihood(arma::vec item, arma::uword b) {
+    
+    double x = 0.0, y = 0.0;
+    arma::vec ll(K), dist_to_mean(P);
+    ll.zeros();
+    dist_to_mean.zeros();
+    
+    for(arma::uword k = 0; k < K; k++){
+      
+      // The exponent part of the MVN pdf
+      dist_to_mean = item - mean_sum.col(k * B + b);
+      x = arma::as_scalar(dist_to_mean.t() * cov_comb_inv.slice(k * B + b) * dist_to_mean);
+      y = (t_df(k) + P) * log(1.0 + (1/t_df(k)) * x);
+      
+      ll(k) = pdf_coef(k) - 0.5 * (cov_comb_log_det(k, b) + y + P * log(PI)); 
+      
+    }
+    
+    return(ll);
+  };
+  
+  void calcBIC(){
+    
+    // Each component has a mean and shape vector and a symmetric covariance 
+    // matrix. Each batch has a mean and standard deviations vector.
+    arma::uword n_param = (2 * P + P * (P + 1) * 0.5 + 1) * K_occ + (2 * P) * B;
+    BIC = n_param * std::log(N) - 2 * model_likelihood;
+    
+  };
+  
+  double mLogKernel(arma::uword b, arma::vec m_b, arma::mat mean_sum) {
+
+    arma::uword k = 0;
+    double score = 0.0;
+    arma::vec dist_from_mean(P);
+    dist_from_mean.zeros();
+
+    for (auto& n : batch_ind(b)) {
+      k = labels(n);
+      dist_from_mean = X_t.col(n) - mean_sum.col(k);
+      score += (t_df(k) + P) * log(1 + (1/t_df(k)) * arma::as_scalar(dist_from_mean.t() * cov_comb_inv.slice(k * B + b) * dist_from_mean));
+    }
+    for(arma::uword p = 0; p < P; p++) {
+      score += lambda * std::pow(m_b(p) - delta(p), 2.0) / S(p, b);
+    }
+    score *= -0.5;
+    return score;
+  };
+
+  double sLogKernel(arma::uword b,
+                    arma::vec S_b,
+                    arma::vec cov_comb_log_det,
+                    arma::cube cov_comb_inv) {
+
+    arma::uword k = 0;
+    double score = 0.0;
+    arma::vec dist_from_mean(P);
+    dist_from_mean.zeros();
+    arma::mat curr_sum(P, P);
+
+    for (auto& n : batch_ind(b)) {
+      k = labels(n);
+      dist_from_mean = X_t.col(n) - mean_sum.col(k * B + b);
+      score += (cov_comb_log_det(k) + (t_df(k) + P) * log(1 + (1/t_df(k)) * arma::as_scalar(dist_from_mean.t() * cov_comb_inv.slice(k) * dist_from_mean)));
+    }
+    for(arma::uword p = 0; p < P; p++) {
+      score += (2 * rho + 3) * std::log(S_b(p)) + (lambda * std::pow(m(p,b) - delta(p), 2.0) + 2 * theta) / S_b(p);
+    }
+    score *= -0.5;
+    return score;
+  };
+
+  double muLogKernel(arma::uword k, arma::vec mu_k, arma::mat mean_sum) {
+
+    arma::uword b = 0;
+    double score = 0.0;
+    arma::uvec cluster_ind = arma::find(labels == k);
+    arma::vec dist_from_mean(P);
+
+    for (auto& n : cluster_ind) {
+      b = batch_vec(n);
+      dist_from_mean = X_t.col(n) - mean_sum.col(b);
+      score += (t_df(k) + P) * log(1 + (1/t_df(k)) * arma::as_scalar(dist_from_mean.t() * cov_comb_inv.slice(k * B + b) * dist_from_mean));
+    }
+    score += arma::as_scalar(kappa * ((mu_k - xi).t() *  cov_inv.slice(k) * (mu_k - xi)));
+    score *= -0.5;
+    return score;
+  };
+
+  double covLogKernel(arma::uword k, 
+                      arma::mat cov_k,
+                      double cov_log_det,
+                      arma::mat cov_inv,
+                      arma::vec cov_comb_log_det,
+                      arma::cube cov_comb_inv) {
+
+    arma::uword b = 0;
+    double score = 0.0;
+    arma::uvec cluster_ind = arma::find(labels == k);
+    arma::vec dist_from_mean(P);
+    for (auto& n : cluster_ind) {
+      b = batch_vec(n);
+      dist_from_mean = X_t.col(n) - mean_sum.col(k * B + b);
+      score += (cov_comb_log_det(b) + (t_df(k) + P) * log(1 + (1/t_df(k)) * arma::as_scalar(dist_from_mean.t() * cov_comb_inv.slice(b) * dist_from_mean)));
+    }
+    score += arma::as_scalar((nu + P + 2) * cov_log_det + kappa * ((mu.col(k) - xi).t() * cov_inv * (mu.col(k) - xi)) + arma::trace(scale * cov_inv));
+    score *= -0.5;
+    return score;
+  };
+  
+  double dfLogKernel(arma::uword k, 
+                     double t_df,
+                     double pdf_coef) {
+    
+    arma::uword b = 0;
+    double score = 0.0;
+    arma::uvec cluster_ind = arma::find(labels == k);
+    arma::vec dist_from_mean(P);
+    for (auto& n : cluster_ind) {
+      b = batch_vec(n);
+      dist_from_mean = X_t.col(n) - mean_sum.col(k * B + b);
+      score += pdf_coef - 0.5 * (t_df + P) * log(1 + (1/t_df) * arma::as_scalar(dist_from_mean.t() * cov_comb_inv.slice(k * B + b) * dist_from_mean));
+    }
+    score += (psi - 1) * log(t_df - t_loc) - (t_df - t_loc) / chi;
+    return score;
+  };
+  
+  void clusterDFMetropolis() {
+    double u = 0.0, proposed_model_score = 0.0, acceptance_prob = 0.0, current_model_score = 0.0, t_df_proposed = 0.0, proposed_pdf_coef = 0.0;
+    
+    for(arma::uword k = 0; k < K ; k++) {
+      if(N_k(k) == 0){
+        t_df_proposed = t_loc + arma::randg<double>( arma::distr_param(psi, 1.0 / chi));
+      } else {
+        
+        // std::cout << "\n\nT df.\nPsi: " << psi << "\nChi: " << chi
+        // << "\nWindow: " << t_df_proposal_window << "\nCurrent: " << t_df(k);
+        
+        // t_df_proposed = t_loc + std::exp((arma::randn() * t_df_proposal_window) + t_df(k) - t_loc);
+        // 
+        // // Log probability under the proposal density
+        // proposed_model_score = logNormalLogProbability(t_df(k) - t_loc, (t_df_proposed - t_loc), t_df_proposal_window);
+        // current_model_score = logNormalLogProbability(t_df_proposed - t_loc, (t_df(k) - t_loc), t_df_proposal_window);
+        
+        t_df_proposed = t_loc + arma::randg( arma::distr_param( (t_df(k) - t_loc) * t_df_proposal_window, 1.0 / t_df_proposal_window) );
+
+        // Asymmetric proposal density
+        proposed_model_score = gammaLogLikelihood(t_df(k) - t_loc, (t_df_proposed - t_loc) * t_df_proposal_window, t_df_proposal_window);
+        current_model_score = gammaLogLikelihood(t_df_proposed - t_loc, (t_df(k) - t_loc) * t_df_proposal_window, t_df_proposal_window);
+        
+        proposed_pdf_coef = calcPDFCoef(t_df_proposed);
+        
+        // The prior is included in the kernel
+        proposed_model_score += dfLogKernel(k, t_df_proposed, proposed_pdf_coef);
+        current_model_score += dfLogKernel(k, t_df(k), pdf_coef(k));
+        
+        u = arma::randu();
+        acceptance_prob = std::min(1.0, std::exp(proposed_model_score - current_model_score));
+        
+      }
+      
+      if((u < acceptance_prob) || (N_k(k) == 0)) {
+        t_df(k) = t_df_proposed;
+        t_df_count(k)++;
+        pdf_coef(k) = proposed_pdf_coef;
+      }
+    }
+  }
+  
+  virtual void metropolisStep(bool doCombinations) {
+    
+    // Metropolis step for cluster parameters
+    clusterCovarianceMetropolis();
+  
+    // std::cout << "\n\nCovariance proposed.\n";
+  
+    // Update the matrix combinations (should be redundant.)
+    if(doCombinations) {
+      matrixCombinations();
+    }
+    
+    clusterMeanMetropolis();
+
+    // std::cout << "\n\nMean proposed.\n";
+    
+    // Update the matrix combinations (should be redundant.)
+    if(doCombinations) {
+      matrixCombinations();
+    }
+    
+    // Update the shape parameter of the skew normal
+    clusterDFMetropolis();
+    
+    // std::cout << "\n\nDF proposed.\n";
+    
+    // Metropolis step for batch parameters if more than 1 batch
+    // if(B > 1){
+    batchScaleMetropolis();
+    
+    // std::cout << "\n\nScale proposed.\n";
+    
+    // Update the matrix combinations (should be redundant.)
+    if(doCombinations) {
+      matrixCombinations();
+    }
+    
+    batchShiftMetorpolis();
+    
+    // std::cout << "\n\nShift proposed.\n";
+    // }
+  };
+  
+};
+
+class mvtPredictive : public mvtSampler, public semisupervisedSampler {
+  
+private:
+  
+public:
+  
+  using mvtSampler::mvtSampler;
+  
+  mvtPredictive(
+    arma::uword _K,
+    arma::uword _B,
+    double _mu_proposal_window,
+    double _cov_proposal_window,
+    double _m_proposal_window,
+    double _S_proposal_window,
+    double _t_df_proposal_window,
+    double _rho,
+    double _theta,
+    double _lambda,
+    arma::uvec _labels,
+    arma::uvec _batch_vec,
+    arma::vec _concentration,
+    arma::mat _X,
+    arma::uvec _fixed
+  ) : 
+    sampler(_K, _B, _labels, _batch_vec, _concentration, _X),
+    mvnSampler(_K,
+      _B,
+      _mu_proposal_window,
+      _cov_proposal_window,
+      _m_proposal_window,
+      _S_proposal_window,
+      _rho,
+      _theta,
+      _lambda,
+      _labels,
+      _batch_vec,
+      _concentration,
+      _X
+    ), mvtSampler(                           
+      _K,
+      _B,
+      _mu_proposal_window,
+      _cov_proposal_window,
+      _m_proposal_window,
+      _S_proposal_window,
+      _t_df_proposal_window,
+      _rho,
+      _theta,
+      _lambda,
+      _labels,
+      _batch_vec,
+      _concentration,
+      _X
+    ), semisupervisedSampler(_K, _B, _labels, _batch_vec, _concentration, _X, _fixed)
+    {
+    };
+ 
+  virtual ~mvtPredictive() { };
+  
+};
+
+
+
+// Factory for creating instances of samplers
+//' @name samplerFactory
+//' @title Factory for different sampler subtypes.
+//' @description The factory allows the type of mixture implemented to change 
+//' based upon the user input.
+//' @field new Constructor \itemize{
+//' \item Parameter: samplerType - the density type to be modelled
+//' \item Parameter: K - the number of components to model
+//' \item Parameter: labels - the initial clustering of the data
+//' \item Parameter: concentration - the vector for the prior concentration of 
+//' the Dirichlet distribution of the component weights
+//' \item Parameter: X - the data to model
+//' }
+class samplerFactory
+{
+public:
+  enum samplerType {
+    // G = 0,
+    MVN = 1,
+    MVT = 2,
+    MSN = 3
+  };
+  
+  static std::unique_ptr<sampler> createSampler(samplerType type,
+    arma::uword K,
+    arma::uword B,
+    double mu_proposal_window,
+    double cov_proposal_window,
+    double m_proposal_window,
+    double S_proposal_window,
+    double t_df_proposal_window,
+    double phi_proposal_window,
+    double rho,
+    double theta,
+    double lambda,
+    arma::uvec labels,
+    arma::uvec batch_vec,
+    arma::vec concentration,
+    arma::mat X
+  ) {
+    switch (type) {
+    // case G: return std::make_unique<gaussianSampler>(K, labels, concentration, X);
+      
+    case MVN: return std::make_unique<mvnSampler>(K,
+                                                  B,
+                                                  mu_proposal_window,
+                                                  cov_proposal_window,
+                                                  m_proposal_window,
+                                                  S_proposal_window,
+                                                  rho,
+                                                  theta,
+                                                  lambda,
+                                                  labels,
+                                                  batch_vec,
+                                                  concentration,
+                                                  X);
+    case MVT: return std::make_unique<mvtSampler>(K,
+                                                  B,
+                                                  mu_proposal_window,
+                                                  cov_proposal_window,
+                                                  m_proposal_window,
+                                                  S_proposal_window,
+                                                  t_df_proposal_window,
+                                                  rho,
+                                                  theta,
+                                                  lambda,
+                                                  labels,
+                                                  batch_vec,
+                                                  concentration,
+                                                  X);
+    case MSN: return std::make_unique<msnSampler>(K,
+                                                  B,
+                                                  mu_proposal_window,
+                                                  cov_proposal_window,
+                                                  m_proposal_window,
+                                                  S_proposal_window,
+                                                  phi_proposal_window,
+                                                  rho,
+                                                  theta,
+                                                  lambda,
+                                                  labels,
+                                                  batch_vec,
+                                                  concentration,
+                                                  X);
+    default: throw "invalid sampler type.";
+    }
+    
+  }
+  
+};
+
+
+// Factory for creating instances of samplers
+//' @name semisupervisedSamplerFactory
+//' @title Factory for different sampler subtypes.
+//' @description The factory allows the type of mixture implemented to change 
+//' based upon the user input.
+//' @field new Constructor \itemize{
+//' \item Parameter: samplerType - the density type to be modelled
+//' \item Parameter: K - the number of components to model
+//' \item Parameter: labels - the initial clustering of the data
+//' \item Parameter: concentration - the vector for the prior concentration of 
+//' the Dirichlet distribution of the component weights
+//' \item Parameter: X - the data to model
+//' }
+class semisupervisedSamplerFactory
+{
+public:
+  enum samplerType {
+    // G = 0,
+    MVN = 1,
+    MVT = 2,
+    MSN = 3
+  };
+  
+  static std::unique_ptr<semisupervisedSampler> createSemisupervisedSampler(samplerType type,
+    arma::uword K,
+    arma::uword B,
+    double mu_proposal_window,
+    double cov_proposal_window,
+    double m_proposal_window,
+    double S_proposal_window,
+    double t_df_proposal_window,
+    double phi_proposal_window,
+    double rho,
+    double theta,
+    double lambda,
+    arma::uvec labels,
+    arma::uvec batch_vec,
+    arma::vec concentration,
+    arma::mat X,
+    arma::uvec fixed
+    ) {
+      switch (type) {
+      // case G: return std::make_unique<gaussianSampler>(K, labels, concentration, X);
+        
+      case MVN: return std::make_unique<mvnPredictive>(K,
+                                                    B,
+                                                    mu_proposal_window,
+                                                    cov_proposal_window,
+                                                    m_proposal_window,
+                                                    S_proposal_window,
+                                                    rho,
+                                                    theta,
+                                                    lambda,
+                                                    labels,
+                                                    batch_vec,
+                                                    concentration,
+                                                    X,
+                                                    fixed);
+      case MVT: return std::make_unique<mvtPredictive>(K,
+                                                    B,
+                                                    mu_proposal_window,
+                                                    cov_proposal_window,
+                                                    m_proposal_window,
+                                                    S_proposal_window,
+                                                    t_df_proposal_window,
+                                                    rho,
+                                                    theta,
+                                                    lambda,
+                                                    labels,
+                                                    batch_vec,
+                                                    concentration,
+                                                    X,
+                                                    fixed);
+      case MSN: return std::make_unique<msnPredictive>(K,
+                                                    B,
+                                                    mu_proposal_window,
+                                                    cov_proposal_window,
+                                                    m_proposal_window,
+                                                    S_proposal_window,
+                                                    phi_proposal_window,
+                                                    rho,
+                                                    theta,
+                                                    lambda,
+                                                    labels,
+                                                    batch_vec,
+                                                    concentration,
+                                                    X,
+                                                    fixed);
+      default: throw "invalid sampler type.";
+      }
+      
+    }
+  
+};
+
+
 
 //' @title Sample batch mixture model
 //' @description Performs MCMC sampling for a mixture model with batch effects.
@@ -2259,7 +2749,7 @@ public:
 //' @return Named list of the matrix of MCMC samples generated (each row 
 //' corresponds to a different sample) and BIC for each saved iteration.
 // [[Rcpp::export]]
-Rcpp::List sampleBatchMixtureModel (
+Rcpp::List sampleMVN (
     arma::mat X,
     arma::uword K,
     arma::uword B,
@@ -2398,201 +2888,10 @@ Rcpp::List sampleBatchMixtureModel (
   }
   
   if(verbose) {
-    std::cout << "\n\nCovariance acceptance rate:\n" << my_sampler.cov_count;
-    std::cout << "\n\ncluster mean acceptance rate:\n" << my_sampler.mu_count;
-    std::cout << "\n\nBatch covariance acceptance rate:\n" << my_sampler.S_count;
-    std::cout << "\n\nBatch mean acceptance rate:\n" << my_sampler.m_count;
-  }
-  
-  return(List::create(Named("samples") = class_record, 
-                      Named("means") = mu_saved,
-                      Named("precisions") = tau_saved,
-                      Named("batch_shift") = m_saved,
-                      Named("batch_scale") = t_saved,
-                      Named("mean_sum") = mean_sum_save,
-                      Named("weights") = weights_saved,
-                      Named("acceptance") = acceptance_vec,
-                      Named("BIC") = BIC_record));
-  
-};
-
-
-
-
-
-
-//' @title Mixture model
-//' @description Performs MCMC sampling for a mixture model.
-//' @param X The data matrix to perform clustering upon (items to cluster in rows).
-//' @param K The number of components to model (upper limit on the number of clusters found).
-//' @param labels Vector item labels to initialise from.
-//' @param fixed Binary vector of the items that are fixed in their initial label.
-//' @param dataType Int, 0: independent Gaussians, 1: Multivariate normal, or 2: Categorical distributions.
-//' @param R The number of iterations to run for.
-//' @param thin thinning factor for samples recorded.
-//' @param concentration Vector of concentrations for mixture weights (recommended to be symmetric).
-//' @return Named list of the matrix of MCMC samples generated (each row 
-//' corresponds to a different sample) and BIC for each saved iteration.
-// [[Rcpp::export]]
-Rcpp::List sampleSemisupervisedMixtureModel (
-    arma::mat X,
-    arma::uword K,
-    arma::uword B,
-    arma::uvec labels,
-    arma::uvec batch_vec,
-    arma::uvec fixed,
-    double mu_proposal_window,
-    double cov_proposal_window,
-    double m_proposal_window,
-    double S_proposal_window,
-    double rho,
-    double theta,
-    double lambda,
-    arma::uword R,
-    arma::uword thin,
-    arma::vec concentration,
-    bool verbose = true,
-    bool doCombinations = false,
-    bool printCovariance = false
-) {
-  
-  // // Set the random number
-  // std::default_random_engine generator(seed);
-  // 
-  // // Declare the factory
-  // semisupervisedSamplerFactory my_factory;
-  // 
-  // // Convert from an int to the samplerType variable for our Factory
-  // semisupervisedSamplerFactory::samplerType val = static_cast<semisupervisedSamplerFactory::samplerType>(dataType);
-  // 
-  // // Make a pointer to the correct type of sampler
-  // std::unique_ptr<sampler> sampler_ptr = my_factory.createSemisupervisedSampler(val,
-  //                                                                               K,
-  //                                                                               labels,
-  //                                                                               concentration,
-  //                                                                               X,
-  //                                                                               fixed);
-  
-  
-  mvnPredictive my_sampler(K,
-                        B,
-                        mu_proposal_window,
-                        cov_proposal_window,
-                        m_proposal_window,
-                        S_proposal_window,
-                        rho,
-                        theta,
-                        lambda,
-                        labels,
-                        batch_vec,
-                        concentration,
-                        X,
-                        fixed
-  );
-  
-  // // Declare the factory
-  // samplerFactory my_factory;
-  // 
-  // // Convert from an int to the samplerType variable for our Factory
-  // samplerFactory::samplerType val = static_cast<samplerFactory::samplerType>(dataType);
-  // 
-  // // Make a pointer to the correct type of sampler
-  // std::unique_ptr<sampler> sampler_ptr = my_factory.createSampler(val,
-  //                                                                 K,
-  //                                                                 labels,
-  //                                                                 concentration,
-  //                                                                 X);
-  
-  // The output matrix
-  arma::umat class_record(floor(R / thin), X.n_rows);
-  class_record.zeros();
-  
-  // We save the BIC at each iteration
-  arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin));
-  arma::uvec acceptance_vec = arma::zeros<arma::uvec>(floor(R / thin));
-  arma::mat weights_saved = arma::zeros<arma::mat>(floor(R / thin), K);
-  
-  arma::cube mean_sum_save(my_sampler.P, K * B, floor(R / thin)), mu_saved(my_sampler.P, K, floor(R / thin)), m_saved(my_sampler.P, B, floor(R / thin)), tau_saved(my_sampler.P, K, floor(R / thin)), t_saved(my_sampler.P, B, floor(R / thin));
-  // arma::field<arma::cube> cov_saved(my_sampler.P, my_sampler.P, K, floor(R / thin));
-  mu_saved.zeros();
-  tau_saved.zeros();
-  // cov_saved.zeros();
-  m_saved.zeros();
-  t_saved.zeros();
-  
-  arma::uword save_int = 0;
-  
-  // Sampler from priors
-  my_sampler.sampleFromPriors();
-  my_sampler.matrixCombinations();
-  // my_sampler.modelScore();
-  // sampler_ptr->sampleFromPriors();
-  
-  // my_sampler.model_score = my_sampler.modelLogLikelihood(
-  //   my_sampler.mu,
-  //   my_sampler.tau,
-  //   my_sampler.m,
-  //   my_sampler.t
-  // ) + my_sampler.priorLogProbability(
-  //     my_sampler.mu,
-  //     my_sampler.tau,
-  //     my_sampler.m,
-  //     my_sampler.t
-  // );
-  
-  // sample_prt.model_score->sampler_ptr.modelLo
-  
-  // Iterate over MCMC moves
-  for(arma::uword r = 0; r < R; r++){
-    
-    my_sampler.updateWeights();
-    
-    // Metropolis step for batch parameters
-    my_sampler.metropolisStep(doCombinations); 
-    
-    my_sampler.updateAllocation();
-    
-    
-    // sampler_ptr->updateWeights();
-    // sampler_ptr->proposeNewParameters();
-    // sampler_ptr->updateAllocation();
-    
-    // Record results
-    if((r + 1) % thin == 0){
-      
-      // Update the BIC for the current model fit
-      // sampler_ptr->calcBIC();
-      // BIC_record( save_int ) = sampler_ptr->BIC; 
-      // 
-      // // Save the current clustering
-      // class_record.row( save_int ) = sampler_ptr->labels.t();
-      
-      my_sampler.calcBIC();
-      BIC_record( save_int ) = my_sampler.BIC;
-      class_record.row( save_int ) = my_sampler.labels.t();
-      acceptance_vec( save_int ) = my_sampler.accepted;
-      weights_saved.row( save_int ) = my_sampler.w.t();
-      mu_saved.slice( save_int ) = my_sampler.mu;
-      // tau_saved.slice( save_int ) = my_sampler.tau;
-      // cov_saved( save_int ) = my_sampler.cov;
-      m_saved.slice( save_int ) = my_sampler.m;
-      t_saved.slice( save_int ) = my_sampler.S;
-      mean_sum_save.slice( save_int ) = my_sampler.mean_sum;
-      
-      if(printCovariance) {  
-        std::cout << "\n\nCovariance cube:\n" << my_sampler.cov;
-        std::cout << "\n\nBatch covariance matrix:\n" << my_sampler.S;
-      }
-      
-      save_int++;
-    }
-  }
-  
-  if(verbose) {
-    std::cout << "\n\nCovariance acceptance rate:\n" << my_sampler.cov_count;
-    std::cout << "\n\ncluster mean acceptance rate:\n" << my_sampler.mu_count;
-    std::cout << "\n\nBatch covariance acceptance rate:\n" << my_sampler.S_count;
-    std::cout << "\n\nBatch mean acceptance rate:\n" << my_sampler.m_count;
+    std::cout << "\n\nCovariance acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.cov_count) / R;
+    std::cout << "\n\ncluster mean acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.mu_count) / R;
+    std::cout << "\n\nBatch covariance acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.S_count) / R;
+    std::cout << "\n\nBatch mean acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.m_count) / R;
   }
   
   return(List::create(Named("samples") = class_record, 
@@ -2614,132 +2913,7 @@ Rcpp::List sampleSemisupervisedMixtureModel (
 
 
 // [[Rcpp::export]]
-Rcpp::List samplePredictiveSkewNormalMixtureModel (
-    arma::mat X,
-    arma::uword K,
-    arma::uword B,
-    arma::uvec labels,
-    arma::uvec batch_vec,
-    arma::uvec fixed,
-    double mu_proposal_window,
-    double cov_proposal_window,
-    double m_proposal_window,
-    double S_proposal_window,
-    double phi_proposal_window,
-    double rho,
-    double theta,
-    double lambda,
-    arma::uword R,
-    arma::uword thin,
-    arma::vec concentration,
-    bool verbose = true,
-    bool doCombinations = false,
-    bool printCovariance = false
-) {
-  
-  // The random seed is set at the R level via set.seed() apparently.
-  // std::default_random_engine generator(seed);
-  // arma::arma_rng::set_seed(seed);
-
-  mSkewNormalPredictive my_sampler(K,
-                        B,
-                        mu_proposal_window,
-                        cov_proposal_window,
-                        m_proposal_window,
-                        S_proposal_window,
-                        phi_proposal_window,
-                        rho,
-                        theta,
-                        lambda,
-                        labels,
-                        batch_vec,
-                        concentration,
-                        X,
-                        fixed
-  );
-  
-  // The output matrix
-  arma::umat class_record(floor(R / thin), X.n_rows);
-  class_record.zeros();
-  
-  // We save the BIC at each iteration
-  arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin));
-  arma::uvec acceptance_vec = arma::zeros<arma::uvec>(floor(R / thin));
-  arma::mat weights_saved = arma::zeros<arma::mat>(floor(R / thin), K);
-  
-  arma::cube mean_sum_save(my_sampler.P, K * B, floor(R / thin)), mu_saved(my_sampler.P, K, floor(R / thin)), m_saved(my_sampler.P, B, floor(R / thin)), tau_saved(my_sampler.P, K, floor(R / thin)), t_saved(my_sampler.P, B, floor(R / thin)), phi_saved(my_sampler.P, K, floor(R / thin));
-  // arma::field<arma::cube> cov_saved(my_sampler.P, my_sampler.P, K, floor(R / thin));
-  mu_saved.zeros();
-  tau_saved.zeros();
-  // cov_saved.zeros();
-  m_saved.zeros();
-  t_saved.zeros();
-  
-  arma::uword save_int = 0;
-  
-  // Sampler from priors
-  my_sampler.sampleFromPriors();
-  my_sampler.matrixCombinations();
-
-  // Iterate over MCMC moves
-  for(arma::uword r = 0; r < R; r++){
-    
-    my_sampler.updateWeights();
-    
-    // Metropolis step for batch parameters
-    my_sampler.metropolisStep(doCombinations); 
-    
-    my_sampler.updateAllocation();
-
-    // Record results
-    if((r + 1) % thin == 0){
-      
-      my_sampler.calcBIC();
-      BIC_record( save_int ) = my_sampler.BIC;
-      class_record.row( save_int ) = my_sampler.labels.t();
-      acceptance_vec( save_int ) = my_sampler.accepted;
-      weights_saved.row( save_int ) = my_sampler.w.t();
-      mu_saved.slice( save_int ) = my_sampler.mu;
-      // tau_saved.slice( save_int ) = my_sampler.tau;
-      // cov_saved( save_int ) = my_sampler.cov;
-      m_saved.slice( save_int ) = my_sampler.m;
-      t_saved.slice( save_int ) = my_sampler.S;
-      mean_sum_save.slice( save_int ) = my_sampler.mean_sum;
-      phi_saved.slice( save_int ) = my_sampler.phi;
-      
-      if(printCovariance) {  
-        std::cout << "\n\nCovariance cube:\n" << my_sampler.cov;
-        std::cout << "\n\nBatch covariance matrix:\n" << my_sampler.S;
-      }
-      
-      save_int++;
-    }
-  }
-  
-  if(verbose) {
-    std::cout << "\n\nCovariance acceptance rate:\n" << my_sampler.cov_count;
-    std::cout << "\n\ncluster mean acceptance rate:\n" << my_sampler.mu_count;
-    std::cout << "\n\nCluster shape acceptance rate:\n" << my_sampler.phi_count;
-    std::cout << "\n\nBatch covariance acceptance rate:\n" << my_sampler.S_count;
-    std::cout << "\n\nBatch mean acceptance rate:\n" << my_sampler.m_count;
-  }
-  
-  return(List::create(Named("samples") = class_record, 
-                      Named("means") = mu_saved,
-                      Named("shapes") = phi_saved,
-                      // Named("precisions") = tau_saved,
-                      Named("batch_shift") = m_saved,
-                      Named("batch_scale") = t_saved,
-                      Named("mean_sum") = mean_sum_save,
-                      Named("weights") = weights_saved,
-                      Named("acceptance") = acceptance_vec,
-                      Named("BIC") = BIC_record));
-  
-};
-
-
-// [[Rcpp::export]]
-Rcpp::List sampleBatchSkewNormalMixtureModel (
+Rcpp::List sampleMSN (
     arma::mat X,
     arma::uword K,
     arma::uword B,
@@ -2765,7 +2939,7 @@ Rcpp::List sampleBatchSkewNormalMixtureModel (
   // std::default_random_engine generator(seed);
   // arma::arma_rng::set_seed(seed);
   
-  mvSkewNormal my_sampler(K,
+  msnSampler my_sampler(K,
                           B,
                           mu_proposal_window,
                           cov_proposal_window,
@@ -2859,3 +3033,844 @@ Rcpp::List sampleBatchSkewNormalMixtureModel (
                       Named("BIC") = BIC_record));
   
 };
+
+
+
+
+
+
+
+// [[Rcpp::export]]
+Rcpp::List sampleMVT (
+    arma::mat X,
+    arma::uword K,
+    arma::uword B,
+    arma::uvec labels,
+    arma::uvec batch_vec,
+    double mu_proposal_window,
+    double cov_proposal_window,
+    double m_proposal_window,
+    double S_proposal_window,
+    double t_df_proposal_window,
+    double rho,
+    double theta,
+    double lambda,
+    arma::uword R,
+    arma::uword thin,
+    arma::vec concentration,
+    bool verbose = true,
+    bool doCombinations = false,
+    bool printCovariance = false
+) {
+  
+  // The random seed is set at the R level via set.seed() apparently.
+  // std::default_random_engine generator(seed);
+  // arma::arma_rng::set_seed(seed);
+  
+  mvtSampler my_sampler(K,
+    B,
+    mu_proposal_window,
+    cov_proposal_window,
+    m_proposal_window,
+    S_proposal_window,
+    t_df_proposal_window,
+    rho,
+    theta,
+    lambda,
+    labels,
+    batch_vec,
+    concentration,
+    X
+  );
+  
+  // The output matrix
+  arma::umat class_record(floor(R / thin), X.n_rows);
+  class_record.zeros();
+  
+  // We save the BIC at each iteration
+  arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin));
+  arma::uvec acceptance_vec = arma::zeros<arma::uvec>(floor(R / thin));
+  arma::mat weights_saved(floor(R / thin), K), t_df_saved(floor(R / thin), K);
+  weights_saved.zeros();
+  t_df_saved.zeros();
+  
+  arma::cube mean_sum_saved(my_sampler.P, K * B, floor(R / thin)), mu_saved(my_sampler.P, K, floor(R / thin)), m_saved(my_sampler.P, B, floor(R / thin)), tau_saved(my_sampler.P, K, floor(R / thin)), t_saved(my_sampler.P, B, floor(R / thin));
+  mu_saved.zeros();
+  tau_saved.zeros();
+  // cov_saved.zeros();
+  m_saved.zeros();
+  t_saved.zeros();
+  
+  arma::uword save_int = 0;
+  
+  // Sampler from priors
+  my_sampler.sampleFromPriors();
+  my_sampler.matrixCombinations();
+  
+  // Iterate over MCMC moves
+  for(arma::uword r = 0; r < R; r++){
+    
+    my_sampler.updateWeights();
+    
+    // std::cout << "\nWeights.\n";
+    
+    // Metropolis step for batch parameters
+    my_sampler.metropolisStep(doCombinations); 
+    
+    // std::cout << "\nMetropolis.\n";
+    
+    my_sampler.updateAllocation();
+    
+    // std::cout << "\nAllocation.\n";
+    
+    // Record results
+    if((r + 1) % thin == 0){
+      
+      // Update the BIC for the current model fit
+      // sampler_ptr->calcBIC();
+      // BIC_record( save_int ) = sampler_ptr->BIC; 
+      // 
+      // // Save the current clustering
+      // class_record.row( save_int ) = sampler_ptr->labels.t();
+      
+      my_sampler.calcBIC();
+      BIC_record( save_int ) = my_sampler.BIC;
+      class_record.row( save_int ) = my_sampler.labels.t();
+      acceptance_vec( save_int ) = my_sampler.accepted;
+      weights_saved.row( save_int ) = my_sampler.w.t();
+      mu_saved.slice( save_int ) = my_sampler.mu;
+      // tau_saved.slice( save_int ) = my_sampler.tau;
+      // cov_saved( save_int ) = my_sampler.cov;
+      m_saved.slice( save_int ) = my_sampler.m;
+      t_saved.slice( save_int ) = my_sampler.S;
+      mean_sum_saved.slice( save_int ) = my_sampler.mean_sum;
+      t_df_saved.row( save_int ) = my_sampler.t_df.t();
+      
+      if(printCovariance) {  
+        std::cout << "\n\nCovariance cube:\n" << my_sampler.cov;
+        std::cout << "\n\nBatch covariance matrix:\n" << my_sampler.S;
+      }
+      
+      save_int++;
+    }
+  }
+  
+  if(verbose) {
+
+    std::cout << "\n\nCovariance acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.cov_count) / R;
+    std::cout << "\n\ncluster mean acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.mu_count) / R;
+    std::cout << "\n\nBatch covariance acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.S_count) / R;
+    std::cout << "\n\nBatch mean acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.m_count) / R;
+    std::cout << "\n\nCluster t d.f. acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.t_df_count) / R;
+    
+  }
+  
+  return(List::create(Named("samples") = class_record, 
+    Named("means") = mu_saved,
+    // Named("precisions") = tau_saved,
+    Named("batch_shift") = m_saved,
+    Named("batch_scale") = t_saved,
+    Named("mean_sum") = mean_sum_saved,
+    Named("t_df") = t_df_saved,
+    Named("weights") = weights_saved,
+    Named("acceptance") = acceptance_vec,
+    Named("cov_count") = my_sampler.cov_count,
+    Named("mu_count") = my_sampler.mu_count,
+    Named("S_count") = my_sampler.S_count,
+    Named("m_count") = my_sampler.m_count,
+    Named("BIC") = BIC_record)
+  );
+  
+};
+
+
+//' @title Mixture model
+//' @description Performs MCMC sampling for a mixture model.
+//' @param X The data matrix to perform clustering upon (items to cluster in rows).
+//' @param K The number of components to model (upper limit on the number of clusters found).
+//' @param labels Vector item labels to initialise from.
+//' @param fixed Binary vector of the items that are fixed in their initial label.
+//' @param dataType Int, 0: independent Gaussians, 1: Multivariate normal, or 2: Categorical distributions.
+//' @param R The number of iterations to run for.
+//' @param thin thinning factor for samples recorded.
+//' @param concentration Vector of concentrations for mixture weights (recommended to be symmetric).
+//' @return Named list of the matrix of MCMC samples generated (each row 
+//' corresponds to a different sample) and BIC for each saved iteration.
+// [[Rcpp::export]]
+Rcpp::List sampleSemisupervisedMVN (
+    arma::mat X,
+    arma::uword K,
+    arma::uword B,
+    arma::uvec labels,
+    arma::uvec batch_vec,
+    arma::uvec fixed,
+    double mu_proposal_window,
+    double cov_proposal_window,
+    double m_proposal_window,
+    double S_proposal_window,
+    double rho,
+    double theta,
+    double lambda,
+    arma::uword R,
+    arma::uword thin,
+    arma::vec concentration,
+    bool verbose = true,
+    bool doCombinations = false,
+    bool printCovariance = false
+) {
+  
+  // // Set the random number
+  // std::default_random_engine generator(seed);
+  // 
+  // // Declare the factory
+  // semisupervisedSamplerFactory my_factory;
+  // 
+  // // Convert from an int to the samplerType variable for our Factory
+  // semisupervisedSamplerFactory::samplerType val = static_cast<semisupervisedSamplerFactory::samplerType>(dataType);
+  // 
+  // // Make a pointer to the correct type of sampler
+  // std::unique_ptr<sampler> sampler_ptr = my_factory.createSemisupervisedSampler(val,
+  //                                                                               K,
+  //                                                                               labels,
+  //                                                                               concentration,
+  //                                                                               X,
+  //                                                                               fixed);
+  
+  
+  mvnPredictive my_sampler(K,
+                           B,
+                           mu_proposal_window,
+                           cov_proposal_window,
+                           m_proposal_window,
+                           S_proposal_window,
+                           rho,
+                           theta,
+                           lambda,
+                           labels,
+                           batch_vec,
+                           concentration,
+                           X,
+                           fixed
+  );
+  
+  // // Declare the factory
+  // samplerFactory my_factory;
+  // 
+  // // Convert from an int to the samplerType variable for our Factory
+  // samplerFactory::samplerType val = static_cast<samplerFactory::samplerType>(dataType);
+  // 
+  // // Make a pointer to the correct type of sampler
+  // std::unique_ptr<sampler> sampler_ptr = my_factory.createSampler(val,
+  //                                                                 K,
+  //                                                                 labels,
+  //                                                                 concentration,
+  //                                                                 X);
+  
+  // The output matrix
+  arma::umat class_record(floor(R / thin), X.n_rows);
+  class_record.zeros();
+  
+  // We save the BIC at each iteration
+  arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin));
+  arma::uvec acceptance_vec = arma::zeros<arma::uvec>(floor(R / thin));
+  arma::mat weights_saved = arma::zeros<arma::mat>(floor(R / thin), K);
+  
+  arma::cube mean_sum_save(my_sampler.P, K * B, floor(R / thin)), mu_saved(my_sampler.P, K, floor(R / thin)), m_saved(my_sampler.P, B, floor(R / thin)), tau_saved(my_sampler.P, K, floor(R / thin)), t_saved(my_sampler.P, B, floor(R / thin)), alloc_prob(my_sampler.N, K, floor(R / thin));
+  // arma::field<arma::cube> cov_saved(my_sampler.P, my_sampler.P, K, floor(R / thin));
+  mu_saved.zeros();
+  tau_saved.zeros();
+  // cov_saved.zeros();
+  m_saved.zeros();
+  t_saved.zeros();
+  
+  arma::uword save_int = 0;
+  
+  // Sampler from priors
+  my_sampler.sampleFromPriors();
+  my_sampler.matrixCombinations();
+  // my_sampler.modelScore();
+  // sampler_ptr->sampleFromPriors();
+  
+  // my_sampler.model_score = my_sampler.modelLogLikelihood(
+  //   my_sampler.mu,
+  //   my_sampler.tau,
+  //   my_sampler.m,
+  //   my_sampler.t
+  // ) + my_sampler.priorLogProbability(
+  //     my_sampler.mu,
+  //     my_sampler.tau,
+  //     my_sampler.m,
+  //     my_sampler.t
+  // );
+  
+  // sample_prt.model_score->sampler_ptr.modelLo
+  
+  // Iterate over MCMC moves
+  for(arma::uword r = 0; r < R; r++){
+    
+    my_sampler.updateWeights();
+    
+    // Metropolis step for batch parameters
+    my_sampler.metropolisStep(doCombinations); 
+    
+    my_sampler.updateAllocation();
+    
+    
+    // sampler_ptr->updateWeights();
+    // sampler_ptr->proposeNewParameters();
+    // sampler_ptr->updateAllocation();
+    
+    // Record results
+    if((r + 1) % thin == 0){
+      
+      // Update the BIC for the current model fit
+      // sampler_ptr->calcBIC();
+      // BIC_record( save_int ) = sampler_ptr->BIC; 
+      // 
+      // // Save the current clustering
+      // class_record.row( save_int ) = sampler_ptr->labels.t();
+      
+      my_sampler.calcBIC();
+      BIC_record( save_int ) = my_sampler.BIC;
+      class_record.row( save_int ) = my_sampler.labels.t();
+      acceptance_vec( save_int ) = my_sampler.accepted;
+      weights_saved.row( save_int ) = my_sampler.w.t();
+      mu_saved.slice( save_int ) = my_sampler.mu;
+      // tau_saved.slice( save_int ) = my_sampler.tau;
+      // cov_saved( save_int ) = my_sampler.cov;
+      m_saved.slice( save_int ) = my_sampler.m;
+      t_saved.slice( save_int ) = my_sampler.S;
+      mean_sum_save.slice( save_int ) = my_sampler.mean_sum;
+      
+      alloc_prob.slice( save_int ) = my_sampler.alloc_prob;
+      
+      if(printCovariance) {  
+        std::cout << "\n\nCovariance cube:\n" << my_sampler.cov;
+        std::cout << "\n\nBatch covariance matrix:\n" << my_sampler.S;
+      }
+      
+      save_int++;
+    }
+  }
+  
+  if(verbose) {
+    std::cout << "\n\nCovariance acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.cov_count) / R;
+    std::cout << "\n\ncluster mean acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.mu_count) / R;
+    std::cout << "\n\nBatch covariance acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.S_count) / R;
+    std::cout << "\n\nBatch mean acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.m_count) / R;
+  }
+  
+  return(List::create(Named("samples") = class_record, 
+                      Named("means") = mu_saved,
+                      Named("precisions") = tau_saved,
+                      Named("batch_shift") = m_saved,
+                      Named("batch_scale") = t_saved,
+                      Named("mean_sum") = mean_sum_save,
+                      Named("weights") = weights_saved,
+                      Named("acceptance") = acceptance_vec,
+                      Named("cov_count") = my_sampler.cov_count,
+                      Named("mu_count") = my_sampler.mu_count,
+                      Named("S_count") = my_sampler.S_count,
+                      Named("m_count") = my_sampler.m_count,
+                      Named("alloc_prob") = alloc_prob,
+                      Named("BIC") = BIC_record)
+  );
+  
+};
+
+
+
+
+
+
+
+// [[Rcpp::export]]
+Rcpp::List sampleSemisupervisedMSN (
+    arma::mat X,
+    arma::uword K,
+    arma::uword B,
+    arma::uvec labels,
+    arma::uvec batch_vec,
+    arma::uvec fixed,
+    double mu_proposal_window,
+    double cov_proposal_window,
+    double m_proposal_window,
+    double S_proposal_window,
+    double phi_proposal_window,
+    double rho,
+    double theta,
+    double lambda,
+    arma::uword R,
+    arma::uword thin,
+    arma::vec concentration,
+    bool verbose = true,
+    bool doCombinations = false,
+    bool printCovariance = false
+) {
+  
+  // The random seed is set at the R level via set.seed() apparently.
+  // std::default_random_engine generator(seed);
+  // arma::arma_rng::set_seed(seed);
+  
+  msnPredictive my_sampler(K,
+                           B,
+                           mu_proposal_window,
+                           cov_proposal_window,
+                           m_proposal_window,
+                           S_proposal_window,
+                           phi_proposal_window,
+                           rho,
+                           theta,
+                           lambda,
+                           labels,
+                           batch_vec,
+                           concentration,
+                           X,
+                           fixed
+  );
+  
+  // The output matrix
+  arma::umat class_record(floor(R / thin), X.n_rows);
+  class_record.zeros();
+  
+  // We save the BIC at each iteration
+  arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin));
+  arma::uvec acceptance_vec = arma::zeros<arma::uvec>(floor(R / thin));
+  arma::mat weights_saved = arma::zeros<arma::mat>(floor(R / thin), K);
+  
+  arma::cube mean_sum_save(my_sampler.P, K * B, floor(R / thin)), mu_saved(my_sampler.P, K, floor(R / thin)), m_saved(my_sampler.P, B, floor(R / thin)), tau_saved(my_sampler.P, K, floor(R / thin)), t_saved(my_sampler.P, B, floor(R / thin)), phi_saved(my_sampler.P, K, floor(R / thin)), alloc_prob(my_sampler.N, K, floor(R / thin));
+  // arma::field<arma::cube> cov_saved(my_sampler.P, my_sampler.P, K, floor(R / thin));
+  mu_saved.zeros();
+  tau_saved.zeros();
+  // cov_saved.zeros();
+  m_saved.zeros();
+  t_saved.zeros();
+  
+  arma::uword save_int = 0;
+  
+  // Sampler from priors
+  my_sampler.sampleFromPriors();
+  my_sampler.matrixCombinations();
+  
+  // Iterate over MCMC moves
+  for(arma::uword r = 0; r < R; r++){
+    
+    my_sampler.updateWeights();
+    
+    // Metropolis step for batch parameters
+    my_sampler.metropolisStep(doCombinations); 
+    
+    my_sampler.updateAllocation();
+    
+    // Record results
+    if((r + 1) % thin == 0){
+      
+      my_sampler.calcBIC();
+      BIC_record( save_int ) = my_sampler.BIC;
+      class_record.row( save_int ) = my_sampler.labels.t();
+      acceptance_vec( save_int ) = my_sampler.accepted;
+      weights_saved.row( save_int ) = my_sampler.w.t();
+      mu_saved.slice( save_int ) = my_sampler.mu;
+      // tau_saved.slice( save_int ) = my_sampler.tau;
+      // cov_saved( save_int ) = my_sampler.cov;
+      m_saved.slice( save_int ) = my_sampler.m;
+      t_saved.slice( save_int ) = my_sampler.S;
+      mean_sum_save.slice( save_int ) = my_sampler.mean_sum;
+      phi_saved.slice( save_int ) = my_sampler.phi;
+      
+      alloc_prob.slice( save_int ) = my_sampler.alloc_prob;
+      
+      if(printCovariance) {  
+        std::cout << "\n\nCovariance cube:\n" << my_sampler.cov;
+        std::cout << "\n\nBatch covariance matrix:\n" << my_sampler.S;
+      }
+      
+      save_int++;
+    }
+  }
+  
+  if(verbose) {
+    
+    std::cout << "\n\nCovariance acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.cov_count) / R;
+    std::cout << "\n\nCluster mean acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.mu_count) / R;
+    std::cout << "\n\nCluster shape acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.phi_count) / R;
+    std::cout << "\n\nBatch covariance acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.S_count) / R;
+    std::cout << "\n\nBatch mean acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.m_count) / R;
+    
+  }
+  
+  
+  return(List::create(Named("samples") = class_record, 
+                      Named("means") = mu_saved,
+                      // Named("precisions") = tau_saved,
+                      Named("batch_shift") = m_saved,
+                      Named("batch_scale") = t_saved,
+                      Named("mean_sum") = mean_sum_save,
+                      Named("weights") = weights_saved,
+                      Named("acceptance") = acceptance_vec,
+                      Named("cov_count") = my_sampler.cov_count,
+                      Named("mu_count") = my_sampler.mu_count,
+                      Named("S_count") = my_sampler.S_count,
+                      Named("m_count") = my_sampler.m_count,
+                      Named("phi_count") = my_sampler.phi_count,
+                      Named("alloc_prob") = alloc_prob,
+                      Named("BIC") = BIC_record
+  )
+  );
+  
+};
+
+// [[Rcpp::export]]
+Rcpp::List sampleSemisupervisedMVT (
+    arma::mat X,
+    arma::uword K,
+    arma::uword B,
+    arma::uvec labels,
+    arma::uvec batch_vec,
+    arma::uvec fixed,
+    double mu_proposal_window,
+    double cov_proposal_window,
+    double m_proposal_window,
+    double S_proposal_window,
+    double t_df_proposal_window,
+    double rho,
+    double theta,
+    double lambda,
+    arma::uword R,
+    arma::uword thin,
+    arma::vec concentration,
+    bool verbose = true,
+    bool doCombinations = false,
+    bool printCovariance = false
+) {
+  
+  // The random seed is set at the R level via set.seed() apparently.
+  // std::default_random_engine generator(seed);
+  // arma::arma_rng::set_seed(seed);
+  
+  
+  mvtPredictive my_sampler(K,
+    B,
+    mu_proposal_window,
+    cov_proposal_window,
+    m_proposal_window,
+    S_proposal_window,
+    t_df_proposal_window,
+    rho,
+    theta,
+    lambda,
+    labels,
+    batch_vec,
+    concentration,
+    X,
+    fixed
+  );
+  
+  // The output matrix
+  arma::umat class_record(floor(R / thin), X.n_rows);
+  class_record.zeros();
+  
+  // We save the BIC at each iteration
+  arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin));
+  arma::uvec acceptance_vec = arma::zeros<arma::uvec>(floor(R / thin));
+  arma::mat weights_saved(floor(R / thin), K), t_df_saved(floor(R / thin), K);
+  weights_saved.zeros();
+  t_df_saved.zeros();
+  
+  arma::cube mean_sum_saved(my_sampler.P, K * B, floor(R / thin)), mu_saved(my_sampler.P, K, floor(R / thin)), m_saved(my_sampler.P, B, floor(R / thin)), tau_saved(my_sampler.P, K, floor(R / thin)), t_saved(my_sampler.P, B, floor(R / thin)), alloc_prob(my_sampler.N, K, floor(R / thin));
+  mu_saved.zeros();
+  tau_saved.zeros();
+  // cov_saved.zeros();
+  m_saved.zeros();
+  t_saved.zeros();
+  
+  arma::uword save_int = 0;
+  
+  // Sampler from priors
+  my_sampler.sampleFromPriors();
+  my_sampler.matrixCombinations();
+  
+  // Iterate over MCMC moves
+  for(arma::uword r = 0; r < R; r++){
+    
+    my_sampler.updateWeights();
+    
+    // std::cout << "\nWeights.\n";
+    
+    // Metropolis step for batch parameters
+    my_sampler.metropolisStep(doCombinations); 
+    
+    // std::cout << "\nMetropolis.\n";
+    
+    my_sampler.updateAllocation();
+    
+    // std::cout << "\nAllocation.\n";
+    
+    // Record results
+    if((r + 1) % thin == 0){
+      
+      // Update the BIC for the current model fit
+      // sampler_ptr->calcBIC();
+      // BIC_record( save_int ) = sampler_ptr->BIC; 
+      // 
+      // // Save the current clustering
+      // class_record.row( save_int ) = sampler_ptr->labels.t();
+      
+      my_sampler.calcBIC();
+      BIC_record( save_int ) = my_sampler.BIC;
+      class_record.row( save_int ) = my_sampler.labels.t();
+      acceptance_vec( save_int ) = my_sampler.accepted;
+      weights_saved.row( save_int ) = my_sampler.w.t();
+      mu_saved.slice( save_int ) = my_sampler.mu;
+      // tau_saved.slice( save_int ) = my_sampler.tau;
+      // cov_saved( save_int ) = my_sampler.cov;
+      m_saved.slice( save_int ) = my_sampler.m;
+      t_saved.slice( save_int ) = my_sampler.S;
+      mean_sum_saved.slice( save_int ) = my_sampler.mean_sum;
+      t_df_saved.row( save_int ) = my_sampler.t_df.t();
+      
+      alloc_prob.slice( save_int ) = my_sampler.alloc_prob;
+      
+      
+      if(printCovariance) {  
+        std::cout << "\n\nCovariance cube:\n" << my_sampler.cov;
+        std::cout << "\n\nBatch covariance matrix:\n" << my_sampler.S;
+      }
+      
+      save_int++;
+    }
+  }
+  
+  if(verbose) {
+    
+    std::cout << "\n\nCovariance acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.cov_count) / R;
+    std::cout << "\n\ncluster mean acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.mu_count) / R;
+    std::cout << "\n\nBatch covariance acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.S_count) / R;
+    std::cout << "\n\nBatch mean acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.m_count) / R;
+    std::cout << "\n\nCluster t d.f. acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.t_df_count) / R;
+    
+  }
+  
+  return(
+    List::create(Named("samples") = class_record, 
+      Named("means") = mu_saved,
+      // Named("precisions") = tau_saved,
+      Named("batch_shift") = m_saved,
+      Named("batch_scale") = t_saved,
+      Named("mean_sum") = mean_sum_saved,
+      Named("t_df") = t_df_saved,
+      Named("weights") = weights_saved,
+      Named("acceptance") = acceptance_vec,
+      Named("cov_count") = my_sampler.cov_count,
+      Named("mu_count") = my_sampler.mu_count,
+      Named("S_count") = my_sampler.S_count,
+      Named("m_count") = my_sampler.m_count,
+      Named("alloc_prob") = alloc_prob,
+      Named("BIC") = BIC_record
+    )
+  );
+  
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 
+// //' @title Mixture model
+// //' @description Performs MCMC sampling for a mixture model.
+// //' @param X The data matrix to perform clustering upon (items to cluster in rows).
+// //' @param K The number of components to model (upper limit on the number of clusters found).
+// //' @param labels Vector item labels to initialise from.
+// //' @param dataType Int, 0: independent Gaussians, 1: Multivariate normal, or 2: Categorical distributions.
+// //' @param R The number of iterations to run for.
+// //' @param thin thinning factor for samples recorded.
+// //' @param concentration Vector of concentrations for mixture weights (recommended to be symmetric).
+// //' @return Named list of the matrix of MCMC samples generated (each row 
+// //' corresponds to a different sample) and BIC for each saved iteration.
+// // [[Rcpp::export]]
+// Rcpp::List sampleMixtureModel (
+//   arma::mat X,
+//   arma::uword K,
+//   arma::uword B,
+//   int dataType,
+//   arma::uvec labels,
+//   arma::uvec batch_vec,
+//   double mu_proposal_window,
+//   double cov_proposal_window,
+//   double m_proposal_window,
+//   double S_proposal_window,
+//   double t_df_proposal_window,
+//   double phi_proposal_window,
+//   double rho,
+//   double theta,
+//   double lambda,
+//   arma::uword R,
+//   arma::uword thin,
+//   arma::vec concentration,
+//   bool verbose = true,
+//   bool doCombinations = false,
+//   bool printCovariance = false
+// ) {
+//   
+//   // Set the random number
+//   std::default_random_engine generator(seed);
+//   
+//   // Declare the factory
+//   samplerFactory my_factory;
+//   
+//   // Convert from an int to the samplerType variable for our Factory
+//   samplerFactory::samplerType val = static_cast<samplerFactory::samplerType>(dataType);
+//   
+//   // Make a pointer to the correct type of sampler
+//   std::unique_ptr<sampler> sampler_ptr = my_factory.createSampler(val,
+//     K,
+//     B,
+//     mu_proposal_window,
+//     cov_proposal_window,
+//     m_proposal_window,
+//     S_proposal_window,
+//     t_df_proposal_window,
+//     phi_proposal_window,
+//     rho,
+//     theta,
+//     lambda,
+//     labels,
+//     batch_vec,
+//     concentration,
+//     X
+//   );
+//   
+//   // The output matrix
+//   arma::umat class_record(floor(R / thin), X.n_rows);
+//   class_record.zeros();
+//   
+//   // We save the BIC at each iteration
+//   arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin));
+//   
+//   arma::uword save_int=0;
+//   
+//   // Sampler from priors (this is unnecessary)
+//   sampler_ptr->sampleFromPriors();
+//   
+//   // Iterate over MCMC moves
+//   for(arma::uword r = 0; r < R; r++){
+//     
+//     sampler_ptr->updateWeights();
+//     sampler_ptr->sampleParameters();
+//     sampler_ptr->updateAllocation();
+//     
+//     // Record results
+//     if((r + 1) % thin == 0){
+//       
+//       // Update the BIC for the current model fit
+//       sampler_ptr->calcBIC();
+//       BIC_record( save_int ) = sampler_ptr->BIC; 
+//       
+//       // Save the current clustering
+//       class_record.row( save_int ) = sampler_ptr->labels.t();
+//       save_int++;
+//     }
+//   }
+//   return(List::create(Named("samples") = class_record, Named("BIC") = BIC_record));
+// };
+// 
+// 
+// //' @title Mixture model
+// //' @description Performs MCMC sampling for a mixture model.
+// //' @param X The data matrix to perform clustering upon (items to cluster in rows).
+// //' @param K The number of components to model (upper limit on the number of clusters found).
+// //' @param labels Vector item labels to initialise from.
+// //' @param fixed Binary vector of the items that are fixed in their initial label.
+// //' @param dataType Int, 0: independent Gaussians, 1: Multivariate normal, or 2: Categorical distributions.
+// //' @param R The number of iterations to run for.
+// //' @param thin thinning factor for samples recorded.
+// //' @param concentration Vector of concentrations for mixture weights (recommended to be symmetric).
+// //' @return Named list of the matrix of MCMC samples generated (each row 
+// //' corresponds to a different sample) and BIC for each saved iteration.
+// // [[Rcpp::export]]
+// Rcpp::List sampleSemisupervisedMixtureModel (
+//     arma::mat X,
+//     arma::uword K,
+//     arma::uvec labels,
+//     arma::uvec fixed,
+//     int dataType,
+//     arma::uword R,
+//     arma::uword thin,
+//     arma::vec concentration,
+//     arma::uword seed
+// ) {
+//   
+//   // Set the random number
+//   std::default_random_engine generator(seed);
+//   
+//   // Declare the factory
+//   semisupervisedSamplerFactory my_factory;
+//   
+//   // Convert from an int to the samplerType variable for our Factory
+//   semisupervisedSamplerFactory::samplerType val = static_cast<semisupervisedSamplerFactory::samplerType>(dataType);
+//   
+//   // Make a pointer to the correct type of sampler
+//   std::unique_ptr<sampler> sampler_ptr = my_factory.createSemisupervisedSampler(val,
+//                                                                                 K,
+//                                                                                 labels,
+//                                                                                 concentration,
+//                                                                                 X,
+//                                                                                 fixed);
+//   
+//   // The output matrix
+//   arma::umat class_record(floor(R / thin), X.n_rows);
+//   class_record.zeros();
+//   
+//   // We save the BIC at each iteration
+//   arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin));
+//   
+//   arma::uword save_int=0;
+//   
+//   // Sampler from priors (this is unnecessary)
+//   sampler_ptr->sampleFromPriors();
+//   
+//   // Iterate over MCMC moves
+//   for(arma::uword r = 0; r < R; r++){
+//     
+//     sampler_ptr->updateWeights();
+//     sampler_ptr->sampleParameters();
+//     sampler_ptr->updateAllocation();
+//     
+//     // Record results
+//     if((r + 1) % thin == 0){
+//       
+//       // Update the BIC for the current model fit
+//       sampler_ptr->calcBIC();
+//       BIC_record( save_int ) = sampler_ptr->BIC; 
+//       
+//       // Save the current clustering
+//       class_record.row( save_int ) = sampler_ptr->labels.t();
+//       save_int++;
+//     }
+//   }
+//   return(List::create(Named("samples") = class_record, Named("BIC") = BIC_record));
+// };
