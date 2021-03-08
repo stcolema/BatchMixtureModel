@@ -1,19 +1,19 @@
 #!/usr/bin/Rscript
-#' @title Batch semi-supervised mixture model
+#' @title Batch mixture model
 #' @description A Bayesian mixture model with batch effects.
 #' @param X Data to cluster as a matrix with the items to cluster held in rows.
-#' @param initial_labels Initial clustering.
-#' @param fixed Which items are fixed in their initial label.
-#' @param batch_vec Labels identifying which batch each item being clustered is from.
 #' @param R The number of iterations in the sampler.
-#' @param thin The factor by which the samples generated are thinned, e.g. if 
+#' @param thin The factor by which the samples generated are thinned, e.g. if
 #' ``thin=50`` only every 50th sample is kept.
+#' @param batch_vec Labels identifying which batch each item being clustered is
+#' from.
 #' @param type Character indicating density type to use. One of 'MVN' 
 #' (multivariate normal distribution), 'MVT' (multivariate t distribution) or 
 #' 'MSN' (multivariate skew normal distribution).
-#' @param K_max The number of components to include (the upper bound on the
-#' number of clusters in each sample). Defaults to the number of unique labels 
-#' in ``initial_labels``.
+#' @param initial_labels Labels to begin from (if ``NULL`` defaults to a 
+#' stick-breaking prior).
+#' @param K_max The number of components to include (the upper bound on the 
+#' number of clusters found in each sample).
 #' @param alpha The concentration parameter for the stick-breaking prior and the 
 #' weights in the model.
 #' @param verbose The random seed for reproducibility.
@@ -31,6 +31,8 @@
 #' the multivariate skew normal distribution (not used if type is not 'MSN').
 #' @param verbose A bool indicating if the acceptance count for each parameter 
 #' should be printed or not.
+#' @return Named list of the matrix of MCMC samples generated (each row
+#' corresponds to a different sample) and BIC for each saved iteration.
 #' @examples
 #' # Convert data to matrix format
 #' X <- as.matrix(my_data)
@@ -46,27 +48,22 @@
 #' pred_cl <- mcclust::maxpear(samples$samples)$cl
 #' psm <- createSimilarityMatrix(pred_cl)
 #' @export
-batchSemiSupervisedMixtureModel <- function(X, 
-                                            R, 
-                                            thin, 
-                                            initial_labels, 
-                                            fixed, 
-                                            batch_vec, 
-                                            type,
-                                            K_max = length(unique(initial_labels)),
-                                            alpha = 1,
-                                            mu_proposal_window = 0.5**2,
-                                            cov_proposal_window = 100,
-                                            m_proposal_window = 0.3**2,
-                                            S_proposal_window = 100,
-                                            t_df_proposal_window = 100,
-                                            phi_proposal_window = 1.2**2,
-                                            rho = 41.0,
-                                            theta = 40.0,
-                                            lambda = 1.0,
-                                            verbose = FALSE,
-                                            doCombinations = FALSE,
-                                            printCovariance = FALSE) {
+batchMixtureModel <- function(X, R, thin, batch_vec, type,
+                              initial_labels = NULL,
+                              K_max = 50,
+                              alpha = 1,
+                              mu_proposal_window = 0.5**2,
+                              cov_proposal_window = 100,
+                              m_proposal_window = 0.3**2,
+                              S_proposal_window = 100,
+                              t_df_proposal_window = 100,
+                              phi_proposal_window = 1.2**2,
+                              rho = 41.0,
+                              theta = 40.0,
+                              lambda = 1.0,
+                              verbose = FALSE,
+                              doCombinations = FALSE,
+                              printCovariance = FALSE) {
   if (!is.matrix(X)) {
     stop("X is not a matrix. Data should be in matrix format.")
   }
@@ -80,7 +77,7 @@ batchSemiSupervisedMixtureModel <- function(X,
   }
   
   if(theta < 1.0) {
-    stop("rho parameter must be a positive whole.")
+    stop("rho parameter must be a positive whole number.")
   }
   
   if(lambda <= 0.0) {
@@ -95,15 +92,20 @@ batchSemiSupervisedMixtureModel <- function(X,
     warning("Iterations to run less than thinning factor. No samples recorded.")
   }
   
+  if (is.null(initial_labels)) {
+    # Sample the stick breaking prior
+    initial_labels <- priorLabels(alpha, K_max, nrow(X))
+  } else {
+    if(length(initial_labels) != nrow(X)){
+      stop("Number of membership labels does not equal the number of items in X.")
+    }
+  }
+  
   # Check that the initial labels starts at 0, if not remedy this.
   if (!any(initial_labels == 0)) {
     initial_labels <- initial_labels %>%
       as.factor() %>%
       as.numeric() - 1
-  }
-  
-  if(max(initial_labels) != (length(unique(initial_labels)) - 1)){
-    stop("initial labels are not all contiguous integers.")
   }
   
   # Check that the batch labels starts at 0, if not remedy this.
@@ -113,26 +115,21 @@ batchSemiSupervisedMixtureModel <- function(X,
       as.numeric() - 1
   }
   
-  if(max(batch_vec) != (length(unique(batch_vec)) - 1)){
-    stop("batch labels are not all contiguous integers.")
-  }
-  
   # The number of batches present
   B <- length(unique(batch_vec))
   
   # The concentration parameter for the prior Dirichlet distirbution of the
   # component weights.
   concentration <- rep(alpha, K_max)
-
+  
   # Pull samples from the mixture model
   if(type == "MVN") {
-    samples <- sampleSemisupervisedMVN(
+    samples <- sampleBatchMixtureModel(
       X,
       K_max,
       B,
       initial_labels,
       batch_vec,
-      fixed,
       mu_proposal_window,
       cov_proposal_window,
       m_proposal_window,
@@ -150,13 +147,12 @@ batchSemiSupervisedMixtureModel <- function(X,
   }
   
   if(type == "MVT") {
-    samples <- sampleSemisupervisedMVT(
+    samples <- sampleMVT(
       X,
       K_max,
       B,
       initial_labels,
       batch_vec,
-      fixed,
       mu_proposal_window,
       cov_proposal_window,
       m_proposal_window,
@@ -175,13 +171,12 @@ batchSemiSupervisedMixtureModel <- function(X,
   }
   
   if(type == "MSN") {
-    samples <- sampleSemisupervisedMSN(
+    samples <- sampleMSN(
       X,
       K_max,
       B,
       initial_labels,
       batch_vec,
-      fixed,
       mu_proposal_window,
       cov_proposal_window,
       m_proposal_window,
@@ -202,6 +197,5 @@ batchSemiSupervisedMixtureModel <- function(X,
   else {
     stop("Type not recognised. Please use one of 'MVN', 'MVT' or 'MSN'.")
   }
-  
   samples
 }

@@ -23,8 +23,8 @@
 #' @export
 plotSampledClusterMeans <- function(samples, R = NULL, thin = 1, burn_in = 0) {
   
-  K <- ncol(samples$means[, , 1])
-  P <- nrow(samples$means[, , 1])
+  K <- dim(samples$means)[2]
+  P <- dim(samples$means)[1]
   
   if (is.null(R)) {
     R <- nrow(samples$samples)

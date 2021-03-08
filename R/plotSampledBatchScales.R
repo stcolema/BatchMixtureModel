@@ -1,6 +1,6 @@
 #!/usr/bin/Rscript
-#' @title Plot sampled batch means
-#' @description Plot the sampled values for the batch mean shifts in each 
+#' @title Plot sampled batch scales
+#' @description Plot the sampled values for the batch scale in each 
 #' dimension from the output of the ``mixtureModel`` function. Not recommended
 #' for large B or P.
 #' @param samples The output of the ``mixtureModel`` function.
@@ -18,10 +18,10 @@
 #'
 #' # MCMC samples
 #' samples <- mixtureModel(X, R, thin)
-#' plotSampledBatchMeans(samples, R, thin)
+#' plotSampledBatchScales(samples, R, thin)
 #' @importFrom ggplot2 ggplot aes geom_point facet_wrap labs
 #' @export
-plotSampledBatchMeans <- function(samples, R = NULL, thin = 1, burn_in = 0) {
+plotSampledBatchScales <- function(samples, R = NULL, thin = 1, burn_in = 0) {
   B <- dim(samples$batch_shift)[2]
   P <- dim(samples$batch_shift)[1]
   
@@ -34,15 +34,15 @@ plotSampledBatchMeans <- function(samples, R = NULL, thin = 1, burn_in = 0) {
     stop("The ratio of R to thin does not match the number of samples present.")
   }
   
-  sampled_batch_shift <- getSampledBatchShift(samples$batch_shift, B, P, R = R, thin = thin)
+  sampled_batch_scale <- getSampledBatchShift(samples$batch_scale, B, P, R = R, thin = thin)
   
-  sampled_batch_shift <- sampled_batch_shift[sampled_batch_shift$Iteration > burn_in, ]
+  sampled_batch_scale <- sampled_batch_scale[sampled_batch_scale$Iteration > burn_in, ]
   
-  p <- ggplot2::ggplot(sampled_batch_shift, ggplot2::aes(x = Iteration, y = value)) +
+  p <- ggplot2::ggplot(sampled_batch_scale, ggplot2::aes(x = Iteration, y = value)) +
     ggplot2::geom_point() +
     ggplot2::facet_wrap(~name, ncol = P) +
     ggplot2::labs(
-      title = "Batch mean shift",
+      title = "Batch scale",
       x = "MCMC iteration",
       y = "Sampled value"
     )

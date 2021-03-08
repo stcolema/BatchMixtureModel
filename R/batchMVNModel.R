@@ -31,7 +31,7 @@
 #' pred_cl <- mcclust::maxpear(samples$samples)$cl
 #' psm <- createSimilarityMatrix(pred_cl)
 #' @export
-batchMixtureModel <- function(X, R, thin, batch_vec,
+batchMVNModel <- function(X, R, thin, batch_vec,
                          initial_labels = NULL,
                          K_max = 50,
                          alpha = 1,
