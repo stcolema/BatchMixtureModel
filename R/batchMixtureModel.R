@@ -194,7 +194,7 @@ batchMixtureModel <- function(X, R, thin, batch_vec, type,
     )
   }
   
-  else {
+  if (! type %in% c("MVN", "MSN", "MVT")) {
     stop("Type not recognised. Please use one of 'MVN', 'MVT' or 'MSN'.")
   }
   samples

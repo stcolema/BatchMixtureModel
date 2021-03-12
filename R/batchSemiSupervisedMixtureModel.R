@@ -199,7 +199,7 @@ batchSemiSupervisedMixtureModel <- function(X,
     )
   }
   
-  else {
+  if (! type %in% c("MVN", "MSN", "MVT")) {
     stop("Type not recognised. Please use one of 'MVN', 'MVT' or 'MSN'.")
   }
   

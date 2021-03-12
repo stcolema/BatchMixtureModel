@@ -992,8 +992,20 @@ public:
     
     // Each component has a mean vector and a symmetric covariance matrix. 
     // Each batch has a mean and standard deviations vector.
-    arma::uword n_param = (P + P * (P + 1) * 0.5) * K_occ + (2 * P) * B;
-    BIC = n_param * std::log(N) - 2 * model_likelihood;
+    // arma::uword n_param = (P + P * (P + 1) * 0.5) * K_occ + (2 * P) * B;
+    // BIC = n_param * std::log(N) - 2 * model_likelihood;
+    
+    arma::uword n_param_cluster = P + P * (P + 1) * 0.5;
+    arma::uword n_param_batch = 2 * P;
+    
+    BIC = 2 * model_likelihood;
+    
+    for(arma::uword k = 0; k < K; k++) {
+      BIC -= n_param_cluster * std::log(N_k(k) + 1);
+    }
+    for(arma::uword b = 0; b < B; b++) {
+      BIC -= n_param_batch * std::log(N_b(b) + 1);
+    }
     
   };
   
@@ -1480,6 +1492,31 @@ public:
   
   virtual ~mvnPredictive() { };
   
+  // virtual void sampleFromPriors() {
+  //   
+  //   arma::mat X_k;
+  //   
+  //   for(arma::uword k = 0; k < K; k++){
+  //     X_k = X.rows(arma::find(labels == k && fixed == 1));
+  //     cov.slice(k) = arma::diagmat(arma::stddev(X_k).t());
+  //     mu.col(k) = arma::mean(X_k).t();
+  //   }
+  //   for(arma::uword b = 0; b < B; b++){
+  //     for(arma::uword p = 0; p < P; p++){
+  //       
+  //       // Fix the 0th batch at no effect; all other batches have an effect
+  //       // relative to this
+  //       // if(b == 0){
+  //       S(p, b) = 1.0;
+  //       m(p, b) = 0.0;
+  //       // } else {
+  //       // S(p, b) = 1.0 / arma::randg<double>( arma::distr_param(rho, 1.0 / theta ) );
+  //       // m(p, b) = arma::randn<double>() * S(p, b) / lambda + delta(p);
+  //       // }
+  //     }
+  //   }
+  // };
+  
 };
 
 
@@ -1650,12 +1687,24 @@ public:
     
     // Each component has a mean and shape vector and a symmetric covariance 
     // matrix. Each batch has a mean and standard deviations vector.
-    arma::uword n_param = (2 * P + P * (P + 1) * 0.5) * K_occ + (2 * P) * B;
-    BIC = n_param * std::log(N) - 2 * model_likelihood;
+    // arma::uword n_param = (2 * P + P * (P + 1) * 0.5) * K_occ + (2 * P) * B;
+    // BIC = n_param * std::log(N) - 2 * model_likelihood;
+    
+    arma::uword n_param_cluster = 2 * P + P * (P + 1) * 0.5;
+    arma::uword n_param_batch = 2 * P;
+    
+    BIC = 2 * model_likelihood;
+    
+    for(arma::uword k = 0; k < K; k++) {
+      BIC -= n_param_cluster * std::log(N_k(k) + 1);
+    }
+    for(arma::uword b = 0; b < B; b++) {
+      BIC -= n_param_batch * std::log(N_b(b)+ 1);
+    }
     
   };
   
-  virtual double mLogKernel(arma::uword b, arma::vec m_b, arma::mat mean_sum) {
+  double mLogKernel(arma::uword b, arma::vec m_b, arma::mat mean_sum) {
     
     arma::uword k = 0;
     double score = 0.0;
@@ -1674,7 +1723,7 @@ public:
     return score;
   };
   
-  virtual double sLogKernel(arma::uword b, arma::vec S_b, 
+  double sLogKernel(arma::uword b, arma::vec S_b, 
                     arma::vec cov_comb_log_det,
                     arma::mat cov_comb_inv_diag_sqrt,
                     arma::cube cov_comb_inv) {
@@ -1698,7 +1747,7 @@ public:
     return score;
   };
   
-  virtual double muLogKernel(arma::uword k, arma::vec mu_k, arma::mat mean_sum) {
+  double muLogKernel(arma::uword k, arma::vec mu_k, arma::mat mean_sum) {
     
     arma::uword b = 0;
     double score = 0.0;
@@ -1715,7 +1764,7 @@ public:
     return score;
   };
   
-  virtual double covLogKernel(arma::uword k, arma::mat cov_k, 
+  double covLogKernel(arma::uword k, arma::mat cov_k, 
                       double cov_log_det,
                       arma::mat cov_inv,
                       arma::vec cov_comb_log_det,
@@ -1737,7 +1786,8 @@ public:
     return score;
   };
   
-  virtual double phiLogKernel(arma::uword k, arma::vec phi_k) {
+  
+  double phiLogKernel(arma::uword k, arma::vec phi_k) {
     
     arma::uword b = 0;
     double score = 0.0;
@@ -1756,7 +1806,7 @@ public:
     return score;
   };
   
-  virtual void batchScaleMetropolis() {
+  void batchScaleMetropolis() {
 
     double u = 0.0, proposed_model_score = 0.0, acceptance_prob = 0.0, current_model_score = 0.0;
     arma::vec S_proposed(P), proposed_cov_comb_log_det(K);
@@ -2138,6 +2188,35 @@ public:
   
   virtual ~msnPredictive() { };
   
+  // virtual void sampleFromPriors() {
+  // 
+  //   arma::mat X_k;
+  // 
+  //   for(arma::uword k = 0; k < K; k++){
+  //     X_k = X.rows(arma::find(labels == k && fixed == 1));
+  //     cov.slice(k) = arma::diagmat(arma::stddev(X_k).t());
+  //     mu.col(k) = arma::mean(X_k).t();
+  // 
+  //     for(arma::uword p = 0; p < P; p++){
+  //       phi(p, k) =  arma::randn<double>() * omega;
+  //     }
+  //   }
+  //   for(arma::uword b = 0; b < B; b++){
+  //     for(arma::uword p = 0; p < P; p++){
+  // 
+  //       // Fix the 0th batch at no effect; all other batches have an effect
+  //       // relative to this
+  //       // if(b == 0){
+  //       S(p, b) = 1.0;
+  //       m(p, b) = 0.0;
+  //       // } else {
+  //       // S(p, b) = 1.0 / arma::randg<double>( arma::distr_param(rho, 1.0 / theta ) );
+  //       // m(p, b) = arma::randn<double>() * S(p, b) / lambda + delta(p);
+  //       // }
+  //     }
+  //   }
+  // };
+  
 };
 
 
@@ -2146,7 +2225,7 @@ class mvtSampler: virtual public mvnSampler {
 public:
 
   // arma::uword t_df = 4;
-  double psi = 2.0, chi = 0.01, t_df_proposal_window = 0.0, pdf_const = 0.0, t_loc = 2.0;
+  double psi = 2.0, chi = 0.01, t_df_proposal_window = 0.0, pdf_const = 0.0, t_loc = 1.0;
   arma::uvec t_df_count;
   arma::vec t_df, pdf_coef;
   
@@ -2293,10 +2372,23 @@ public:
   
   void calcBIC(){
     
-    // Each component has a mean and shape vector and a symmetric covariance 
-    // matrix. Each batch has a mean and standard deviations vector.
-    arma::uword n_param = (2 * P + P * (P + 1) * 0.5 + 1) * K_occ + (2 * P) * B;
-    BIC = n_param * std::log(N) - 2 * model_likelihood;
+    // Each component has a mean vector, a symmetric covariance matrix and a
+    // degree of freedom parameter. Each batch has a mean and standard
+    // deviations vector.
+    // arma::uword n_param = (P + P * (P + 1) * 0.5 + 1) * K_occ + (2 * P) * B;
+    // BIC = n_param * std::log(N) - 2 * model_likelihood;
+    
+    arma::uword n_param_cluster = 1 + P + P * (P + 1) * 0.5;
+    arma::uword n_param_batch = 2 * P;
+    
+    BIC = 2 * model_likelihood;
+    
+    for(arma::uword k = 0; k < K; k++) {
+      BIC -= n_param_cluster * std::log(N_k(k)+ 1);
+    }
+    for(arma::uword b = 0; b < B; b++) {
+      BIC -= n_param_batch * std::log(N_b(b)+ 1);
+    }
     
   };
   
@@ -2543,6 +2635,35 @@ public:
     };
  
   virtual ~mvtPredictive() { };
+  
+  // virtual void sampleFromPriors() {
+  //   
+  //   arma::mat X_k;
+  //   
+  //   for(arma::uword k = 0; k < K; k++){
+  //     X_k = X.rows(arma::find(labels == k && fixed == 1));
+  //     cov.slice(k) = arma::diagmat(arma::stddev(X_k).t());
+  //     mu.col(k) = arma::mean(X_k).t();
+  //     
+  //     // Draw from a shifted gamma distribution (i.e. gamma with location parameter)
+  //     t_df(k) = t_loc + arma::randg<double>( arma::distr_param(psi, 1.0 / chi));
+  //     
+  //   }
+  //   for(arma::uword b = 0; b < B; b++){
+  //     for(arma::uword p = 0; p < P; p++){
+  //       
+  //       // Fix the 0th batch at no effect; all other batches have an effect
+  //       // relative to this
+  //       // if(b == 0){
+  //       S(p, b) = 1.0;
+  //       m(p, b) = 0.0;
+  //       // } else {
+  //       // S(p, b) = 1.0 / arma::randg<double>( arma::distr_param(rho, 1.0 / theta ) );
+  //       // m(p, b) = arma::randn<double>() * S(p, b) / lambda + delta(p);
+  //       // }
+  //     }
+  //   }
+  // };
   
 };
 
@@ -2808,6 +2929,7 @@ Rcpp::List sampleMVN (
   
   // We save the BIC at each iteration
   arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin));
+  arma::vec model_likelihood = arma::zeros<arma::vec>(floor(R / thin));
   arma::uvec acceptance_vec = arma::zeros<arma::uvec>(floor(R / thin));
   arma::mat weights_saved = arma::zeros<arma::mat>(floor(R / thin), K);
   
@@ -2868,6 +2990,7 @@ Rcpp::List sampleMVN (
       
       my_sampler.calcBIC();
       BIC_record( save_int ) = my_sampler.BIC;
+      model_likelihood( save_int ) = my_sampler.model_likelihood;
       class_record.row( save_int ) = my_sampler.labels.t();
       acceptance_vec( save_int ) = my_sampler.accepted;
       weights_saved.row( save_int ) = my_sampler.w.t();
@@ -2902,6 +3025,7 @@ Rcpp::List sampleMVN (
                       Named("mean_sum") = mean_sum_save,
                       Named("weights") = weights_saved,
                       Named("acceptance") = acceptance_vec,
+                      Named("likelihood") = model_likelihood,
                       Named("BIC") = BIC_record));
   
 };
@@ -2961,6 +3085,7 @@ Rcpp::List sampleMSN (
   
   // We save the BIC at each iteration
   arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin));
+  arma::vec model_likelihood = arma::zeros<arma::vec>(floor(R / thin));
   arma::uvec acceptance_vec = arma::zeros<arma::uvec>(floor(R / thin));
   arma::mat weights_saved = arma::zeros<arma::mat>(floor(R / thin), K);
   
@@ -2993,6 +3118,7 @@ Rcpp::List sampleMSN (
       
       my_sampler.calcBIC();
       BIC_record( save_int ) = my_sampler.BIC;
+      model_likelihood( save_int ) = my_sampler.model_likelihood;
       class_record.row( save_int ) = my_sampler.labels.t();
       acceptance_vec( save_int ) = my_sampler.accepted;
       weights_saved.row( save_int ) = my_sampler.w.t();
@@ -3030,6 +3156,7 @@ Rcpp::List sampleMSN (
                       Named("mean_sum") = mean_sum_save,
                       Named("weights") = weights_saved,
                       Named("acceptance") = acceptance_vec,
+                      Named("likelihood") = model_likelihood,
                       Named("BIC") = BIC_record));
   
 };
@@ -3089,6 +3216,7 @@ Rcpp::List sampleMVT (
   
   // We save the BIC at each iteration
   arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin));
+  arma::vec model_likelihood = arma::zeros<arma::vec>(floor(R / thin));
   arma::uvec acceptance_vec = arma::zeros<arma::uvec>(floor(R / thin));
   arma::mat weights_saved(floor(R / thin), K), t_df_saved(floor(R / thin), K);
   weights_saved.zeros();
@@ -3135,6 +3263,7 @@ Rcpp::List sampleMVT (
       
       my_sampler.calcBIC();
       BIC_record( save_int ) = my_sampler.BIC;
+      model_likelihood( save_int ) = my_sampler.model_likelihood;
       class_record.row( save_int ) = my_sampler.labels.t();
       acceptance_vec( save_int ) = my_sampler.accepted;
       weights_saved.row( save_int ) = my_sampler.w.t();
@@ -3178,6 +3307,7 @@ Rcpp::List sampleMVT (
     Named("mu_count") = my_sampler.mu_count,
     Named("S_count") = my_sampler.S_count,
     Named("m_count") = my_sampler.m_count,
+    Named("likelihood") = model_likelihood,
     Named("BIC") = BIC_record)
   );
   
@@ -3272,6 +3402,7 @@ Rcpp::List sampleSemisupervisedMVN (
   
   // We save the BIC at each iteration
   arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin));
+  arma::vec model_likelihood = arma::zeros<arma::vec>(floor(R / thin));
   arma::uvec acceptance_vec = arma::zeros<arma::uvec>(floor(R / thin));
   arma::mat weights_saved = arma::zeros<arma::mat>(floor(R / thin), K);
   
@@ -3332,6 +3463,7 @@ Rcpp::List sampleSemisupervisedMVN (
       
       my_sampler.calcBIC();
       BIC_record( save_int ) = my_sampler.BIC;
+      model_likelihood( save_int ) = my_sampler.model_likelihood;
       class_record.row( save_int ) = my_sampler.labels.t();
       acceptance_vec( save_int ) = my_sampler.accepted;
       weights_saved.row( save_int ) = my_sampler.w.t();
@@ -3373,6 +3505,7 @@ Rcpp::List sampleSemisupervisedMVN (
                       Named("S_count") = my_sampler.S_count,
                       Named("m_count") = my_sampler.m_count,
                       Named("alloc_prob") = alloc_prob,
+                      Named("likelihood") = model_likelihood,
                       Named("BIC") = BIC_record)
   );
   
@@ -3435,6 +3568,7 @@ Rcpp::List sampleSemisupervisedMSN (
   
   // We save the BIC at each iteration
   arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin));
+  arma::vec model_likelihood = arma::zeros<arma::vec>(floor(R / thin));
   arma::uvec acceptance_vec = arma::zeros<arma::uvec>(floor(R / thin));
   arma::mat weights_saved = arma::zeros<arma::mat>(floor(R / thin), K);
   
@@ -3467,6 +3601,7 @@ Rcpp::List sampleSemisupervisedMSN (
       
       my_sampler.calcBIC();
       BIC_record( save_int ) = my_sampler.BIC;
+      model_likelihood( save_int ) = my_sampler.model_likelihood;
       class_record.row( save_int ) = my_sampler.labels.t();
       acceptance_vec( save_int ) = my_sampler.accepted;
       weights_saved.row( save_int ) = my_sampler.w.t();
@@ -3514,6 +3649,7 @@ Rcpp::List sampleSemisupervisedMSN (
                       Named("m_count") = my_sampler.m_count,
                       Named("phi_count") = my_sampler.phi_count,
                       Named("alloc_prob") = alloc_prob,
+                      Named("likelihood") = model_likelihood,
                       Named("BIC") = BIC_record
   )
   );
@@ -3572,6 +3708,7 @@ Rcpp::List sampleSemisupervisedMVT (
   
   // We save the BIC at each iteration
   arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin));
+  arma::vec model_likelihood = arma::zeros<arma::vec>(floor(R / thin));
   arma::uvec acceptance_vec = arma::zeros<arma::uvec>(floor(R / thin));
   arma::mat weights_saved(floor(R / thin), K), t_df_saved(floor(R / thin), K);
   weights_saved.zeros();
@@ -3618,6 +3755,7 @@ Rcpp::List sampleSemisupervisedMVT (
       
       my_sampler.calcBIC();
       BIC_record( save_int ) = my_sampler.BIC;
+      model_likelihood( save_int ) = my_sampler.model_likelihood;
       class_record.row( save_int ) = my_sampler.labels.t();
       acceptance_vec( save_int ) = my_sampler.accepted;
       weights_saved.row( save_int ) = my_sampler.w.t();
@@ -3666,6 +3804,7 @@ Rcpp::List sampleSemisupervisedMVT (
       Named("S_count") = my_sampler.S_count,
       Named("m_count") = my_sampler.m_count,
       Named("alloc_prob") = alloc_prob,
+      Named("likelihood") = model_likelihood,
       Named("BIC") = BIC_record
     )
   );
