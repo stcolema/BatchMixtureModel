@@ -176,6 +176,8 @@ public:
       // Update with weights
       comp_prob = ll + log(w);
       
+      likelihood(n) = arma::accu(comp_prob);
+      
       // std::cout << "\n\nWeights: " << w;
       // std::cout << "\n\nAllocation log probability: " << comp_prob;
       
@@ -190,7 +192,7 @@ public:
       alloc.row(n) = comp_prob.t();
       
       // Record the likelihood of the item in it's allocated component
-      likelihood(n) = ll(labels(n));
+      // likelihood(n) = ll(labels(n));
     }
     
     // The model log likelihood
@@ -990,12 +992,12 @@ public:
   
   virtual void calcBIC(){
     
-    // Each component has a mean vector and a symmetric covariance matrix. 
+    // Each component has a weight, a mean vector and a symmetric covariance matrix. 
     // Each batch has a mean and standard deviations vector.
     // arma::uword n_param = (P + P * (P + 1) * 0.5) * K_occ + (2 * P) * B;
     // BIC = n_param * std::log(N) - 2 * model_likelihood;
     
-    arma::uword n_param_cluster = P + P * (P + 1) * 0.5;
+    arma::uword n_param_cluster = 1 + P + P * (P + 1) * 0.5;
     arma::uword n_param_batch = 2 * P;
     
     BIC = 2 * model_likelihood;
@@ -1420,6 +1422,8 @@ public:
       // Update with weights
       comp_prob = ll + log(w);
 
+      likelihood(n) = arma::accu(comp_prob);
+      
       // Normalise and overflow
       comp_prob = exp(comp_prob - max(comp_prob));
       comp_prob = comp_prob / sum(comp_prob);
@@ -1434,7 +1438,7 @@ public:
       alloc.row(n) = comp_prob.t();
       
       // Record the log likelihood of the item in it's allocated component
-      likelihood(n) = ll(labels(n));
+      // likelihood(n) = ll(labels(n));
     }
     
     // The model log likelihood
@@ -1685,12 +1689,12 @@ public:
   
   virtual void calcBIC(){
     
-    // Each component has a mean and shape vector and a symmetric covariance 
+    // Each component has a weight, a mean and shape vector and a symmetric covariance 
     // matrix. Each batch has a mean and standard deviations vector.
     // arma::uword n_param = (2 * P + P * (P + 1) * 0.5) * K_occ + (2 * P) * B;
     // BIC = n_param * std::log(N) - 2 * model_likelihood;
     
-    arma::uword n_param_cluster = 2 * P + P * (P + 1) * 0.5;
+    arma::uword n_param_cluster = 1 + 2 * P + P * (P + 1) * 0.5;
     arma::uword n_param_batch = 2 * P;
     
     BIC = 2 * model_likelihood;
@@ -2372,13 +2376,13 @@ public:
   
   void calcBIC(){
     
-    // Each component has a mean vector, a symmetric covariance matrix and a
+    // Each component has a weight, a mean vector, a symmetric covariance matrix and a
     // degree of freedom parameter. Each batch has a mean and standard
     // deviations vector.
     // arma::uword n_param = (P + P * (P + 1) * 0.5 + 1) * K_occ + (2 * P) * B;
     // BIC = n_param * std::log(N) - 2 * model_likelihood;
     
-    arma::uword n_param_cluster = 1 + P + P * (P + 1) * 0.5;
+    arma::uword n_param_cluster = 2 + P + P * (P + 1) * 0.5;
     arma::uword n_param_batch = 2 * P;
     
     BIC = 2 * model_likelihood;
