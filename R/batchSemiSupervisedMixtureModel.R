@@ -54,7 +54,7 @@ batchSemiSupervisedMixtureModel <- function(X,
                                             batch_vec, 
                                             type,
                                             K_max = length(unique(initial_labels)),
-                                            alpha = 1,
+                                            alpha = NULL,
                                             mu_proposal_window = 0.5**2,
                                             cov_proposal_window = 100,
                                             m_proposal_window = 0.3**2,
@@ -120,9 +120,13 @@ batchSemiSupervisedMixtureModel <- function(X,
   # The number of batches present
   B <- length(unique(batch_vec))
   
-  # The concentration parameter for the prior Dirichlet distirbution of the
+  # The concentration parameter for the prior Dirichlet distribution of the
   # component weights.
-  concentration <- rep(alpha, K_max)
+  if(is.null(alpha)) {
+    concentration <- table(initial_labels[fixed]) / sum(fixed)
+  } else {
+    concentration <- rep(alpha, K_max)
+  }
 
   # Pull samples from the mixture model
   if(type == "MVN") {

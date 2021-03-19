@@ -13,7 +13,7 @@ batchSemiSupervisedMixtureModel(
   batch_vec,
   type,
   K_max = length(unique(initial_labels)),
-  alpha = 1,
+  alpha = NULL,
   mu_proposal_window = 0.5^2,
   cov_proposal_window = 100,
   m_proposal_window = 0.3^2,
