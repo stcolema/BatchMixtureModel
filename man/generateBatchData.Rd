@@ -42,7 +42,9 @@ without batch effects, the label indicating the generating cluster and the
 batch label.
 }
 \description{
-Generate data from clusters across batches.
+Generate data from clusters across batches. Assumes independence
+across columns. In each column the parameters are randomly permuted for both
+the clusters and batches.
 }
 \examples{
 N <- 200

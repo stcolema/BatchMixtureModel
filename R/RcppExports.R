@@ -49,8 +49,60 @@ NULL
 #' }
 NULL
 
-#' @title Mixture model
-#' @description Performs MCMC sampling for a mixture model.
+#' @name msnSampler
+#' @title Multivariate Skew Normal mixture type
+#' @description The sampler for the Multivariate Normal mixture model for batch effects.
+#' @field new Constructor \itemize{
+#' \item Parameter: K - the number of components to model
+#' \item Parameter: B - the number of batches present
+#' \item Parameter: labels - the initial clustering of the data
+#' \item Parameter: concentration - the vector for the prior concentration of 
+#' the Dirichlet distribution of the component weights
+#' \item Parameter: X - the data to model
+#' }
+#' @field printType Print the sampler type called.
+#' @field updateWeights Update the weights of each component based on current 
+#' clustering.
+#' @field updateAllocation Sample a new clustering. 
+#' @field sampleFromPrior Sample from the priors for the multivariate normal
+#' density.
+#' @field calcBIC Calculate the BIC of the model.
+#' @field logLikelihood Calculate the likelihood of a given data point in each
+#' component. \itemize{
+#' \item Parameter: point - a data point.
+#' }
+NULL
+
+#' @name samplerFactory
+#' @title Factory for different sampler subtypes.
+#' @description The factory allows the type of mixture implemented to change 
+#' based upon the user input.
+#' @field new Constructor \itemize{
+#' \item Parameter: samplerType - the density type to be modelled
+#' \item Parameter: K - the number of components to model
+#' \item Parameter: labels - the initial clustering of the data
+#' \item Parameter: concentration - the vector for the prior concentration of 
+#' the Dirichlet distribution of the component weights
+#' \item Parameter: X - the data to model
+#' }
+NULL
+
+#' @name semisupervisedSamplerFactory
+#' @title Factory for different sampler subtypes.
+#' @description The factory allows the type of mixture implemented to change 
+#' based upon the user input.
+#' @field new Constructor \itemize{
+#' \item Parameter: samplerType - the density type to be modelled
+#' \item Parameter: K - the number of components to model
+#' \item Parameter: labels - the initial clustering of the data
+#' \item Parameter: concentration - the vector for the prior concentration of 
+#' the Dirichlet distribution of the component weights
+#' \item Parameter: X - the data to model
+#' }
+NULL
+
+#' @title Sample batch mixture model
+#' @description Performs MCMC sampling for a mixture model with batch effects.
 #' @param X The data matrix to perform clustering upon (items to cluster in rows).
 #' @param K The number of components to model (upper limit on the number of clusters found).
 #' @param labels Vector item labels to initialise from.
@@ -60,8 +112,40 @@ NULL
 #' @param concentration Vector of concentrations for mixture weights (recommended to be symmetric).
 #' @return Named list of the matrix of MCMC samples generated (each row 
 #' corresponds to a different sample) and BIC for each saved iteration.
-sampleMixtureModel <- function(X, K, B, labels, batch_vec, proposal_window, proposal_window_for_logs, proposal_window_for_S, R, thin, concentration, verbose = TRUE) {
-    .Call(`_BatchMixtureModel_sampleMixtureModel`, X, K, B, labels, batch_vec, proposal_window, proposal_window_for_logs, proposal_window_for_S, R, thin, concentration, verbose)
+sampleMVN <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, rho, theta, lambda, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
+    .Call(`_BatchMixtureModel_sampleMVN`, X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance)
+}
+
+sampleMSN <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, phi_proposal_window, rho, theta, lambda, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
+    .Call(`_BatchMixtureModel_sampleMSN`, X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, phi_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance)
+}
+
+sampleMVT <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, rho, theta, lambda, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
+    .Call(`_BatchMixtureModel_sampleMVT`, X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance)
+}
+
+#' @title Mixture model
+#' @description Performs MCMC sampling for a mixture model.
+#' @param X The data matrix to perform clustering upon (items to cluster in rows).
+#' @param K The number of components to model (upper limit on the number of clusters found).
+#' @param labels Vector item labels to initialise from.
+#' @param fixed Binary vector of the items that are fixed in their initial label.
+#' @param dataType Int, 0: independent Gaussians, 1: Multivariate normal, or 2: Categorical distributions.
+#' @param R The number of iterations to run for.
+#' @param thin thinning factor for samples recorded.
+#' @param concentration Vector of concentrations for mixture weights (recommended to be symmetric).
+#' @return Named list of the matrix of MCMC samples generated (each row 
+#' corresponds to a different sample) and BIC for each saved iteration.
+sampleSemisupervisedMVN <- function(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, rho, theta, lambda, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
+    .Call(`_BatchMixtureModel_sampleSemisupervisedMVN`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance)
+}
+
+sampleSemisupervisedMSN <- function(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, phi_proposal_window, rho, theta, lambda, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
+    .Call(`_BatchMixtureModel_sampleSemisupervisedMSN`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, phi_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance)
+}
+
+sampleSemisupervisedMVT <- function(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, rho, theta, lambda, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
+    .Call(`_BatchMixtureModel_sampleSemisupervisedMVT`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance)
 }
 
 rcpparma_hello_world <- function() {
