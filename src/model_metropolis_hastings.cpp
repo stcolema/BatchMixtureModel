@@ -798,6 +798,7 @@ class mvnSampler: virtual public sampler {
   
 public:
   
+  arma::uword n_param_cluster = 1 + P + P * (P + 1) * 0.5, n_param_batch = 2 * P;
   double kappa, nu, lambda, rho, theta, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window;
   arma::uvec mu_count, cov_count, m_count, S_count, phi_count;
   arma::vec xi, delta, cov_log_det;
@@ -997,17 +998,19 @@ public:
     // arma::uword n_param = (P + P * (P + 1) * 0.5) * K_occ + (2 * P) * B;
     // BIC = n_param * std::log(N) - 2 * model_likelihood;
     
-    arma::uword n_param_cluster = 1 + P + P * (P + 1) * 0.5;
-    arma::uword n_param_batch = 2 * P;
+    // arma::uword n_param_cluster = 1 + P + P * (P + 1) * 0.5;
+    // arma::uword n_param_batch = 2 * P;
     
-    BIC = 2 * model_likelihood;
+    // BIC = 2 * model_likelihood;
     
-    for(arma::uword k = 0; k < K; k++) {
-      BIC -= n_param_cluster * std::log(N_k(k) + 1);
-    }
-    for(arma::uword b = 0; b < B; b++) {
-      BIC -= n_param_batch * std::log(N_b(b) + 1);
-    }
+    BIC = 2 * model_likelihood - (n_param_batch + n_param_batch) * std::log(N);
+    
+    // for(arma::uword k = 0; k < K; k++) {
+    //   BIC -= n_param_cluster * std::log(N_k(k) + 1);
+    // }
+    // for(arma::uword b = 0; b < B; b++) {
+    //   BIC -= n_param_batch * std::log(N_b(b) + 1);
+    // }
     
   };
   
@@ -1549,6 +1552,8 @@ public:
 class msnSampler: virtual public mvnSampler {
   
 public:
+  
+  arma::uword n_param_cluster = 1 + 2 * P + P * (P + 1) * 0.5, n_param_batch = 2 * P;
   double omega, phi_proposal_window;
   arma::uvec phi_count;
   arma::mat cov_comb_inv_diag_sqrt;
@@ -1693,18 +1698,20 @@ public:
     // matrix. Each batch has a mean and standard deviations vector.
     // arma::uword n_param = (2 * P + P * (P + 1) * 0.5) * K_occ + (2 * P) * B;
     // BIC = n_param * std::log(N) - 2 * model_likelihood;
+    // 
+    // arma::uword n_param_cluster = 1 + 2 * P + P * (P + 1) * 0.5;
+    // arma::uword n_param_batch = 2 * P;
     
-    arma::uword n_param_cluster = 1 + 2 * P + P * (P + 1) * 0.5;
-    arma::uword n_param_batch = 2 * P;
+    // BIC = 2 * model_likelihood;
     
-    BIC = 2 * model_likelihood;
+    BIC = 2 * model_likelihood - (n_param_batch + n_param_batch) * std::log(N);
     
-    for(arma::uword k = 0; k < K; k++) {
-      BIC -= n_param_cluster * std::log(N_k(k) + 1);
-    }
-    for(arma::uword b = 0; b < B; b++) {
-      BIC -= n_param_batch * std::log(N_b(b)+ 1);
-    }
+    // for(arma::uword k = 0; k < K; k++) {
+    //   BIC -= n_param_cluster * std::log(N_k(k) + 1);
+    // }
+    // for(arma::uword b = 0; b < B; b++) {
+    //   BIC -= n_param_batch * std::log(N_b(b)+ 1);
+    // }
     
   };
   
@@ -2229,6 +2236,7 @@ class mvtSampler: virtual public mvnSampler {
 public:
 
   // arma::uword t_df = 4;
+  arma::uword n_param_cluster = 2 + P + P * (P + 1) * 0.5, n_param_batch = 2 * P;
   double psi = 2.0, chi = 0.01, t_df_proposal_window = 0.0, pdf_const = 0.0, t_loc = 1.0;
   arma::uvec t_df_count;
   arma::vec t_df, pdf_coef;
@@ -2382,17 +2390,17 @@ public:
     // arma::uword n_param = (P + P * (P + 1) * 0.5 + 1) * K_occ + (2 * P) * B;
     // BIC = n_param * std::log(N) - 2 * model_likelihood;
     
-    arma::uword n_param_cluster = 2 + P + P * (P + 1) * 0.5;
-    arma::uword n_param_batch = 2 * P;
+    // arma::uword n_param_cluster = 2 + P + P * (P + 1) * 0.5;
+    // arma::uword n_param_batch = 2 * P;
+
+    BIC = 2 * model_likelihood - (n_param_batch + n_param_batch) * std::log(N);
     
-    BIC = 2 * model_likelihood;
-    
-    for(arma::uword k = 0; k < K; k++) {
-      BIC -= n_param_cluster * std::log(N_k(k)+ 1);
-    }
-    for(arma::uword b = 0; b < B; b++) {
-      BIC -= n_param_batch * std::log(N_b(b)+ 1);
-    }
+    // for(arma::uword k = 0; k < K; k++) {
+    //   BIC -= n_param_cluster * std::log(N_k(k)+ 1);
+    // }
+    // for(arma::uword b = 0; b < B; b++) {
+    //   BIC -= n_param_batch * std::log(N_b(b)+ 1);
+    // }
     
   };
   
