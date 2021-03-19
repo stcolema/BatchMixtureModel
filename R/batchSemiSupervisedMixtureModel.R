@@ -123,7 +123,7 @@ batchSemiSupervisedMixtureModel <- function(X,
   # The concentration parameter for the prior Dirichlet distribution of the
   # component weights.
   if(is.null(alpha)) {
-    concentration <- table(initial_labels[fixed]) / sum(fixed)
+    concentration <- table(initial_labels[fixed == 1]) / sum(fixed)
   } else {
     concentration <- rep(alpha, K_max)
   }
