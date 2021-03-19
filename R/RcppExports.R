@@ -148,19 +148,3 @@ sampleSemisupervisedMVT <- function(X, K, B, labels, batch_vec, fixed, mu_propos
     .Call(`_BatchMixtureModel_sampleSemisupervisedMVT`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance)
 }
 
-rcpparma_hello_world <- function() {
-    .Call(`_BatchMixtureModel_rcpparma_hello_world`)
-}
-
-rcpparma_outerproduct <- function(x) {
-    .Call(`_BatchMixtureModel_rcpparma_outerproduct`, x)
-}
-
-rcpparma_innerproduct <- function(x) {
-    .Call(`_BatchMixtureModel_rcpparma_innerproduct`, x)
-}
-
-rcpparma_bothproducts <- function(x) {
-    .Call(`_BatchMixtureModel_rcpparma_bothproducts`, x)
-}
-
