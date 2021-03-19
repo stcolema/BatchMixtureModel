@@ -3,8 +3,7 @@ Type: Package
 Title: Bayesian mixture models for batch effects
 Version: 1.0
 Date: 2021-01-15
-Author: c(person("Stephen", "Coleman", role=c("aut","cre"),
-    email = "stephen.coleman@mrc-bsu.cam.ac.uk")
+Author: c(person("Stephen", "Coleman", role=c("aut","cre"), email = "stephen.coleman@mrc-bsu.cam.ac.uk")
 Maintainer: Stephen Coleman <stephen.coleman@mrc-bsu.cam.ac.uk>
 Description: This package is for Bayesian mixture models extended to model batch effects.
 License: GPL
