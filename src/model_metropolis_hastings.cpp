@@ -1344,6 +1344,7 @@ public:
     for(arma::uword b = 0; b < B; b++) {
       
       acceptance_prob = 0.0, proposed_model_score = 0.0, current_model_score = 0.0;
+      proposed_cov_comb.zeros();
       
       for(arma::uword p = 0; p < P; p++) {
         
@@ -1373,12 +1374,12 @@ public:
         proposed_cov_comb_inv.slice(k) = arma::inv_sympd(proposed_cov_comb.slice(k));
       }
       
-      std::cout << "\n\nProposed S:\n" << S_proposed <<
-        "\nProposed model score: " << proposed_model_score <<
-          "\n\nCurrent S:\n" << S.col(b) << "\nCurrent model score: " <<
-            current_model_score;
-      
-      std::cout << "\n\nMean\n:" << mu << "\n\nCovariance:\n" << cov << "\n\nBatch shift:\n" << m;
+      // std::cout << "\n\nProposed S:\n" << S_proposed <<
+      //   "\nProposed model score: " << proposed_model_score <<
+      //     "\n\nCurrent S:\n" << S.col(b) << "\nCurrent model score: " <<
+      //       current_model_score;
+      // 
+      // std::cout << "\n\nMean\n:" << mu << "\n\nCovariance:\n" << cov << "\n\nBatch shift:\n" << m;
       
       proposed_model_score += sLogKernel(b, 
         S_proposed, 
@@ -1392,8 +1393,8 @@ public:
         cov_comb_inv.slices(KB_inds + b)
       );
       
-      std::cout << "\n\nProposed model score: " << proposed_model_score <<
-          "\nCurrent model score: " << current_model_score;
+      // std::cout << "\n\nProposed model score: " << proposed_model_score <<
+      //     "\nCurrent model score: " << current_model_score;
       
       // if(proposed_model_score > 1) {
       //   std::cout << "\nProposed S score is too high. Score: " << proposed_model_score <<
@@ -1496,6 +1497,7 @@ public:
       
       cov_range_acceptable = true;
       
+      proposed_cov_comb.zeros();
       acceptance_prob = 0.0, proposed_model_score = 0.0, current_model_score = 0.0;
       
       if(N_k(k) == 0){
@@ -1621,7 +1623,7 @@ public:
         //     proposed_model_score << "\nCurrent score: " << current_model_score <<
         //       "\nAcceptance probability: " << acceptance_prob;
       }
-      if( cov_range_acceptable && ((u < acceptance_prob) || (N_k(k) == 0)) ){
+      if( (u < acceptance_prob) || (N_k(k) == 0) ){
         cov.slice(k) = cov_proposed;
         cov_count(k)++;
         
@@ -2321,6 +2323,7 @@ public:
 
     for(arma::uword k = 0; k < K ; k++) {
 
+      proposed_cov_comb.zeros();
       acceptance_prob = 0.0, proposed_model_score = 0.0, current_model_score = 0.0;
 
       if(N_k(k) == 0){
@@ -2723,19 +2726,86 @@ public:
   // The log likelihood of a item belonging to each cluster given the batch label.
   arma::vec itemLogLikelihood(arma::vec item, arma::uword b) {
     
-    double x = 0.0, y = 0.0;
+    double x = 0.0, y = 0.0, my_det = 0.0;
     arma::vec ll(K), dist_to_mean(P);
     ll.zeros();
     dist_to_mean.zeros();
+    arma::mat my_cov_comv_inv(P, P), my_inv(P, P), my_cov_comb(P, P);
+    my_cov_comv_inv.zeros();
+    my_inv.zeros();
+    my_cov_comb.zeros();
     
     for(arma::uword k = 0; k < K; k++){
+    
+      // gamma(0.5 * (nu + P)) / (gamma(0.5 * nu) * nu ^ (0.5 * P) * pi ^ (0.5 * P)  * det(cov) ^ 0.5) * (1 + (1 / nu) * (x - mu)^t * inv(cov) * (x - mu)) ^ (-0.5 * (nu + P))
+      // logGamma(0.5 * (nu + P)) - logGamma(0.5 * nu) - (0.5 * P) * log(nu) - 0.5 * P * log(pi) - 0.5 * logDet(cov) -0.5 * (nu + P) * log(1 + (1 / nu) * (x - mu)^t * inv(cov) * (x - mu))
+      
+      // my_cov_comv_inv = cov.slice(k);
+      // for(arma::uword p = 0; p < P; p++) {
+      //   my_cov_comv_inv(p, p) *= S(p, b);
+      // }
+      
       
       // The exponent part of the MVN pdf
-      dist_to_mean = item - mean_sum.col(k * B + b);
+      dist_to_mean = item - mu.col(k) - m.col(b);
       x = arma::as_scalar(dist_to_mean.t() * cov_comb_inv.slice(k * B + b) * dist_to_mean);
+      // x = arma::as_scalar(dist_to_mean.t() * my_cov_comv_inv * dist_to_mean);
       y = (t_df(k) + P) * log(1.0 + (1/t_df(k)) * x);
       
       ll(k) = pdf_coef(k) - 0.5 * (cov_comb_log_det(k, b) + y + P * log(PI)); 
+      
+      
+      
+      
+      
+      
+      my_cov_comb = cov.slice(k);
+      
+      for(arma::uword p = 0; p < P; p++) {
+        my_cov_comb(p, p) = my_cov_comb(p, p) * S(p, b);
+      }
+      
+      // std::cout << "\nThe invariance.";
+      
+      my_inv = arma::inv_sympd(my_cov_comb);
+      
+      // std::cout << "\nDeterminant.";
+      my_det = arma::log_det(my_cov_comb).real();
+      
+      // std::cout << "\nCheck.";
+      
+      if(! arma::approx_equal(mean_sum.col(k * B + b), (mu.col(k) + m.col(b)), "absdiff", 0.001)) {
+        std::cout << "\n\nMean sum has deviated from expected.";
+      }
+      
+      if(! arma::approx_equal(cov_comb_inv.slice(k * B + b), my_inv, "absdiff", 0.001)) {
+        std::cout << "\n\nCovariance inverse has deviated from expected.";
+        std::cout << "\n\nExpected:\n" << cov_comb_inv.slice(k * B + b) << 
+          "\n\nCalculated:\n" << my_inv;
+        
+        throw std::invalid_argument( "\nMy inverses diverged." );
+      }
+      
+      if(isnan(ll(k))) {
+        std::cout << "\nNaN!\n";
+        
+        double new_x = (1/t_df(k)) * arma::as_scalar((item - mu.col(k) - m.col(b)).t() * my_cov_comv_inv * (item - mu.col(k) - m.col(b)));
+        
+        std::cout << "\n\nItem likelihood:\n" << ll(k) << 
+          "\nPDF coefficient: " << pdf_coef(k) << "\nLog determinant: " <<
+            cov_comb_log_det(k, b) << "\nX: " << x << "\nY: " << y <<
+              "\nLog comp of y: " << 1.0 + (1/t_df(k)) * x <<
+                "\nLogged: " << log(1.0 + (1/t_df(k)) * x) <<
+                  "\nt_df(k): " << t_df(k) << "\n" << 
+                    "\nMy new x" << new_x << "\nLL alt: " << 
+                      pdf_coef(k) - 0.5 * (arma::log_det(my_cov_comv_inv).real() + (t_df(k) + P) * log(1.0 + new_x) + P * log(PI)) <<
+                        "\n\nCov combined expected:\n" << cov_comb_inv.slice(k * B + b) <<
+                          "\n\nCov combined real:\n" << arma::inv_sympd(my_cov_comv_inv);
+                      
+        throw std::invalid_argument( "\nNaN returned from likelihood." );
+        
+      }
+      
       
     }
     
@@ -3005,10 +3075,10 @@ public:
         // std::cout << "\n\nT df.\nPsi: " << psi << "\nChi: " << chi
         // << "\nWindow: " << t_df_proposal_window << "\nCurrent: " << t_df(k);
         
-        t_df_proposed = t_loc + std::exp(arma::randn() * t_df_proposal_window + log(t_df(k) - t_loc) );
+        // t_df_proposed = t_loc + std::exp(arma::randn() * t_df_proposal_window + log(t_df(k) - t_loc) );
         
-        proposed_model_score = logNormalLogProbability(t_df(k) - t_loc, t_df_proposed - t_loc, t_df_proposal_window);
-        current_model_score = logNormalLogProbability(t_df_proposed - t_loc, t_df(k) - t_loc, t_df_proposal_window);
+        // proposed_model_score = logNormalLogProbability(t_df(k) - t_loc, t_df_proposed - t_loc, t_df_proposal_window);
+        // current_model_score = logNormalLogProbability(t_df_proposed - t_loc, t_df(k) - t_loc, t_df_proposal_window);
         // 
         // std::cout  << "\nProposed score: " << proposed_model_score << "\nCurrent score: " << current_model_score;
         
@@ -3019,14 +3089,14 @@ public:
         // current_model_score = logNormalLogProbability(t_df_proposed - t_loc, (t_df(k) - t_loc), t_df_proposal_window);
         
         // Proposed value
-        // t_df_proposed = t_loc + arma::randg( arma::distr_param( (t_df(k) - t_loc) * t_df_proposal_window, 1.0 / t_df_proposal_window) );
+        t_df_proposed = t_loc + arma::randg( arma::distr_param( (t_df(k) - t_loc) * t_df_proposal_window, 1.0 / t_df_proposal_window) );
         proposed_pdf_coef = calcPDFCoef(t_df_proposed);
 
         // std::cout << "\n\nDF: " << t_df(k) << "\nProposed DF: " << t_df_proposed;
         
         // Asymmetric proposal density
-        // proposed_model_score = gammaLogLikelihood(t_df(k) - t_loc, (t_df_proposed - t_loc) * t_df_proposal_window, t_df_proposal_window);
-        // current_model_score = gammaLogLikelihood(t_df_proposed - t_loc, (t_df(k) - t_loc) * t_df_proposal_window, t_df_proposal_window);
+        proposed_model_score = gammaLogLikelihood(t_df(k) - t_loc, (t_df_proposed - t_loc) * t_df_proposal_window, t_df_proposal_window);
+        current_model_score = gammaLogLikelihood(t_df_proposed - t_loc, (t_df(k) - t_loc) * t_df_proposal_window, t_df_proposal_window);
 
         // The prior is included in the kernel
         proposed_model_score += dfLogKernel(k, t_df_proposed, proposed_pdf_coef);
@@ -3049,15 +3119,27 @@ public:
     
     // Metropolis step for cluster parameters
     clusterCovarianceMetropolis();
+    
+    matrixCombinations();
+    
     clusterMeanMetropolis();
+    
+    matrixCombinations();
 
     // Update the shape parameter of the skew normal
     clusterDFMetropolis();
+    
+    matrixCombinations();
 
     // Metropolis step for batch parameters if more than 1 batch
     // if(B > 1){
     batchScaleMetropolis();
+    
+    matrixCombinations(); 
+    
     batchShiftMetorpolis();
+    
+    matrixCombinations();
     
     // }
   };
