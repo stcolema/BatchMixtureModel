@@ -48,6 +48,7 @@ generateBatchData <- function(N, P,
                               batch_var,
                               cluster_weights,
                               batch_weights,
+                              frac_known = 0.2,
                               row_names = paste0("Person_", 1:N),
                               col_names = paste0("Gene_", 1:P)) {
 
@@ -63,6 +64,9 @@ generateBatchData <- function(N, P,
   # The batch labels for the N points
   batch_IDs <- sample(1:B, N, replace = T, prob = batch_weights)
 
+  # The fixed labels for the semi-supervised case
+  fixed <- sample(0:1, N, replace = T, prob = c(1 - frac_known, frac_known))
+  
   # The data matrices
   my_data <- my_corrected_data <- matrix(nrow = N, ncol = P)
 
@@ -106,6 +110,7 @@ generateBatchData <- function(N, P,
     data = my_data[row_order, ],
     corrected_data = my_corrected_data[row_order, ],
     cluster_IDs = cluster_IDs[row_order],
-    batch_IDs = batch_IDs[row_order]
+    batch_IDs = batch_IDs[row_order],
+    fixed = fixed[row_order]
   )
 }

@@ -118,13 +118,13 @@ batchMixtureModel <- function(X, R, thin, batch_vec, type,
   # The number of batches present
   B <- length(unique(batch_vec))
   
-  # The concentration parameter for the prior Dirichlet distirbution of the
+  # The concentration parameter for the prior Dirichlet distribution of the
   # component weights.
   concentration <- rep(alpha, K_max)
   
   # Pull samples from the mixture model
   if(type == "MVN") {
-    samples <- sampleBatchMixtureModel(
+    samples <- sampleMVN(
       X,
       K_max,
       B,

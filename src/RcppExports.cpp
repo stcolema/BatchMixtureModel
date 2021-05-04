@@ -6,6 +6,57 @@
 
 using namespace Rcpp;
 
+// samplePaulModel
+Rcpp::List samplePaulModel(arma::mat X, arma::uword K, arma::uword B, arma::uvec labels, arma::uvec batch_vec, double y_proposal_window, double rho, double theta, double lambda, arma::uword R, arma::uword thin, arma::vec concentration, bool verbose, bool doCombinations, bool printCovariance);
+RcppExport SEXP _BatchMixtureModel_samplePaulModel(SEXP XSEXP, SEXP KSEXP, SEXP BSEXP, SEXP labelsSEXP, SEXP batch_vecSEXP, SEXP y_proposal_windowSEXP, SEXP rhoSEXP, SEXP thetaSEXP, SEXP lambdaSEXP, SEXP RSEXP, SEXP thinSEXP, SEXP concentrationSEXP, SEXP verboseSEXP, SEXP doCombinationsSEXP, SEXP printCovarianceSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::uword >::type K(KSEXP);
+    Rcpp::traits::input_parameter< arma::uword >::type B(BSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type labels(labelsSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type batch_vec(batch_vecSEXP);
+    Rcpp::traits::input_parameter< double >::type y_proposal_window(y_proposal_windowSEXP);
+    Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
+    Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< arma::uword >::type R(RSEXP);
+    Rcpp::traits::input_parameter< arma::uword >::type thin(thinSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type concentration(concentrationSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    Rcpp::traits::input_parameter< bool >::type doCombinations(doCombinationsSEXP);
+    Rcpp::traits::input_parameter< bool >::type printCovariance(printCovarianceSEXP);
+    rcpp_result_gen = Rcpp::wrap(samplePaulModel(X, K, B, labels, batch_vec, y_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sampleSemiSupervisedPaulModel
+Rcpp::List sampleSemiSupervisedPaulModel(arma::mat X, arma::uword K, arma::uword B, arma::uvec labels, arma::uvec batch_vec, arma::uvec fixed, double y_proposal_window, double rho, double theta, double lambda, arma::uword R, arma::uword thin, arma::vec concentration, bool verbose, bool doCombinations, bool printCovariance);
+RcppExport SEXP _BatchMixtureModel_sampleSemiSupervisedPaulModel(SEXP XSEXP, SEXP KSEXP, SEXP BSEXP, SEXP labelsSEXP, SEXP batch_vecSEXP, SEXP fixedSEXP, SEXP y_proposal_windowSEXP, SEXP rhoSEXP, SEXP thetaSEXP, SEXP lambdaSEXP, SEXP RSEXP, SEXP thinSEXP, SEXP concentrationSEXP, SEXP verboseSEXP, SEXP doCombinationsSEXP, SEXP printCovarianceSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    Rcpp::traits::input_parameter< arma::uword >::type K(KSEXP);
+    Rcpp::traits::input_parameter< arma::uword >::type B(BSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type labels(labelsSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type batch_vec(batch_vecSEXP);
+    Rcpp::traits::input_parameter< arma::uvec >::type fixed(fixedSEXP);
+    Rcpp::traits::input_parameter< double >::type y_proposal_window(y_proposal_windowSEXP);
+    Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
+    Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< arma::uword >::type R(RSEXP);
+    Rcpp::traits::input_parameter< arma::uword >::type thin(thinSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type concentration(concentrationSEXP);
+    Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
+    Rcpp::traits::input_parameter< bool >::type doCombinations(doCombinationsSEXP);
+    Rcpp::traits::input_parameter< bool >::type printCovariance(printCovarianceSEXP);
+    rcpp_result_gen = Rcpp::wrap(sampleSemiSupervisedPaulModel(X, K, B, labels, batch_vec, fixed, y_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance));
+    return rcpp_result_gen;
+END_RCPP
+}
 // sampleMVN
 Rcpp::List sampleMVN(arma::mat X, arma::uword K, arma::uword B, arma::uvec labels, arma::uvec batch_vec, double mu_proposal_window, double cov_proposal_window, double m_proposal_window, double S_proposal_window, double rho, double theta, double lambda, arma::uword R, arma::uword thin, arma::vec concentration, bool verbose, bool doCombinations, bool printCovariance);
 RcppExport SEXP _BatchMixtureModel_sampleMVN(SEXP XSEXP, SEXP KSEXP, SEXP BSEXP, SEXP labelsSEXP, SEXP batch_vecSEXP, SEXP mu_proposal_windowSEXP, SEXP cov_proposal_windowSEXP, SEXP m_proposal_windowSEXP, SEXP S_proposal_windowSEXP, SEXP rhoSEXP, SEXP thetaSEXP, SEXP lambdaSEXP, SEXP RSEXP, SEXP thinSEXP, SEXP concentrationSEXP, SEXP verboseSEXP, SEXP doCombinationsSEXP, SEXP printCovarianceSEXP) {
@@ -183,6 +234,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_BatchMixtureModel_samplePaulModel", (DL_FUNC) &_BatchMixtureModel_samplePaulModel, 15},
+    {"_BatchMixtureModel_sampleSemiSupervisedPaulModel", (DL_FUNC) &_BatchMixtureModel_sampleSemiSupervisedPaulModel, 16},
     {"_BatchMixtureModel_sampleMVN", (DL_FUNC) &_BatchMixtureModel_sampleMVN, 18},
     {"_BatchMixtureModel_sampleMSN", (DL_FUNC) &_BatchMixtureModel_sampleMSN, 19},
     {"_BatchMixtureModel_sampleMVT", (DL_FUNC) &_BatchMixtureModel_sampleMVT, 19},

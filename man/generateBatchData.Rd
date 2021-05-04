@@ -13,6 +13,7 @@ generateBatchData(
   batch_var,
   cluster_weights,
   batch_weights,
+  frac_known = 0.2,
   row_names = paste0("Person_", 1:N),
   col_names = paste0("Gene_", 1:P)
 )
