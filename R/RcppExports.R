@@ -179,16 +179,16 @@ NULL
 #' @param concentration Vector of concentrations for mixture weights (recommended to be symmetric).
 #' @return Named list of the matrix of MCMC samples generated (each row 
 #' corresponds to a different sample) and BIC for each saved iteration.
-sampleMVN <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, rho, theta, lambda, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
-    .Call(`_BatchMixtureModel_sampleMVN`, X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance)
+sampleMVN <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, rho, theta, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
+    .Call(`_BatchMixtureModel_sampleMVN`, X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, rho, theta, R, thin, concentration, verbose, doCombinations, printCovariance)
 }
 
-sampleMSN <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, phi_proposal_window, rho, theta, lambda, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
-    .Call(`_BatchMixtureModel_sampleMSN`, X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, phi_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance)
+sampleMSN <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, phi_proposal_window, rho, theta, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
+    .Call(`_BatchMixtureModel_sampleMSN`, X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, phi_proposal_window, rho, theta, R, thin, concentration, verbose, doCombinations, printCovariance)
 }
 
-sampleMVT <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, rho, theta, lambda, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
-    .Call(`_BatchMixtureModel_sampleMVT`, X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance)
+sampleMVT <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, rho, theta, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
+    .Call(`_BatchMixtureModel_sampleMVT`, X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, rho, theta, R, thin, concentration, verbose, doCombinations, printCovariance)
 }
 
 #' @title Mixture model
@@ -203,15 +203,15 @@ sampleMVT <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_propos
 #' @param concentration Vector of concentrations for mixture weights (recommended to be symmetric).
 #' @return Named list of the matrix of MCMC samples generated (each row 
 #' corresponds to a different sample) and BIC for each saved iteration.
-sampleSemisupervisedMVN <- function(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, rho, theta, lambda, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
-    .Call(`_BatchMixtureModel_sampleSemisupervisedMVN`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance)
+sampleSemisupervisedMVN <- function(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, rho, theta, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
+    .Call(`_BatchMixtureModel_sampleSemisupervisedMVN`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, rho, theta, R, thin, concentration, verbose, doCombinations, printCovariance)
 }
 
-sampleSemisupervisedMSN <- function(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, phi_proposal_window, rho, theta, lambda, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
-    .Call(`_BatchMixtureModel_sampleSemisupervisedMSN`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, phi_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance)
+sampleSemisupervisedMSN <- function(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, phi_proposal_window, rho, theta, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
+    .Call(`_BatchMixtureModel_sampleSemisupervisedMSN`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, phi_proposal_window, rho, theta, R, thin, concentration, verbose, doCombinations, printCovariance)
 }
 
-sampleSemisupervisedMVT <- function(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, rho, theta, lambda, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
-    .Call(`_BatchMixtureModel_sampleSemisupervisedMVT`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, rho, theta, lambda, R, thin, concentration, verbose, doCombinations, printCovariance)
+sampleSemisupervisedMVT <- function(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, rho, theta, R, thin, concentration, verbose = TRUE, doCombinations = FALSE, printCovariance = FALSE) {
+    .Call(`_BatchMixtureModel_sampleSemisupervisedMVT`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, rho, theta, R, thin, concentration, verbose, doCombinations, printCovariance)
 }
 
