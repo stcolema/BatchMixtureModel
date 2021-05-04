@@ -818,16 +818,27 @@ public:
   // Prior hyperparameters and proposal parameters
   double kappa = 0.01, 
     nu = P + 2, 
+    
+    // Hyperparameters for the batch mean
     delta = 0.0,
     t,
-    lambda,
-    rho = 21, 
+    // lambda,
+    
+    // Hyperparameters for the batch scale. These choices give > 99% of sampled
+    // values in the range of 1.2 to 2.0 which seems a sensible prior belief.
+    // Posisbly a little too informative; if S = 2.0 we're saying the batch 
+    // provides as much variation as the biology. However, as our batch scales 
+    // are strictly greater than 1.0 some shared global scaling is collected 
+    // here.
+    rho = 21,
     theta = 10, 
+    S_loc = 1.0, // this gives the batch scale a support of (1.0, \infty)
+    
+    // Proposal windows
     mu_proposal_window, 
     cov_proposal_window, 
     m_proposal_window, 
-    S_proposal_window, 
-    S_loc = 1.0;
+    S_proposal_window;
   
   
   uvec mu_count, cov_count, m_count, S_count, phi_count, rcond_count;
@@ -846,7 +857,6 @@ public:
     double _S_proposal_window,
     double _rho,
     double _theta,
-    double _lambda,
     arma::uvec _labels,
     arma::uvec _batch_vec,
     arma::vec _concentration,
@@ -903,8 +913,7 @@ public:
     // Prior precision is the inverse of something on the scale of 1/10 the global 
     // covariance
     t = 1.0 / ((accu(global_cov.diag()) / P ) * 0.1);
-    // lambda = _lambda; // 1.0;
-    
+
     // // The shape and scale of the prior for the batch scale, S
     // rho = _rho; // 41.0; // 3.0 / 2.0;
     // theta = _theta; // 40.0; // arma::stddev(X.as_col()) / std::pow(B, 2.0 / B ); // 2.0;
@@ -1920,7 +1929,6 @@ public:
     double _S_proposal_window,
     double _rho,
     double _theta,
-    double _lambda,
     arma::uvec _labels,
     arma::uvec _batch_vec,
     arma::vec _concentration,
@@ -1936,7 +1944,6 @@ public:
                _S_proposal_window,
                _rho,
                _theta,
-               _lambda,
                _labels,
                _batch_vec,
                _concentration,
@@ -2019,7 +2026,6 @@ public:
     double _phi_proposal_window,
     double _rho,
     double _theta,
-    double _lambda,
     arma::uvec _labels,
     arma::uvec _batch_vec,
     arma::vec _concentration,
@@ -2038,7 +2044,6 @@ public:
       _S_proposal_window,
       _rho,
       _theta,
-      _lambda,
       _labels,
       _batch_vec,
       _concentration,
@@ -2625,7 +2630,6 @@ public:
     double _phi_proposal_window,
     double _rho,
     double _theta,
-    double _lambda,
     arma::uvec _labels,
     arma::uvec _batch_vec,
     arma::vec _concentration,
@@ -2642,7 +2646,6 @@ public:
       _S_proposal_window,
       _rho,
       _theta,
-      _lambda,
       _labels,
       _batch_vec,
       _concentration,
@@ -2657,7 +2660,6 @@ public:
      _phi_proposal_window,
      _rho,
      _theta,
-     _lambda,
      _labels,
      _batch_vec,
      _concentration,
@@ -2706,7 +2708,21 @@ public:
 
   // arma::uword t_df = 4;
   arma::uword n_param_cluster = 2 + P + P * (P + 1) * 0.5, n_param_batch = 2 * P;
-  double psi = 2.0, chi = 0.01, t_df_proposal_window = 0.0, pdf_const = 0.0, t_loc = 2.0;
+  
+  // t degree of freedom hyperparameters (decision from
+  // https://statmodeling.stat.columbia.edu/2015/05/17/do-we-have-any-recommendations-for-priors-for-student_ts-degrees-of-freedom-parameter/)
+  // This gives a very wide range and a support of [2.0, infty).
+  double psi = 2.0, 
+    chi = 0.01, 
+    t_loc = 2.0,
+    
+    // Our proposal window
+    t_df_proposal_window = 0.0, 
+    
+    // A value in the pdf defined by the degrees of freedom which we save to // [[Rcpp::export]]
+    // avoid recomputing
+    pdf_const = 0.0;
+  
   arma::uvec t_df_count;
   arma::vec t_df, pdf_coef;
   
@@ -2723,7 +2739,6 @@ public:
     double _t_df_proposal_window,
     double _rho,
     double _theta,
-    double _lambda,
     arma::uvec _labels,
     arma::uvec _batch_vec,
     arma::vec _concentration,
@@ -2742,7 +2757,6 @@ public:
       _S_proposal_window,
       _rho,
       _theta,
-      _lambda,
       _labels,
       _batch_vec,
       _concentration,
@@ -3306,7 +3320,6 @@ public:
     double _t_df_proposal_window,
     double _rho,
     double _theta,
-    double _lambda,
     arma::uvec _labels,
     arma::uvec _batch_vec,
     arma::vec _concentration,
@@ -3322,7 +3335,6 @@ public:
       _S_proposal_window,
       _rho,
       _theta,
-      _lambda,
       _labels,
       _batch_vec,
       _concentration,
@@ -3337,7 +3349,6 @@ public:
       _t_df_proposal_window,
       _rho,
       _theta,
-      _lambda,
       _labels,
       _batch_vec,
       _concentration,
@@ -3415,7 +3426,6 @@ public:
     double phi_proposal_window,
     double rho,
     double theta,
-    double lambda,
     arma::uvec labels,
     arma::uvec batch_vec,
     arma::vec concentration,
@@ -3432,7 +3442,6 @@ public:
                                                   S_proposal_window,
                                                   rho,
                                                   theta,
-                                                  lambda,
                                                   labels,
                                                   batch_vec,
                                                   concentration,
@@ -3446,7 +3455,6 @@ public:
                                                   t_df_proposal_window,
                                                   rho,
                                                   theta,
-                                                  lambda,
                                                   labels,
                                                   batch_vec,
                                                   concentration,
@@ -3460,7 +3468,6 @@ public:
                                                   phi_proposal_window,
                                                   rho,
                                                   theta,
-                                                  lambda,
                                                   labels,
                                                   batch_vec,
                                                   concentration,
@@ -3507,7 +3514,6 @@ public:
     double phi_proposal_window,
     double rho,
     double theta,
-    double lambda,
     arma::uvec labels,
     arma::uvec batch_vec,
     arma::vec concentration,
@@ -3525,7 +3531,6 @@ public:
                                                     S_proposal_window,
                                                     rho,
                                                     theta,
-                                                    lambda,
                                                     labels,
                                                     batch_vec,
                                                     concentration,
@@ -3540,7 +3545,6 @@ public:
                                                     t_df_proposal_window,
                                                     rho,
                                                     theta,
-                                                    lambda,
                                                     labels,
                                                     batch_vec,
                                                     concentration,
@@ -3555,7 +3559,6 @@ public:
                                                     phi_proposal_window,
                                                     rho,
                                                     theta,
-                                                    lambda,
                                                     labels,
                                                     batch_vec,
                                                     concentration,
@@ -3594,7 +3597,6 @@ Rcpp::List sampleMVN (
     double S_proposal_window,
     double rho,
     double theta,
-    double lambda,
     arma::uword R,
     arma::uword thin,
     arma::vec concentration,
@@ -3616,7 +3618,6 @@ Rcpp::List sampleMVN (
                         S_proposal_window,
                         rho,
                         theta,
-                        lambda,
                         labels,
                         batch_vec,
                         concentration,
@@ -3774,7 +3775,6 @@ Rcpp::List sampleMSN (
     double phi_proposal_window,
     double rho,
     double theta,
-    double lambda,
     arma::uword R,
     arma::uword thin,
     arma::vec concentration,
@@ -3796,7 +3796,6 @@ Rcpp::List sampleMSN (
                           phi_proposal_window,
                           rho,
                           theta,
-                          lambda,
                           labels,
                           batch_vec,
                           concentration,
@@ -3909,7 +3908,6 @@ Rcpp::List sampleMVT (
     double t_df_proposal_window,
     double rho,
     double theta,
-    double lambda,
     arma::uword R,
     arma::uword thin,
     arma::vec concentration,
@@ -3931,7 +3929,6 @@ Rcpp::List sampleMVT (
     t_df_proposal_window,
     rho,
     theta,
-    lambda,
     labels,
     batch_vec,
     concentration,
@@ -4072,7 +4069,6 @@ Rcpp::List sampleSemisupervisedMVN (
     double S_proposal_window,
     double rho,
     double theta,
-    double lambda,
     arma::uword R,
     arma::uword thin,
     arma::vec concentration,
@@ -4107,7 +4103,6 @@ Rcpp::List sampleSemisupervisedMVN (
                            S_proposal_window,
                            rho,
                            theta,
-                           lambda,
                            labels,
                            batch_vec,
                            concentration,
@@ -4333,7 +4328,6 @@ Rcpp::List sampleSemisupervisedMSN (
     double phi_proposal_window,
     double rho,
     double theta,
-    double lambda,
     arma::uword R,
     arma::uword thin,
     arma::vec concentration,
@@ -4355,7 +4349,6 @@ Rcpp::List sampleSemisupervisedMSN (
                            phi_proposal_window,
                            rho,
                            theta,
-                           lambda,
                            labels,
                            batch_vec,
                            concentration,
@@ -4477,7 +4470,6 @@ Rcpp::List sampleSemisupervisedMVT (
     double t_df_proposal_window,
     double rho,
     double theta,
-    double lambda,
     arma::uword R,
     arma::uword thin,
     arma::vec concentration,
@@ -4500,7 +4492,6 @@ Rcpp::List sampleSemisupervisedMVT (
     t_df_proposal_window,
     rho,
     theta,
-    lambda,
     labels,
     batch_vec,
     concentration,
