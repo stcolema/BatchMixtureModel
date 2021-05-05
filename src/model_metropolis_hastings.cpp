@@ -73,7 +73,7 @@ private:
 public:
   
   arma::uword K, B, N, P, K_occ, accepted = 0;
-  double model_likelihood = 0.0, BIC = 0.0, model_score = 0.0, model_likelihood_alt = 0.0;
+  double observed_likelihood = 0.0, BIC = 0.0, model_score = 0.0, complete_likelihood = 0.0;
   arma::uvec labels, N_k, batch_vec, N_b, KB_inds, B_inds;
   arma::vec concentration, w, ll, likelihood;
   arma::umat members;
@@ -179,7 +179,7 @@ public:
     uvec uniqueK;
     vec comp_prob(K);
     
-    model_likelihood_alt = 0.0;
+    complete_likelihood = 0.0;
     for(uword n = 0; n < N; n++){
       
       ll = itemLogLikelihood(X_t.col(n), batch_vec(n));
@@ -203,14 +203,14 @@ public:
       labels(n) = sum(u > cumsum(comp_prob));
       alloc.row(n) = comp_prob.t();
       
-      model_likelihood_alt += ll(labels(n));
+      complete_likelihood += ll(labels(n));
       
       // Record the likelihood of the item in it's allocated component
       // likelihood(n) = ll(labels(n));
     }
     
     // The model log likelihood
-    model_likelihood = accu(likelihood);
+    observed_likelihood = accu(likelihood);
     
     // Number of occupied components (used in BIC calculation)
     uniqueK = unique(labels);
@@ -479,7 +479,7 @@ public:
   void calcBIC(){
     
     uword n_param = (P + P) * K_occ;
-    BIC = n_param * std::log(N) - 2 * model_likelihood;
+    BIC = n_param * std::log(N) - 2 * observed_likelihood;
     
   };
   
@@ -1100,14 +1100,14 @@ public:
     // Each component has a weight, a mean vector and a symmetric covariance matrix. 
     // Each batch has a mean and standard deviations vector.
     // arma::uword n_param = (P + P * (P + 1) * 0.5) * K_occ + (2 * P) * B;
-    // BIC = n_param * std::log(N) - 2 * model_likelihood;
+    // BIC = n_param * std::log(N) - 2 * observed_likelihood;
     
     // arma::uword n_param_cluster = 1 + P + P * (P + 1) * 0.5;
     // arma::uword n_param_batch = 2 * P;
     
-    // BIC = 2 * model_likelihood;
+    // BIC = 2 * observed_likelihood;
     
-    BIC = 2 * model_likelihood - (n_param_batch + n_param_batch) * std::log(N);
+    BIC = 2 * observed_likelihood - (n_param_batch + n_param_batch) * std::log(N);
     
     // for(arma::uword k = 0; k < K; k++) {
     //   BIC -= n_param_cluster * std::log(N_k(k) + 1);
@@ -1872,7 +1872,7 @@ public:
     arma::uvec uniqueK;
     arma::vec comp_prob(K);
     
-    model_likelihood_alt = 0.0;
+    complete_likelihood = 0.0;
     for (auto& n : unfixed_ind) {
       
       ll = itemLogLikelihood(X_t.col(n), batch_vec(n));
@@ -1895,14 +1895,14 @@ public:
       labels(n) = sum(u > cumsum(comp_prob));
       alloc.row(n) = comp_prob.t();
       
-      model_likelihood_alt += ll(labels(n));
+      complete_likelihood += ll(labels(n));
       
       // Record the log likelihood of the item in it's allocated component
       // likelihood(n) = ll(labels(n));
     }
     
     // The model log likelihood
-    model_likelihood = arma::accu(likelihood);
+    observed_likelihood = arma::accu(likelihood);
     
     // Number of occupied components (used in BIC calculation)
     uniqueK = arma::unique(labels);
@@ -2078,45 +2078,36 @@ public:
     std::cout << "\nType: Multivariate Skew Normal.\n";
   }
   
+  void sampleDFPrior() {
+    for(uword k = 0; k < K; k++){
+      for(uword p = 0; p < P; p++){
+        phi(p, k) =  randn<double>() * omega;
+      }
+    }
+  };
+  
   virtual void sampleFromPriors() {
-    
-    for(arma::uword k = 0; k < K; k++){
-      cov.slice(k) = arma::iwishrnd(scale, nu);
-      mu.col(k) = arma::mvnrnd(xi, (1.0/kappa) * cov.slice(k), 1);
-      for(arma::uword p = 0; p < P; p++){
-        phi(p, k) =  arma::randn<double>() * omega;
-      }
-    }
-    for(arma::uword b = 0; b < B; b++){
-      for(arma::uword p = 0; p < P; p++){
-        
-        // Fix the 0th batch at no effect; all other batches have an effect
-        // relative to this
-        // if(b == 0){
-        //   S(p, b) = 1.0;
-        //   m(p, b) = 0.0;
-        // } else {
-          S(p, b) = 1.0 / arma::randg<double>( arma::distr_param(rho, 1.0 / theta ) );
-          m(p, b) = arma::randn<double>() * t + delta;
-        // }
-      }
-    }
+    sampleCovPrior();
+    sampleMuPrior();
+    sampleDFPrior();
+    sampleSPrior();
+    sampleMPrior();
   };
   
   // Update the common matrix manipulations to avoid recalculating N times
   virtual void matrixCombinations() {
     
-    for(arma::uword k = 0; k < K; k++) {
-      cov_inv.slice(k) = arma::inv_sympd(cov.slice(k));
-      cov_log_det(k) = arma::log_det(cov.slice(k)).real();
-      for(arma::uword b = 0; b < B; b++) {
+    for(uword k = 0; k < K; k++) {
+      cov_inv.slice(k) = inv_sympd(cov.slice(k));
+      cov_log_det(k) = log_det(cov.slice(k)).real();
+      for(uword b = 0; b < B; b++) {
         cov_comb.slice(k * B + b) = cov.slice(k);
-        for(arma::uword p = 0; p < P; p++) {
+        for(uword p = 0; p < P; p++) {
           cov_comb.slice(k * B + b)(p, p) *= S(p, b);
         }
-        cov_comb_log_det(k, b) = arma::log_det(cov_comb.slice(k * B + b)).real();
-        cov_comb_inv.slice(k * B + b) = arma::inv_sympd(cov_comb.slice(k * B + b));
-        cov_comb_inv_diag_sqrt.col(k * B + b) = arma::sqrt(cov_comb_inv.slice(k * B + b).diag());
+        cov_comb_log_det(k, b) = log_det(cov_comb.slice(k * B + b)).real();
+        cov_comb_inv.slice(k * B + b) = inv_sympd(cov_comb.slice(k * B + b));
+        cov_comb_inv_diag_sqrt.col(k * B + b) = sqrt(cov_comb_inv.slice(k * B + b).diag());
         mean_sum.col(k * B + b) = mu.col(k) + m.col(b);
       }
     }
@@ -2126,20 +2117,20 @@ public:
   virtual arma::vec itemLogLikelihood(arma::vec item, arma::uword b) {
     
     double exponent = 0.0;
-    arma::vec ll(K), dist_to_mean(P);
+    vec ll(K), dist_to_mean(P);
     ll.zeros();
     dist_to_mean.zeros();
     
-    for(arma::uword k = 0; k < K; k++){
+    for(uword k = 0; k < K; k++){
       
       // The exponent part of the MVN pdf
       dist_to_mean = item - mean_sum.col(k * B + b);
 
-      exponent = arma::as_scalar(dist_to_mean.t() * cov_comb_inv.slice(k * B + b) * dist_to_mean);
+      exponent = as_scalar(dist_to_mean.t() * cov_comb_inv.slice(k * B + b) * dist_to_mean);
       
       // Normal log likelihood
       ll(k) = log(2.0) + -0.5 * (cov_comb_log_det(k, b) + exponent + (double) P * log(2.0 * M_PI)); 
-      ll(k) += log(arma::normcdf(arma::as_scalar(phi.col(k).t() * cov_comb_inv_diag_sqrt(k * B + b) * dist_to_mean)));
+      ll(k) += log(normcdf(as_scalar(phi.col(k).t() * cov_comb_inv_diag_sqrt(k * B + b) * dist_to_mean)));
       
     }
     
@@ -2151,14 +2142,14 @@ public:
     // Each component has a weight, a mean and shape vector and a symmetric covariance 
     // matrix. Each batch has a mean and standard deviations vector.
     // arma::uword n_param = (2 * P + P * (P + 1) * 0.5) * K_occ + (2 * P) * B;
-    // BIC = n_param * std::log(N) - 2 * model_likelihood;
+    // BIC = n_param * std::log(N) - 2 * observed_likelihood;
     // 
     // arma::uword n_param_cluster = 1 + 2 * P + P * (P + 1) * 0.5;
     // arma::uword n_param_batch = 2 * P;
     
-    // BIC = 2 * model_likelihood;
+    // BIC = 2 * observed_likelihood;
     
-    BIC = 2 * model_likelihood - (n_param_batch + n_param_batch) * std::log(N);
+    BIC = 2 * observed_likelihood - (n_param_batch + n_param_batch) * std::log(N);
     
     // for(arma::uword k = 0; k < K; k++) {
     //   BIC -= n_param_cluster * std::log(N_k(k) + 1);
@@ -2171,18 +2162,18 @@ public:
   
   double mLogKernel(arma::uword b, arma::vec m_b, arma::mat mean_sum) {
     
-    arma::uword k = 0;
+    uword k = 0;
     double score = 0.0;
-    arma::vec dist_from_mean(P);
+    vec dist_from_mean(P);
     dist_from_mean.zeros();
     
     for (auto& n : batch_ind(b)) {
       k = labels(n);
       dist_from_mean = X_t.col(n) - mean_sum.col(k);
-      score -= 0.5 * arma::as_scalar(dist_from_mean.t() * cov_comb_inv.slice(k * B + b) * dist_from_mean);
-      score += log(arma::normcdf(arma::as_scalar(phi.col(k).t() * arma::diagmat(cov_comb_inv_diag_sqrt.col(k * B + b)) * dist_from_mean)));
+      score -= 0.5 * as_scalar(dist_from_mean.t() * cov_comb_inv.slice(k * B + b) * dist_from_mean);
+      score += log(normcdf(as_scalar(phi.col(k).t() * diagmat(cov_comb_inv_diag_sqrt.col(k * B + b)) * dist_from_mean)));
     }
-    for(arma::uword p = 0; p < P; p++) {
+    for(uword p = 0; p < P; p++) {
       score -= 0.5 * t * std::pow(m_b(p) - delta, 2.0) ;
     }
     
@@ -2956,12 +2947,12 @@ public:
     // degree of freedom parameter. Each batch has a mean and standard
     // deviations vector.
     // arma::uword n_param = (P + P * (P + 1) * 0.5 + 1) * K_occ + (2 * P) * B;
-    // BIC = n_param * std::log(N) - 2 * model_likelihood;
+    // BIC = n_param * std::log(N) - 2 * observed_likelihood;
     
     // arma::uword n_param_cluster = 2 + P + P * (P + 1) * 0.5;
     // arma::uword n_param_batch = 2 * P;
 
-    BIC = 2 * model_likelihood - (n_param_batch + n_param_batch) * std::log(N);
+    BIC = 2 * observed_likelihood - (n_param_batch + n_param_batch) * std::log(N);
     
     // for(arma::uword k = 0; k < K; k++) {
     //   BIC -= n_param_cluster * std::log(N_k(k)+ 1);
@@ -3645,12 +3636,15 @@ Rcpp::List sampleMVN (
   class_record.zeros();
   
   // We save the BIC at each iteration
-  arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin));
-  arma::vec model_likelihood = arma::zeros<arma::vec>(floor(R / thin));
+  arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin)),
+    observed_likelihood = arma::zeros<arma::vec>(floor(R / thin)),
+    complete_likelihood = arma::zeros<arma::vec>(floor(R / thin));
+  
   arma::uvec acceptance_vec = arma::zeros<arma::uvec>(floor(R / thin));
   arma::mat weights_saved = arma::zeros<arma::mat>(floor(R / thin), K);
   
-  arma::cube mean_sum_saved(P, K * B, floor(R / thin)), mu_saved(P, K, floor(R / thin)), m_saved(P, B, floor(R / thin)), cov_saved(P, K * P, floor(R / thin)), t_saved(P, B, floor(R / thin)), cov_comb_saved(P, P * K * B, floor(R / thin));
+  arma::cube mean_sum_saved(P, K * B, floor(R / thin)), mu_saved(P, K, floor(R / thin)), m_saved(P, B, floor(R / thin)), cov_saved(P, K * P, floor(R / thin)), t_saved(P, B, floor(R / thin)), cov_comb_saved(P, P * K * B, floor(R / thin)), batch_corrected_data(my_sampler.N, P, floor(R / thin));
+
   // arma::field<arma::cube> cov_saved(my_sampler.P, my_sampler.P, K, floor(R / thin));
   mu_saved.zeros();
   cov_saved.zeros();
@@ -3707,7 +3701,7 @@ Rcpp::List sampleMVN (
       
       my_sampler.calcBIC();
       BIC_record( save_int ) = my_sampler.BIC;
-      model_likelihood( save_int ) = my_sampler.model_likelihood;
+      observed_likelihood( save_int ) = my_sampler.observed_likelihood;
       class_record.row( save_int ) = my_sampler.labels.t();
       acceptance_vec( save_int ) = my_sampler.accepted;
       weights_saved.row( save_int ) = my_sampler.w.t();
@@ -3721,6 +3715,11 @@ Rcpp::List sampleMVN (
       
       cov_saved.slice ( save_int ) = arma::reshape(arma::mat(my_sampler.cov.memptr(), my_sampler.cov.n_elem, 1, false), P, P * K);
       cov_comb_saved.slice( save_int) = arma::reshape(arma::mat(my_sampler.cov_comb.memptr(), my_sampler.cov_comb.n_elem, 1, false), P, P * K * B); 
+      
+      my_sampler.updateBatchCorrectedData();
+      batch_corrected_data.slice( save_int ) =  my_sampler.Y;
+      
+      complete_likelihood( save_int ) = my_sampler.complete_likelihood;
       
       if(printCovariance) {  
         std::cout << "\n\nCovariance cube:\n" << my_sampler.cov;
@@ -3750,7 +3749,7 @@ Rcpp::List sampleMVN (
                       Named("mu_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.mu_count) / R,
                       Named("S_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.S_count) / R,
                       Named("m_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.m_count) / R,                      
-                      Named("likelihood") = model_likelihood,
+                      Named("observed_likelihood") = observed_likelihood,
                       Named("BIC") = BIC_record));
   
 };
@@ -3810,12 +3809,15 @@ Rcpp::List sampleMSN (
   class_record.zeros();
   
   // We save the BIC at each iteration
-  arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin));
-  arma::vec model_likelihood = arma::zeros<arma::vec>(floor(R / thin));
+  arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin)),
+    observed_likelihood = arma::zeros<arma::vec>(floor(R / thin)),
+    complete_likelihood = arma::zeros<arma::vec>(floor(R / thin));
+  
   arma::uvec acceptance_vec = arma::zeros<arma::uvec>(floor(R / thin));
   arma::mat weights_saved = arma::zeros<arma::mat>(floor(R / thin), K);
   
-  arma::cube mean_sum_save(my_sampler.P, K * B, floor(R / thin)), mu_saved(my_sampler.P, K, floor(R / thin)), m_saved(my_sampler.P, B, floor(R / thin)), cov_saved(P, K * P, floor(R / thin)), t_saved(P, B, floor(R / thin)), cov_comb_saved(P, P * K * B, floor(R / thin)), phi_saved(my_sampler.P, K, floor(R / thin));
+  arma::cube mean_sum_save(my_sampler.P, K * B, floor(R / thin)), mu_saved(my_sampler.P, K, floor(R / thin)), m_saved(my_sampler.P, B, floor(R / thin)), cov_saved(P, K * P, floor(R / thin)), t_saved(P, B, floor(R / thin)), cov_comb_saved(P, P * K * B, floor(R / thin)), phi_saved(my_sampler.P, K, floor(R / thin)), batch_corrected_data(my_sampler.N, P, floor(R / thin));
+
   // arma::field<arma::cube> cov_saved(my_sampler.P, my_sampler.P, K, floor(R / thin));
   mu_saved.zeros();
   cov_saved.zeros();
@@ -3844,7 +3846,7 @@ Rcpp::List sampleMSN (
       
       my_sampler.calcBIC();
       BIC_record( save_int ) = my_sampler.BIC;
-      model_likelihood( save_int ) = my_sampler.model_likelihood;
+      observed_likelihood( save_int ) = my_sampler.observed_likelihood;
       class_record.row( save_int ) = my_sampler.labels.t();
       acceptance_vec( save_int ) = my_sampler.accepted;
       weights_saved.row( save_int ) = my_sampler.w.t();
@@ -3858,6 +3860,11 @@ Rcpp::List sampleMSN (
       
       cov_saved.slice( save_int ) = arma::reshape(arma::mat(my_sampler.cov.memptr(), my_sampler.cov.n_elem, 1, false), P, P * K);
       cov_comb_saved.slice( save_int) = arma::reshape(arma::mat(my_sampler.cov_comb.memptr(), my_sampler.cov_comb.n_elem, 1, false), P, P * K * B);
+      
+      my_sampler.updateBatchCorrectedData();
+      batch_corrected_data.slice( save_int ) =  my_sampler.Y;
+      
+      complete_likelihood( save_int ) = my_sampler.complete_likelihood;
       
       if(printCovariance) {  
         std::cout << "\n\nCovariance cube:\n" << my_sampler.cov;
@@ -3889,7 +3896,8 @@ Rcpp::List sampleMSN (
                       Named("mu_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.mu_count) / R,
                       Named("S_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.S_count) / R,
                       Named("m_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.m_count) / R,
-                      Named("phi_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.phi_count) / R,                      Named("likelihood") = model_likelihood,
+                      Named("phi_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.phi_count) / R,
+                      Named("observed_likelihood") = observed_likelihood,
                       Named("BIC") = BIC_record));
   
 };
@@ -3943,14 +3951,23 @@ Rcpp::List sampleMVT (
   class_record.zeros();
   
   // We save the BIC at each iteration
-  arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin));
-  arma::vec model_likelihood = arma::zeros<arma::vec>(floor(R / thin));
+  arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin)),
+    observed_likelihood = arma::zeros<arma::vec>(floor(R / thin)),
+    complete_likelihood = arma::zeros<arma::vec>(floor(R / thin));
+  
   arma::uvec acceptance_vec = arma::zeros<arma::uvec>(floor(R / thin));
   arma::mat weights_saved(floor(R / thin), K), t_df_saved(floor(R / thin), K);
   weights_saved.zeros();
   t_df_saved.zeros();
   
-  arma::cube mean_sum_saved(my_sampler.P, K * B, floor(R / thin)), mu_saved(my_sampler.P, K, floor(R / thin)), m_saved(my_sampler.P, B, floor(R / thin)), cov_saved(P, K * P, floor(R / thin)), t_saved(P, B, floor(R / thin)), cov_comb_saved(P, P * K * B, floor(R / thin));
+  arma::cube mean_sum_saved(my_sampler.P, K * B, floor(R / thin)), 
+    mu_saved(my_sampler.P, K, floor(R / thin)), 
+    m_saved(my_sampler.P, B, floor(R / thin)), 
+    cov_saved(P, K * P, floor(R / thin)), 
+    t_saved(P, B, floor(R / thin)), 
+    cov_comb_saved(P, P * K * B, floor(R / thin)),
+    batch_corrected_data(my_sampler.N, P, floor(R / thin));
+  
   mu_saved.zeros();
   cov_saved.zeros();
   cov_comb_saved.zeros();
@@ -3991,7 +4008,7 @@ Rcpp::List sampleMVT (
       
       my_sampler.calcBIC();
       BIC_record( save_int ) = my_sampler.BIC;
-      model_likelihood( save_int ) = my_sampler.model_likelihood;
+      observed_likelihood( save_int ) = my_sampler.observed_likelihood;
       class_record.row( save_int ) = my_sampler.labels.t();
       acceptance_vec( save_int ) = my_sampler.accepted;
       weights_saved.row( save_int ) = my_sampler.w.t();
@@ -4003,6 +4020,13 @@ Rcpp::List sampleMVT (
       
       cov_saved.slice ( save_int ) = arma::reshape(arma::mat(my_sampler.cov.memptr(), my_sampler.cov.n_elem, 1, false), P, P * K);
       cov_comb_saved.slice( save_int) = arma::reshape(arma::mat(my_sampler.cov_comb.memptr(), my_sampler.cov_comb.n_elem, 1, false), P, P * K * B); 
+      
+      my_sampler.updateBatchCorrectedData();
+      batch_corrected_data.slice( save_int ) =  my_sampler.Y;
+      
+      complete_likelihood( save_int ) = my_sampler.complete_likelihood;
+      
+      
       if(printCovariance) {  
         std::cout << "\n\nCovariance cube:\n" << my_sampler.cov;
         std::cout << "\n\nBatch covariance matrix:\n" << my_sampler.S;
@@ -4036,7 +4060,7 @@ Rcpp::List sampleMVT (
     Named("S_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.S_count) / R,
     Named("m_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.m_count) / R,
     Named("t_df_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.t_df_count) / R,
-    Named("likelihood") = model_likelihood,
+    Named("observed_likelihood") = observed_likelihood,
     Named("BIC") = BIC_record)
   );
   
@@ -4123,26 +4147,26 @@ Rcpp::List sampleSemisupervisedMVN (
   //                                                                 concentration,
   //                                                                 X);
   
-  arma::uword P = X.n_cols, N = X.n_rows;
+  uword P = X.n_cols, N = X.n_rows;
   
-  // arma::uword restart_count = 0, n_restarts = 3, check_iter = 250;
+  // uword restart_count = 0, n_restarts = 3, check_iter = 250;
   // double min_acceptance = 0.15;
   // 
   // restart:
   
   // The output matrix
-  arma::umat class_record(floor(R / thin), X.n_rows);
+  umat class_record(floor(R / thin), X.n_rows);
   class_record.zeros();
   
   // We save the BIC at each iteration
-  arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin)),
-    model_likelihood = arma::zeros<arma::vec>(floor(R / thin)),
-    model_likelihood_alt = arma::zeros<arma::vec>(floor(R / thin));
+  vec BIC_record = zeros<vec>(floor(R / thin)),
+    observed_likelihood = zeros<vec>(floor(R / thin)),
+    complete_likelihood = zeros<vec>(floor(R / thin));
   
-  arma::uvec acceptance_vec = arma::zeros<arma::uvec>(floor(R / thin));
-  arma::mat weights_saved = arma::zeros<arma::mat>(floor(R / thin), K);
+  uvec acceptance_vec = zeros<uvec>(floor(R / thin));
+  mat weights_saved = zeros<mat>(floor(R / thin), K);
   
-  arma::cube mean_sum_saved(P, K * B, floor(R / thin)), 
+  cube mean_sum_saved(P, K * B, floor(R / thin)), 
     mu_saved(P, K, floor(R / thin)),
     m_saved(P, B, floor(R / thin)), 
     cov_saved(P, K * P, floor(R / thin)),
@@ -4151,14 +4175,14 @@ Rcpp::List sampleSemisupervisedMVN (
     alloc_prob(N, K, floor(R / thin)), 
     batch_corrected_data(N, P, floor(R / thin));
   
-  // arma::field<arma::cube> cov_saved(my_sampler.P, my_sampler.P, K, floor(R / thin));
+  // field<cube> cov_saved(my_sampler.P, my_sampler.P, K, floor(R / thin));
   mu_saved.zeros();
   cov_saved.zeros();
   cov_comb_saved.zeros();
   m_saved.zeros();
   S_saved.zeros();
   
-  arma::uword save_int = 0;
+  uword save_int = 0;
   
   // Sampler from priors
   my_sampler.sampleFromPriors();
@@ -4182,13 +4206,13 @@ Rcpp::List sampleSemisupervisedMVN (
   // sample_prt.model_score->sampler_ptr.modelLo
   
   // Iterate over MCMC moves
-  for(arma::uword r = 0; r < R; r++){
+  for(uword r = 0; r < R; r++){
     
     // my_sampler.checkPositiveDefinite(r);
     // 
     // if(r == check_iter) {
     // 
-    //   if(any((arma::conv_to< arma::vec >::from(my_sampler.cov_count) / R) < min_acceptance)){
+    //   if(any((conv_to< vec >::from(my_sampler.cov_count) / R) < min_acceptance)){
     //     if(restart_count == n_restarts) {
     //       std::cout << "Cluster covariance acceptance rates too low.\nPlease restart with a different proposal window and/or random seed.";
     //       throw;
@@ -4196,7 +4220,7 @@ Rcpp::List sampleSemisupervisedMVN (
     //     restart_count++;
     //     goto restart;
     //   }
-    //   if(any((arma::conv_to< arma::vec >::from(my_sampler.mu_count) / R) < min_acceptance)){
+    //   if(any((conv_to< vec >::from(my_sampler.mu_count) / R) < min_acceptance)){
     //     if(restart_count == n_restarts) {
     //       std::cout << "Cluster mean acceptance rates too low.\nPlease restart with a different proposal window and/or random seed.";
     //       throw;
@@ -4204,7 +4228,7 @@ Rcpp::List sampleSemisupervisedMVN (
     //     restart_count++;
     //     goto restart;
     //   }
-    //   if(any((arma::conv_to< arma::vec >::from(my_sampler.m_count) / R) < min_acceptance)){
+    //   if(any((conv_to< vec >::from(my_sampler.m_count) / R) < min_acceptance)){
     //     if(restart_count == n_restarts) {
     //       std::cout << "Batch shift acceptance rates too low.\nPlease restart with a different proposal window and/or random seed.";
     //       throw;
@@ -4213,7 +4237,7 @@ Rcpp::List sampleSemisupervisedMVN (
     //     goto restart;
     //   }
     //   
-    //   if(any((arma::conv_to< arma::vec >::from(my_sampler.S_count) / R) < min_acceptance)){
+    //   if(any((conv_to< vec >::from(my_sampler.S_count) / R) < min_acceptance)){
     //     if(restart_count == n_restarts) {
     //       std::cout << "Batch scale acceptance rates too low.\nPlease restart with a different proposal window and/or random seed.";
     //       throw;
@@ -4247,7 +4271,7 @@ Rcpp::List sampleSemisupervisedMVN (
       
       my_sampler.calcBIC();
       BIC_record( save_int ) = my_sampler.BIC;
-      model_likelihood( save_int ) = my_sampler.model_likelihood;
+      observed_likelihood( save_int ) = my_sampler.observed_likelihood;
       class_record.row( save_int ) = my_sampler.labels.t();
       acceptance_vec( save_int ) = my_sampler.accepted;
       weights_saved.row( save_int ) = my_sampler.w.t();
@@ -4259,13 +4283,13 @@ Rcpp::List sampleSemisupervisedMVN (
       mean_sum_saved.slice( save_int ) = my_sampler.mean_sum;
       
       alloc_prob.slice( save_int ) = my_sampler.alloc_prob;
-      cov_saved.slice ( save_int ) = arma::reshape(arma::mat(my_sampler.cov.memptr(), my_sampler.cov.n_elem, 1, false), P, P * K);
-      cov_comb_saved.slice( save_int) = arma::reshape(arma::mat(my_sampler.cov_comb.memptr(), my_sampler.cov_comb.n_elem, 1, false), P, P * K * B); 
+      cov_saved.slice ( save_int ) = reshape(mat(my_sampler.cov.memptr(), my_sampler.cov.n_elem, 1, false), P, P * K);
+      cov_comb_saved.slice( save_int) = reshape(mat(my_sampler.cov_comb.memptr(), my_sampler.cov_comb.n_elem, 1, false), P, P * K * B); 
       
       my_sampler.updateBatchCorrectedData();
       batch_corrected_data.slice( save_int ) =  my_sampler.Y;
       
-      model_likelihood_alt( save_int ) = my_sampler.model_likelihood_alt;
+      complete_likelihood( save_int ) = my_sampler.complete_likelihood;
       
       if(printCovariance) {  
         std::cout << "\n\nCovariance cube:\n" << my_sampler.cov;
@@ -4277,10 +4301,10 @@ Rcpp::List sampleSemisupervisedMVN (
   }
   
   if(verbose) {
-    std::cout << "\n\nCovariance acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.cov_count) / R;
-    std::cout << "\n\ncluster mean acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.mu_count) / R;
-    std::cout << "\n\nBatch covariance acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.S_count) / R;
-    std::cout << "\n\nBatch mean acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.m_count) / R;
+    std::cout << "\n\nCovariance acceptance rate:\n" << conv_to< vec >::from(my_sampler.cov_count) / R;
+    std::cout << "\n\ncluster mean acceptance rate:\n" << conv_to< vec >::from(my_sampler.mu_count) / R;
+    std::cout << "\n\nBatch covariance acceptance rate:\n" << conv_to< vec >::from(my_sampler.S_count) / R;
+    std::cout << "\n\nBatch mean acceptance rate:\n" << conv_to< vec >::from(my_sampler.m_count) / R;
   }
   
   // std::cout << "\nReciprocal condition number\n" << my_sampler.rcond_count;
@@ -4293,13 +4317,13 @@ Rcpp::List sampleSemisupervisedMVN (
                       Named("mean_sum") = mean_sum_saved,
                       Named("cov_comb") = cov_comb_saved,
                       Named("weights") = weights_saved,
-                      Named("cov_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.cov_count) / R,
-                      Named("mu_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.mu_count) / R,
-                      Named("S_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.S_count) / R,
-                      Named("m_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.m_count) / R,
+                      Named("cov_acceptance_rate") = conv_to< vec >::from(my_sampler.cov_count) / R,
+                      Named("mu_acceptance_rate") = conv_to< vec >::from(my_sampler.mu_count) / R,
+                      Named("S_acceptance_rate") = conv_to< vec >::from(my_sampler.S_count) / R,
+                      Named("m_acceptance_rate") = conv_to< vec >::from(my_sampler.m_count) / R,
                       Named("alloc_prob") = alloc_prob,
-                      Named("likelihood") = model_likelihood,
-                      Named("likelihood_alt") = model_likelihood_alt,
+                      Named("observed_likelihood") = observed_likelihood,
+                      Named("complete_likelihood") = complete_likelihood,
                       Named("BIC") = BIC_record,
                       Named("batch_corrected_data") = batch_corrected_data
   )
@@ -4356,34 +4380,36 @@ Rcpp::List sampleSemisupervisedMSN (
                            fixed
   );
   
-  arma::uword P = X.n_cols;
+  uword P = X.n_cols;
   
   // The output matrix
-  arma::umat class_record(floor(R / thin), X.n_rows);
+  umat class_record(floor(R / thin), X.n_rows);
   class_record.zeros();
   
   // We save the BIC at each iteration
-  arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin));
-  arma::vec model_likelihood = arma::zeros<arma::vec>(floor(R / thin));
-  arma::uvec acceptance_vec = arma::zeros<arma::uvec>(floor(R / thin));
-  arma::mat weights_saved = arma::zeros<arma::mat>(floor(R / thin), K);
+  vec BIC_record = zeros<vec>(floor(R / thin)),
+    observed_likelihood = zeros<vec>(floor(R / thin)),
+    complete_likelihood = zeros<vec>(floor(R / thin));
   
-  arma::cube mean_sum_saved(P, K * B, floor(R / thin)), mu_saved(P, K, floor(R / thin)), m_saved(P, B, floor(R / thin)), cov_saved(P, K * P, floor(R / thin)), S_saved(P, B, floor(R / thin)), cov_comb_saved(P, P * K * B, floor(R / thin)), alloc_prob(my_sampler.N, K, floor(R / thin)), phi_saved(my_sampler.P, K, floor(R / thin));
-  // arma::field<arma::cube> cov_saved(my_sampler.P, my_sampler.P, K, floor(R / thin));
+  uvec acceptance_vec = zeros<uvec>(floor(R / thin));
+  mat weights_saved = zeros<mat>(floor(R / thin), K);
+  
+  cube mean_sum_saved(P, K * B, floor(R / thin)), mu_saved(P, K, floor(R / thin)), m_saved(P, B, floor(R / thin)), cov_saved(P, K * P, floor(R / thin)), S_saved(P, B, floor(R / thin)), cov_comb_saved(P, P * K * B, floor(R / thin)), alloc_prob(my_sampler.N, K, floor(R / thin)), phi_saved(my_sampler.P, K, floor(R / thin));
+  // field<cube> cov_saved(my_sampler.P, my_sampler.P, K, floor(R / thin));
   mu_saved.zeros();
   cov_saved.zeros();
   cov_comb_saved.zeros();
   m_saved.zeros();
   S_saved.zeros();
   
-  arma::uword save_int = 0;
+  uword save_int = 0;
   
   // Sampler from priors
   my_sampler.sampleFromPriors();
   my_sampler.matrixCombinations();
   
   // Iterate over MCMC moves
-  for(arma::uword r = 0; r < R; r++){
+  for(uword r = 0; r < R; r++){
     
     my_sampler.updateWeights();
     
@@ -4397,7 +4423,7 @@ Rcpp::List sampleSemisupervisedMSN (
       
       my_sampler.calcBIC();
       BIC_record( save_int ) = my_sampler.BIC;
-      model_likelihood( save_int ) = my_sampler.model_likelihood;
+      observed_likelihood( save_int ) = my_sampler.observed_likelihood;
       class_record.row( save_int ) = my_sampler.labels.t();
       acceptance_vec( save_int ) = my_sampler.accepted;
       weights_saved.row( save_int ) = my_sampler.w.t();
@@ -4410,8 +4436,10 @@ Rcpp::List sampleSemisupervisedMSN (
       phi_saved.slice( save_int ) = my_sampler.phi;
       
       alloc_prob.slice( save_int ) = my_sampler.alloc_prob;
-      cov_saved.slice ( save_int ) = arma::reshape(arma::mat(my_sampler.cov.memptr(), my_sampler.cov.n_elem, 1, false), P, P * K);
-      cov_comb_saved.slice( save_int) = arma::reshape(arma::mat(my_sampler.cov_comb.memptr(), my_sampler.cov_comb.n_elem, 1, false), P, P * K * B); 
+      cov_saved.slice ( save_int ) = reshape(mat(my_sampler.cov.memptr(), my_sampler.cov.n_elem, 1, false), P, P * K);
+      cov_comb_saved.slice( save_int) = reshape(mat(my_sampler.cov_comb.memptr(), my_sampler.cov_comb.n_elem, 1, false), P, P * K * B); 
+      
+      complete_likelihood( save_int ) = my_sampler.complete_likelihood;
       
       if(printCovariance) {  
         std::cout << "\n\nCovariance cube:\n" << my_sampler.cov;
@@ -4424,11 +4452,11 @@ Rcpp::List sampleSemisupervisedMSN (
   
   if(verbose) {
     
-    std::cout << "\n\nCovariance acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.cov_count) / R;
-    std::cout << "\n\nCluster mean acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.mu_count) / R;
-    std::cout << "\n\nCluster shape acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.phi_count) / R;
-    std::cout << "\n\nBatch covariance acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.S_count) / R;
-    std::cout << "\n\nBatch mean acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.m_count) / R;
+    std::cout << "\n\nCovariance acceptance rate:\n" << conv_to< vec >::from(my_sampler.cov_count) / R;
+    std::cout << "\n\nCluster mean acceptance rate:\n" << conv_to< vec >::from(my_sampler.mu_count) / R;
+    std::cout << "\n\nCluster shape acceptance rate:\n" << conv_to< vec >::from(my_sampler.phi_count) / R;
+    std::cout << "\n\nBatch covariance acceptance rate:\n" << conv_to< vec >::from(my_sampler.S_count) / R;
+    std::cout << "\n\nBatch mean acceptance rate:\n" << conv_to< vec >::from(my_sampler.m_count) / R;
     
   }
   
@@ -4442,13 +4470,14 @@ Rcpp::List sampleSemisupervisedMSN (
                       Named("mean_sum") = mean_sum_saved,
                       Named("cov_comb") = cov_comb_saved,
                       Named("weights") = weights_saved,
-                      Named("cov_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.cov_count) / R,
-                      Named("mu_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.mu_count) / R,
-                      Named("S_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.S_count) / R,
-                      Named("m_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.m_count) / R,
-                      Named("phi_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.phi_count) / R,
+                      Named("cov_acceptance_rate") = conv_to< vec >::from(my_sampler.cov_count) / R,
+                      Named("mu_acceptance_rate") = conv_to< vec >::from(my_sampler.mu_count) / R,
+                      Named("S_acceptance_rate") = conv_to< vec >::from(my_sampler.S_count) / R,
+                      Named("m_acceptance_rate") = conv_to< vec >::from(my_sampler.m_count) / R,
+                      Named("phi_acceptance_rate") = conv_to< vec >::from(my_sampler.phi_count) / R,
                       Named("alloc_prob") = alloc_prob,
-                      Named("likelihood") = model_likelihood,
+                      Named("observed_likelihood") = observed_likelihood,
+                      Named("complete_likelihood") = complete_likelihood,
                       Named("BIC") = BIC_record
   )
   );
@@ -4499,21 +4528,23 @@ Rcpp::List sampleSemisupervisedMVT (
     fixed
   );
   
-  arma::uword P = X.n_cols, N = X.n_rows;
+  uword P = X.n_cols, N = X.n_rows;
   
   // The output matrix
-  arma::umat class_record(floor(R / thin), X.n_rows);
+  umat class_record(floor(R / thin), X.n_rows);
   class_record.zeros();
   
   // We save the BIC at each iteration
-  arma::vec BIC_record = arma::zeros<arma::vec>(floor(R / thin));
-  arma::vec model_likelihood = arma::zeros<arma::vec>(floor(R / thin));
-  arma::uvec acceptance_vec = arma::zeros<arma::uvec>(floor(R / thin));
-  arma::mat weights_saved(floor(R / thin), K), t_df_saved(floor(R / thin), K);
+  vec BIC_record = zeros<vec>(floor(R / thin)),
+    observed_likelihood = zeros<vec>(floor(R / thin)),
+    complete_likelihood = zeros<vec>(floor(R / thin));
+  
+  uvec acceptance_vec = zeros<uvec>(floor(R / thin));
+  mat weights_saved(floor(R / thin), K), t_df_saved(floor(R / thin), K);
   weights_saved.zeros();
   t_df_saved.zeros();
   
-  arma::cube mean_sum_saved(P, K * B, floor(R / thin)), 
+  cube mean_sum_saved(P, K * B, floor(R / thin)), 
     mu_saved(P, K, floor(R / thin)),
     m_saved(P, B, floor(R / thin)), 
     cov_saved(P, K * P, floor(R / thin)),
@@ -4530,14 +4561,14 @@ Rcpp::List sampleSemisupervisedMVT (
   alloc_prob.zeros();
   batch_corrected_data.zeros();
   
-  arma::uword save_int = 0;
+  uword save_int = 0;
   
   // Sampler from priors
   my_sampler.sampleFromPriors();
   my_sampler.matrixCombinations();
   
   // Iterate over MCMC moves
-  for(arma::uword r = 0; r < R; r++){
+  for(uword r = 0; r < R; r++){
     
     my_sampler.updateWeights();
     
@@ -4564,7 +4595,7 @@ Rcpp::List sampleSemisupervisedMVT (
       
       my_sampler.calcBIC();
       BIC_record( save_int ) = my_sampler.BIC;
-      model_likelihood( save_int ) = my_sampler.model_likelihood;
+      observed_likelihood( save_int ) = my_sampler.observed_likelihood;
       class_record.row( save_int ) = my_sampler.labels.t();
       acceptance_vec( save_int ) = my_sampler.accepted;
       weights_saved.row( save_int ) = my_sampler.w.t();
@@ -4577,11 +4608,13 @@ Rcpp::List sampleSemisupervisedMVT (
       t_df_saved.row( save_int ) = my_sampler.t_df.t();
       
       alloc_prob.slice( save_int ) = my_sampler.alloc_prob;
-      cov_saved.slice ( save_int ) = arma::reshape(arma::mat(my_sampler.cov.memptr(), my_sampler.cov.n_elem, 1, false), P, P * K);
-      cov_comb_saved.slice( save_int) = arma::reshape(arma::mat(my_sampler.cov_comb.memptr(), my_sampler.cov_comb.n_elem, 1, false), P, P * K * B); 
+      cov_saved.slice ( save_int ) = reshape(mat(my_sampler.cov.memptr(), my_sampler.cov.n_elem, 1, false), P, P * K);
+      cov_comb_saved.slice( save_int) = reshape(mat(my_sampler.cov_comb.memptr(), my_sampler.cov_comb.n_elem, 1, false), P, P * K * B); 
       
       my_sampler.updateBatchCorrectedData();
       batch_corrected_data.slice( save_int ) =  my_sampler.Y;
+      
+      complete_likelihood( save_int ) = my_sampler.complete_likelihood;
       
       if(printCovariance) {  
         std::cout << "\n\nCovariance cube:\n" << my_sampler.cov;
@@ -4594,11 +4627,11 @@ Rcpp::List sampleSemisupervisedMVT (
   
   if(verbose) {
     
-    std::cout << "\n\nCovariance acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.cov_count) / R;
-    std::cout << "\n\ncluster mean acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.mu_count) / R;
-    std::cout << "\n\nBatch covariance acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.S_count) / R;
-    std::cout << "\n\nBatch mean acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.m_count) / R;
-    std::cout << "\n\nCluster t d.f. acceptance rate:\n" << arma::conv_to< arma::vec >::from(my_sampler.t_df_count) / R;
+    std::cout << "\n\nCovariance acceptance rate:\n" << conv_to< vec >::from(my_sampler.cov_count) / R;
+    std::cout << "\n\ncluster mean acceptance rate:\n" << conv_to< vec >::from(my_sampler.mu_count) / R;
+    std::cout << "\n\nBatch covariance acceptance rate:\n" << conv_to< vec >::from(my_sampler.S_count) / R;
+    std::cout << "\n\nBatch mean acceptance rate:\n" << conv_to< vec >::from(my_sampler.m_count) / R;
+    std::cout << "\n\nCluster t d.f. acceptance rate:\n" << conv_to< vec >::from(my_sampler.t_df_count) / R;
     
   }
   
@@ -4612,13 +4645,14 @@ Rcpp::List sampleSemisupervisedMVT (
       Named("cov_comb") = cov_comb_saved,
       Named("t_df") = t_df_saved,
       Named("weights") = weights_saved,
-      Named("cov_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.cov_count) / R,
-      Named("mu_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.mu_count) / R,
-      Named("S_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.S_count) / R,
-      Named("m_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.m_count) / R,
-      Named("t_df_acceptance_rate") = arma::conv_to< arma::vec >::from(my_sampler.t_df_count) / R,
+      Named("cov_acceptance_rate") = conv_to< vec >::from(my_sampler.cov_count) / R,
+      Named("mu_acceptance_rate") = conv_to< vec >::from(my_sampler.mu_count) / R,
+      Named("S_acceptance_rate") = conv_to< vec >::from(my_sampler.S_count) / R,
+      Named("m_acceptance_rate") = conv_to< vec >::from(my_sampler.m_count) / R,
+      Named("t_df_acceptance_rate") = conv_to< vec >::from(my_sampler.t_df_count) / R,
       Named("alloc_prob") = alloc_prob,
-      Named("likelihood") = model_likelihood,
+      Named("observed_likelihood") = observed_likelihood,
+      Named("complete_likelihood") = complete_likelihood,
       Named("BIC") = BIC_record,
       Named("batch_corrected_data") = batch_corrected_data
     )
