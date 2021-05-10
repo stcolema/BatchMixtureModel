@@ -18,7 +18,7 @@ the cluster membership.}
 A ggplot object of the values in each sampled batch mean per iteration.
 }
 \description{
-Plot the sampled values for the batch scale in each 
+Plot the sampled values for the batch scale in each
 dimension from the output of the ``mixtureModel`` function. Not recommended
 for large B or P.
 }

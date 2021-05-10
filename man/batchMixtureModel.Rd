@@ -21,7 +21,6 @@ batchMixtureModel(
   phi_proposal_window = 1.2^2,
   rho = 41,
   theta = 40,
-  lambda = 1,
   verbose = FALSE,
   doCombinations = FALSE,
   printCovariance = FALSE

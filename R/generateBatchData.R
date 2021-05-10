@@ -18,16 +18,16 @@
 #' without batch effects, the label indicating the generating cluster and the
 #' batch label.
 #' @examples
-#' N <- 200
+#' N <- 500
 #' P <- 2
-#' K <- 3
-#' B <- 10
-#' mean_dist <- 7
-#' batch_dist <- 2
+#' K <- 2
+#' B <- 5
+#' mean_dist <- 4
+#' batch_dist <- 0.3
 #' cluster_means <- 1:K * mean_dist
-#' batch_shift <- rnorm(B, mean = batch_dist)
+#' batch_shift <- rnorm(B, sd = batch_dist)
 #' std_dev <- rep(2, K)
-#' batch_var <- rep(1, B)
+#' batch_var <- rep(1.2, B)
 #' cluster_weights <- rep(1 / K, K)
 #' batch_weights <- rep(1 / B, B)
 #'

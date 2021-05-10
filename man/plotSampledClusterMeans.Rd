@@ -18,8 +18,8 @@ the cluster membership.}
 A ggplot object of the values in each sampled cluster mean per iteration.
 }
 \description{
-Plot the sampled values for the cluster means in each 
-dimension from the output of the ``mixtureModel`` function. Not recommended 
+Plot the sampled values for the cluster means in each
+dimension from the output of the ``mixtureModel`` function. Not recommended
 for large K or P.
 }
 \examples{

@@ -112,7 +112,8 @@ samplesToDF <- function(samples, type,
   }
   
   # Sampled observed likelihood and BIC
-  output_df$Likelihood <- samples$likelihood
+  output_df$Complete_likelihood <- samples$complete_likelihood
+  output_df$Observed_likelihood <- samples$observed_likelihood
   output_df$BIC <- samples$BIC
   
   # The sampled allocations
