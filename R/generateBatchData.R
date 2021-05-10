@@ -11,9 +11,7 @@
 #' @param batch_shift A vector of batch means in a column.
 #' @param batch_var A vector of batch standard deviations within a column.
 #' @param cluster_weights A vector of the expected proportion of N in each cluster.
-#' @param batch_weights A vector of the expected proportion of N in each batch.
-#' @param row_names The row names of the final data matrix. Defaults to ``paste0("Person_", 1:N)``.
-#' @param row_names The column names of the final data matrix. Defaults to ``paste0("Gene_", 1:P)``.
+#' @param batch_weights A vector of the expected proportion of N in each batch..
 #' @return A list of 4 objects; the data generated from the clusters with and
 #' without batch effects, the label indicating the generating cluster and the
 #' batch label.
@@ -48,9 +46,7 @@ generateBatchData <- function(N, P,
                               batch_var,
                               cluster_weights,
                               batch_weights,
-                              frac_known = 0.2,
-                              row_names = paste0("Person_", 1:N),
-                              col_names = paste0("Gene_", 1:P)) {
+                              frac_known = 0.2) {
 
   # The number of clusters to generate
   K <- length(cluster_means)
@@ -94,23 +90,13 @@ generateBatchData <- function(N, P,
     }
   }
 
-  # Order based upon allocation label
-  row_order <- order(cluster_IDs)
-
-  # Assign rownames and column names
-  rownames(my_data) <- row_names
-  colnames(my_data) <- col_names
-
-  rownames(my_corrected_data) <- row_names
-  colnames(my_corrected_data) <- col_names
-
   # Return the data, the data without batch effects, the allocation labels and
   # the batch labels.
   list(
-    data = my_data[row_order, ],
-    corrected_data = my_corrected_data[row_order, ],
-    cluster_IDs = cluster_IDs[row_order],
-    batch_IDs = batch_IDs[row_order],
-    fixed = fixed[row_order]
+    data = my_data,
+    corrected_data = my_corrected_data,
+    cluster_IDs = cluster_IDs,
+    batch_IDs = batch_IDs,
+    fixed = fixed
   )
 }

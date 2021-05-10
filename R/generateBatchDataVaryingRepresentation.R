@@ -12,8 +12,6 @@
 #' @param batch_var A vector of batch standard deviations within a column.
 #' @param cluster_weights A K x B matrix of the expected proportion of N in each class in each batch.
 #' @param batch_weights A vector of the expected proportion of N in each batch.
-#' @param row_names The row names of the final data matrix. Defaults to ``paste0("Person_", 1:N)``.
-#' @param row_names The column names of the final data matrix. Defaults to ``paste0("Gene_", 1:P)``.
 #' @return A list of 4 objects; the data generated from the clusters with and
 #' without batch effects, the label indicating the generating cluster and the
 #' batch label.
@@ -35,7 +33,7 @@
 #' )
 #' batch_weights <- rep(1 / B, B)
 #'
-#' my_data <- generateBatchData(
+#' my_data <- generateBatchDataVaryingRepresentation(
 #'   N,
 #'   P,
 #'   cluster_means,
@@ -54,9 +52,7 @@ generateBatchDataVaryingRepresentation <- function(N,
                                                    batch_var,
                                                    class_weights,
                                                    batch_weights,
-                                                   frac_known = 0.2,
-                                                   row_names = paste0("Person_", 1:N),
-                                                   col_names = paste0("Gene_", 1:P)) {
+                                                   frac_known = 0.2) {
   
   # The number of clusters to generate
   K <- length(cluster_means)
