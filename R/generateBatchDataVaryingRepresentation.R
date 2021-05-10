@@ -117,11 +117,11 @@ generateBatchDataVaryingRepresentation <- function(N,
   # Return a list of the class labels, batch labels, fixed points and the 
   # observed and true datasets.
   list(
-    labels = labels,
-    batches = batches,
-    fixed  = fixed,
     observed_data = observed_data,
-    corrected_data = corrected_data
+    corrected_data = corrected_data,
+    cluster_IDs = labels,
+    batch_IDs = batches,
+    fixed = fixed
   )
   
 }

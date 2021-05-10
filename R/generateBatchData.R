@@ -93,7 +93,7 @@ generateBatchData <- function(N, P,
   # Return the data, the data without batch effects, the allocation labels and
   # the batch labels.
   list(
-    data = my_data,
+    observed_data = my_data,
     corrected_data = my_corrected_data,
     cluster_IDs = cluster_IDs,
     batch_IDs = batch_IDs,

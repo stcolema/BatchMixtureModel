@@ -112,7 +112,7 @@ generateBatchDataMVT <- function(N,
   # Return the data, the data without batch effects, the allocation labels and
   # the batch labels.
   list(
-    data = observed_data,
+    observed_data = observed_data,
     corrected_data = true_data,
     cluster_IDs = cluster_IDs,
     batch_IDs = batch_IDs,
