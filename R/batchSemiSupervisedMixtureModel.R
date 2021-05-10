@@ -82,10 +82,6 @@ batchSemiSupervisedMixtureModel <- function(X,
     stop("rho parameter must be a positive whole.")
   }
   
-  if(lambda <= 0.0) {
-    stop("lambda must be a positive real number.")
-  }
-  
   # if(theta != (rho - 1)) {
   #   warning("The prior on the batch mean parameters is no longer expected to be standard normal.")
   # }
