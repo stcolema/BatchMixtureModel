@@ -13,9 +13,7 @@ generateBatchData(
   batch_var,
   cluster_weights,
   batch_weights,
-  frac_known = 0.2,
-  row_names = paste0("Person_", 1:N),
-  col_names = paste0("Gene_", 1:P)
+  frac_known = 0.2
 )
 }
 \arguments{
@@ -33,9 +31,7 @@ generateBatchData(
 
 \item{cluster_weights}{A vector of the expected proportion of N in each cluster.}
 
-\item{batch_weights}{A vector of the expected proportion of N in each batch.}
-
-\item{row_names}{The column names of the final data matrix. Defaults to ``paste0("Gene_", 1:P)``.}
+\item{batch_weights}{A vector of the expected proportion of N in each batch..}
 }
 \value{
 A list of 4 objects; the data generated from the clusters with and
