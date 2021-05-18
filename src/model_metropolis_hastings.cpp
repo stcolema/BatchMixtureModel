@@ -227,6 +227,251 @@ public:
 };
 
 
+class samplerBatchWeights: virtual public sampler {
+  
+private:
+  
+public:
+  
+  // double x = 0.0, y = 0.0;
+  umat N_kb;
+  mat w;
+  
+  // Parametrised class
+  samplerBatchWeights(                           
+      arma::uword _K,
+      arma::uword _B,
+      arma::uvec _labels,
+      arma::uvec _batch_vec,
+      arma::vec _concentration,
+      arma::mat _X
+    ) : sampler(_K,
+    _B,
+    _labels,
+    _batch_vec,
+    _concentration,
+    _X) {
+    
+    // // Weights on hyperparameters for the weights.
+    // x = _x;
+    // y = _y;
+    
+    // Weights
+    // double x, y;
+    w = zeros<mat>(K, B);
+    
+    // Count of individuals in class k in batch b
+    N_kb = zeros<umat>(K, B);
+    
+    std::cout << "\n\nIn new smapler.";
+    
+  };
+  
+  // Destructor
+  virtual ~samplerBatchWeights() { };
+  
+  // Functions required of all mixture models
+  void updateWeights(){
+    
+    
+    w.zeros();
+    
+    double a = 0.0;
+    
+    double x = 0.0, y = 1.0, z = 0.0;
+    // 
+    for (uword b = 0; b < B; b++) {
+      for (uword k = 0; k < K; k++) {
+        
+        // Find how many labels have the value
+        members.col(k) = labels == k;
+        N_k(k) = sum(members.col(k));
+        // N_kb(k, b) = sum(members.col(k));
+        N_kb(k, b) = sum( (labels == k) && (batch_vec == b) );
+        
+        // // Hyperparameter is a weighted sum of the previous batch's class count 
+        // // and the current batch's class count
+        // if(b > 0) {
+        //   if(b < B - 1) {
+        //     a  = concentration(k) + x * N_kb(k, b - 1) + y * N_kb(k, b) + z * N_kb(k, b + 1);
+        //     a = a / (1 + x + y + z);
+        //   } else {
+        //     a  = concentration(k) + x * N_kb(k, b - 1) + y * N_kb(k, b);
+        //     a = a / (1 + x + y);
+        //   }
+        //   // a = a / (1 + x  + y);
+        // } else {
+        //   a  = concentration(k) + y * N_kb(k, b) + z * N_kb(k, b + 1);
+        //   a = a / (1 + x + z);
+        //   // a = (1 + x);
+        // }
+        
+        a  = concentration(k) + N_kb(k, b);
+        
+        // Update weights by sampling from a Gamma distribution
+        w(k, b) = randg( distr_param(a, 1.0) );
+        
+      }
+      
+      // std::cout << "\n\nLast a: " << a;
+      // 
+      // std::cout << "\n\nw.col(b):\n" << w.col(b);
+      
+      x = accu(w.col(b));
+      
+      // Convert the cluster weights (previously gamma distributed) to Beta
+      // distributed by normalising
+      w.col(b) = w.col(b) / x;
+      
+      // std::cout << "\n\nw.col(b) (after normalisation):\n" << w.col(b);
+    }
+    
+    // std::cout << "\n\nWeights:\n" << w;
+    // std::cout << "\n\nN_kb:\n" << N_kb;
+    // std::cout << "\n\nN_k:\n" << N_k;
+    
+  };
+  
+  virtual void updateAllocation() {
+    
+    uword b = 0;
+    double u = 0.0;
+    uvec uniqueK;
+    vec comp_prob(K);
+    
+    complete_likelihood = 0.0;
+    for(uword n = 0; n < N; n++){
+      
+      b = batch_vec(n);
+      ll = itemLogLikelihood(X_t.col(n), b);
+      
+      // std::cout << "\n\nAllocation log likelihood: " << ll;
+      // Update with weights
+      comp_prob = ll + log(w.col(b));
+      
+      likelihood(n) = accu(comp_prob);
+      
+      // std::cout << "\n\nWeights: " << w;
+      // std::cout << "\n\nAllocation log probability: " << comp_prob;
+      
+      // Normalise and overflow
+      comp_prob = exp(comp_prob - max(comp_prob));
+      comp_prob = comp_prob / sum(comp_prob);
+      
+      // Prediction and update
+      u = randu<double>( );
+      
+      labels(n) = sum(u > cumsum(comp_prob));
+      alloc.row(n) = comp_prob.t();
+      
+      complete_likelihood += ll(labels(n));
+      
+      // Record the likelihood of the item in it's allocated component
+      // likelihood(n) = ll(labels(n));
+    }
+    
+    // The model log likelihood
+    observed_likelihood = accu(likelihood);
+    
+    // Number of occupied components (used in BIC calculation)
+    uniqueK = unique(labels);
+    K_occ = uniqueK.n_elem;
+  };
+  
+};
+
+
+
+class semisupervisedSamplerBatchWeights : public virtual samplerBatchWeights, 
+                                          public virtual sampler {
+private:
+  
+public:
+  
+  arma::uword N_fixed = 0;
+  arma::uvec fixed, unfixed_ind;
+  arma::mat alloc_prob;
+  
+  using sampler::sampler;
+  
+  semisupervisedSamplerBatchWeights(
+    arma::uword _K,
+    arma::uword _B,
+    arma::uvec _labels,
+    arma::uvec _batch_vec,
+    arma::vec _concentration,
+    arma::mat _X,
+    arma::uvec _fixed
+  ) : 
+    samplerBatchWeights(_K, _B, _labels, _batch_vec, _concentration, _X),
+    sampler(_K, _B, _labels, _batch_vec, _concentration, _X) {
+    
+    arma::uvec fixed_ind(N);
+    
+    fixed = _fixed;
+    N_fixed = arma::sum(fixed);
+    fixed_ind = arma::find(_fixed == 1);
+    unfixed_ind = find(fixed == 0);
+    
+    alloc_prob.set_size(N, K);
+    alloc_prob.zeros();
+    
+    for (auto& n : fixed_ind) {
+      alloc_prob(n, labels(n)) = 1.0;
+    }
+    
+    std::cout << "\n\nIn semi no 2.";
+  };
+  
+  // Destructor
+  virtual ~semisupervisedSamplerBatchWeights() { };
+  
+  virtual void updateAllocation() {
+    
+    uword b = 0;
+    double u = 0.0;
+    arma::uvec uniqueK;
+    arma::vec comp_prob(K);
+    
+    complete_likelihood = 0.0;
+    for (auto& n : unfixed_ind) {
+      
+      b = batch_vec(n);
+      ll = itemLogLikelihood(X_t.col(n), b);
+      
+      // Update with weights
+      comp_prob = ll + log(w.col(b));
+      
+      likelihood(n) = arma::accu(comp_prob);
+      
+      // Normalise and overflow
+      comp_prob = exp(comp_prob - max(comp_prob));
+      comp_prob = comp_prob / sum(comp_prob);
+      
+      // Save the allocation probabilities
+      alloc_prob.row(n) = comp_prob.t();
+      
+      // Prediction and update
+      u = arma::randu<double>( );
+      
+      labels(n) = sum(u > cumsum(comp_prob));
+      alloc.row(n) = comp_prob.t();
+      
+      complete_likelihood += ll(labels(n));
+      
+      // Record the log likelihood of the item in it's allocated component
+      likelihood(n) = ll(labels(n));
+    }
+    
+    // The model log likelihood
+    observed_likelihood = arma::accu(likelihood);
+    
+    // Number of occupied components (used in BIC calculation)
+    uniqueK = arma::unique(labels);
+    K_occ = uniqueK.n_elem;
+  };
+  
+};
 
 
 //' @name gaussianSampler
@@ -908,12 +1153,13 @@ public:
     // std::cout << "\n\nPrior scale:\n" << scale;
     
     // The mean of the prior distribution for the batch shift, m, parameter
-    delta = 0;
+    delta = 0.0;
     
     // Prior precision is the inverse of something on the scale of 1/10 the global 
     // covariance
-    t = 1.0 / ((accu(global_cov.diag()) / P ) * 0.1);
-
+    // t = 1.0 / ((accu(global_cov.diag()) / P ) * 0.1);
+    t = 10 / scale_entry;
+    
     // // The shape and scale of the prior for the batch scale, S
     // rho = _rho; // 41.0; // 3.0 / 2.0;
     // theta = _theta; // 40.0; // arma::stddev(X.as_col()) / std::pow(B, 2.0 / B ); // 2.0;
@@ -988,12 +1234,25 @@ public:
     for(uword k = 0; k < K; k++){
       cov.slice(k) = iwishrnd(scale, nu);
     }
+    
+    // for(uword k = 0; k < K; k++) {
+    //   cov.slice(k).zeros();
+    //   for(uword p = 0; p < P; p++) {
+    //     cov.slice(k)(p, p) = 4.0;
+    //   }
+    // }
+    
   };
   
   virtual void sampleMuPrior() {
     for(uword k = 0; k < K; k++){
       mu.col(k) = mvnrnd(xi, (1.0/kappa) * cov.slice(k), 1);
     }
+    
+    // mu(0, 0) = -2;
+    // mu(0, 1) = 2;
+    // mu(1, 0) = -2;
+    // mu(1, 1) = 2;
   }
   
   virtual void sampleSPrior() {
@@ -1001,8 +1260,10 @@ public:
       // S.col(b) = S_loc + chi2rnd( 1.0, P );
       for(uword p = 0; p < P; p++){
         S(p, b) = S_loc + 1.0 / randg<double>( distr_param(rho, 1.0 / theta ) );
+        // S(p, b) = 1.44;
       }
     }
+    // S = sqrt(S);
   };
   
   virtual void sampleMPrior() {
@@ -1011,6 +1272,18 @@ public:
         m(p, b) = randn<double>() / t + delta;
       }
     }
+    
+    // m(0, 0) = -0.5;
+    // m(0, 1) = 0.5;
+    // m(0, 2) = -0.5;
+    // m(0, 3) = 0.5;
+    // m(0, 4) = -0.5;
+    // 
+    // m(1, 0) = -0.5;
+    // m(1, 1) = 0.5;
+    // m(1, 2) = -0.5;
+    // m(1, 3) = 0.5;
+    // m(1, 4) = -0.5;
   };
   
   virtual void sampleFromPriors() {
@@ -1761,7 +2034,7 @@ public:
     arma::vec unscaled_data(P);
     arma::mat mu_mat = mu.cols(labels); //, Y_alt(N, P);
     
-    Y = ((X_t - mu_mat - m.cols(batch_vec)) / arma::sqrt(S.cols(batch_vec)) + mu_mat).t();
+    Y = ((X_t - mu_mat - m.cols(batch_vec)) / sqrt(S.cols(batch_vec)) + mu_mat).t();
     
     // for(arma::uword n = 0; n < N; n++) {
     //   b = batch_vec(n);
@@ -1815,7 +2088,7 @@ public:
     // Metropolis step for cluster parameters
     clusterCovarianceMetropolis();
     clusterMeanMetropolis();
-  
+
     // Metropolis step for batch parameters
     batchScaleMetropolis();
     batchShiftMetorpolis();
@@ -1898,7 +2171,7 @@ public:
       complete_likelihood += ll(labels(n));
       
       // Record the log likelihood of the item in it's allocated component
-      // likelihood(n) = ll(labels(n));
+      likelihood(n) = ll(labels(n));
     }
     
     // The model log likelihood
@@ -1912,14 +2185,85 @@ public:
 };
 
 
-class mvnPredictive : public mvnSampler, public semisupervisedSampler {
-  
+// class mvnPredictive : public mvnSampler, public semisupervisedSampler {
+// 
+// private:
+// 
+// public:
+// 
+//   using mvnSampler::mvnSampler;
+// 
+//   mvnPredictive(
+//     arma::uword _K,
+//     arma::uword _B,
+//     double _mu_proposal_window,
+//     double _cov_proposal_window,
+//     double _m_proposal_window,
+//     double _S_proposal_window,
+//     double _rho,
+//     double _theta,
+//     arma::uvec _labels,
+//     arma::uvec _batch_vec,
+//     arma::vec _concentration,
+//     arma::mat _X,
+//     arma::uvec _fixed
+//   ) :
+//     sampler(_K, _B, _labels, _batch_vec, _concentration, _X),
+//     mvnSampler(_K,
+//                _B,
+//                _mu_proposal_window,
+//                _cov_proposal_window,
+//                _m_proposal_window,
+//                _S_proposal_window,
+//                _rho,
+//                _theta,
+//                _labels,
+//                _batch_vec,
+//                _concentration,
+//                _X),
+//     semisupervisedSampler(_K, _B, _labels, _batch_vec, _concentration, _X, _fixed)
+//     {
+//   };
+// 
+//   virtual ~mvnPredictive() { };
+// 
+//   // virtual void sampleFromPriors() {
+//   //
+//   //   arma::mat X_k;
+//   //
+//   //   for(arma::uword k = 0; k < K; k++){
+//   //     X_k = X.rows(arma::find(labels == k && fixed == 1));
+//   //     cov.slice(k) = arma::diagmat(arma::stddev(X_k).t());
+//   //     mu.col(k) = arma::mean(X_k).t();
+//   //   }
+//   //   for(arma::uword b = 0; b < B; b++){
+//   //     for(arma::uword p = 0; p < P; p++){
+//   //
+//   //       // Fix the 0th batch at no effect; all other batches have an effect
+//   //       // relative to this
+//   //       // if(b == 0){
+//   //       S(p, b) = 1.0;
+//   //       m(p, b) = 0.0;
+//   //       // } else {
+//   //       // S(p, b) = 1.0 / arma::randg<double>( arma::distr_param(rho, 1.0 / theta ) );
+//   //       // m(p, b) = arma::randn<double>() * S(p, b) / lambda + delta(p);
+//   //       // }
+//   //     }
+//   //   }
+//   // };
+// 
+// };
+
+
+
+class mvnPredictive : public mvnSampler, public semisupervisedSamplerBatchWeights {
+
 private:
-  
+
 public:
-  
+
   using mvnSampler::mvnSampler;
-  
+
   mvnPredictive(
     arma::uword _K,
     arma::uword _B,
@@ -1934,8 +2278,9 @@ public:
     arma::vec _concentration,
     arma::mat _X,
     arma::uvec _fixed
-  ) : 
+  ) :
     sampler(_K, _B, _labels, _batch_vec, _concentration, _X),
+    samplerBatchWeights(_K, _B, _labels, _batch_vec, _concentration, _X),
     mvnSampler(_K,
                _B,
                _mu_proposal_window,
@@ -1947,38 +2292,14 @@ public:
                _labels,
                _batch_vec,
                _concentration,
-               _X),
-    semisupervisedSampler(_K, _B, _labels, _batch_vec, _concentration, _X, _fixed)
-    {
+               _X
+    ),
+    semisupervisedSamplerBatchWeights(_K, _B, _labels, _batch_vec, _concentration, _X, _fixed)
+  {
   };
-  
+
   virtual ~mvnPredictive() { };
-  
-  // virtual void sampleFromPriors() {
-  //   
-  //   arma::mat X_k;
-  //   
-  //   for(arma::uword k = 0; k < K; k++){
-  //     X_k = X.rows(arma::find(labels == k && fixed == 1));
-  //     cov.slice(k) = arma::diagmat(arma::stddev(X_k).t());
-  //     mu.col(k) = arma::mean(X_k).t();
-  //   }
-  //   for(arma::uword b = 0; b < B; b++){
-  //     for(arma::uword p = 0; p < P; p++){
-  //       
-  //       // Fix the 0th batch at no effect; all other batches have an effect
-  //       // relative to this
-  //       // if(b == 0){
-  //       S(p, b) = 1.0;
-  //       m(p, b) = 0.0;
-  //       // } else {
-  //       // S(p, b) = 1.0 / arma::randg<double>( arma::distr_param(rho, 1.0 / theta ) );
-  //       // m(p, b) = arma::randn<double>() * S(p, b) / lambda + delta(p);
-  //       // }
-  //     }
-  //   }
-  // };
-  
+
 };
 
 
@@ -3471,96 +3792,96 @@ public:
 };
 
 
-// Factory for creating instances of samplers
-//' @name semisupervisedSamplerFactory
-//' @title Factory for different sampler subtypes.
-//' @description The factory allows the type of mixture implemented to change 
-//' based upon the user input.
-//' @field new Constructor \itemize{
-//' \item Parameter: samplerType - the density type to be modelled
-//' \item Parameter: K - the number of components to model
-//' \item Parameter: labels - the initial clustering of the data
-//' \item Parameter: concentration - the vector for the prior concentration of 
-//' the Dirichlet distribution of the component weights
-//' \item Parameter: X - the data to model
-//' }
-class semisupervisedSamplerFactory
-{
-public:
-  enum samplerType {
-    // G = 0,
-    MVN = 1,
-    MVT = 2,
-    MSN = 3
-  };
-  
-  static std::unique_ptr<semisupervisedSampler> createSemisupervisedSampler(samplerType type,
-    arma::uword K,
-    arma::uword B,
-    double mu_proposal_window,
-    double cov_proposal_window,
-    double m_proposal_window,
-    double S_proposal_window,
-    double t_df_proposal_window,
-    double phi_proposal_window,
-    double rho,
-    double theta,
-    arma::uvec labels,
-    arma::uvec batch_vec,
-    arma::vec concentration,
-    arma::mat X,
-    arma::uvec fixed
-    ) {
-      switch (type) {
-      // case G: return std::make_unique<gaussianSampler>(K, labels, concentration, X);
-        
-      case MVN: return std::make_unique<mvnPredictive>(K,
-                                                    B,
-                                                    mu_proposal_window,
-                                                    cov_proposal_window,
-                                                    m_proposal_window,
-                                                    S_proposal_window,
-                                                    rho,
-                                                    theta,
-                                                    labels,
-                                                    batch_vec,
-                                                    concentration,
-                                                    X,
-                                                    fixed);
-      case MVT: return std::make_unique<mvtPredictive>(K,
-                                                    B,
-                                                    mu_proposal_window,
-                                                    cov_proposal_window,
-                                                    m_proposal_window,
-                                                    S_proposal_window,
-                                                    t_df_proposal_window,
-                                                    rho,
-                                                    theta,
-                                                    labels,
-                                                    batch_vec,
-                                                    concentration,
-                                                    X,
-                                                    fixed);
-      case MSN: return std::make_unique<msnPredictive>(K,
-                                                    B,
-                                                    mu_proposal_window,
-                                                    cov_proposal_window,
-                                                    m_proposal_window,
-                                                    S_proposal_window,
-                                                    phi_proposal_window,
-                                                    rho,
-                                                    theta,
-                                                    labels,
-                                                    batch_vec,
-                                                    concentration,
-                                                    X,
-                                                    fixed);
-      default: throw "invalid sampler type.";
-      }
-      
-    }
-  
-};
+// // Factory for creating instances of samplers
+// //' @name semisupervisedSamplerFactory
+// //' @title Factory for different sampler subtypes.
+// //' @description The factory allows the type of mixture implemented to change 
+// //' based upon the user input.
+// //' @field new Constructor \itemize{
+// //' \item Parameter: samplerType - the density type to be modelled
+// //' \item Parameter: K - the number of components to model
+// //' \item Parameter: labels - the initial clustering of the data
+// //' \item Parameter: concentration - the vector for the prior concentration of 
+// //' the Dirichlet distribution of the component weights
+// //' \item Parameter: X - the data to model
+// //' }
+// class semisupervisedSamplerFactory
+// {
+// public:
+//   enum samplerType {
+//     // G = 0,
+//     MVN = 1,
+//     MVT = 2,
+//     MSN = 3
+//   };
+//   
+//   static std::unique_ptr<semisupervisedSampler> createSemisupervisedSampler(samplerType type,
+//     arma::uword K,
+//     arma::uword B,
+//     double mu_proposal_window,
+//     double cov_proposal_window,
+//     double m_proposal_window,
+//     double S_proposal_window,
+//     double t_df_proposal_window,
+//     double phi_proposal_window,
+//     double rho,
+//     double theta,
+//     arma::uvec labels,
+//     arma::uvec batch_vec,
+//     arma::vec concentration,
+//     arma::mat X,
+//     arma::uvec fixed
+//     ) {
+//       switch (type) {
+//       // case G: return std::make_unique<gaussianSampler>(K, labels, concentration, X);
+//         
+//       case MVN: return std::make_unique<mvnPredictive>(K,
+//                                                     B,
+//                                                     mu_proposal_window,
+//                                                     cov_proposal_window,
+//                                                     m_proposal_window,
+//                                                     S_proposal_window,
+//                                                     rho,
+//                                                     theta,
+//                                                     labels,
+//                                                     batch_vec,
+//                                                     concentration,
+//                                                     X,
+//                                                     fixed);
+//       case MVT: return std::make_unique<mvtPredictive>(K,
+//                                                     B,
+//                                                     mu_proposal_window,
+//                                                     cov_proposal_window,
+//                                                     m_proposal_window,
+//                                                     S_proposal_window,
+//                                                     t_df_proposal_window,
+//                                                     rho,
+//                                                     theta,
+//                                                     labels,
+//                                                     batch_vec,
+//                                                     concentration,
+//                                                     X,
+//                                                     fixed);
+//       case MSN: return std::make_unique<msnPredictive>(K,
+//                                                     B,
+//                                                     mu_proposal_window,
+//                                                     cov_proposal_window,
+//                                                     m_proposal_window,
+//                                                     S_proposal_window,
+//                                                     phi_proposal_window,
+//                                                     rho,
+//                                                     theta,
+//                                                     labels,
+//                                                     batch_vec,
+//                                                     concentration,
+//                                                     X,
+//                                                     fixed);
+//       default: throw "invalid sampler type.";
+//       }
+//       
+//     }
+//   
+// };
 
 
 
@@ -4164,7 +4485,7 @@ Rcpp::List sampleSemisupervisedMVN (
     complete_likelihood = zeros<vec>(floor(R / thin));
   
   uvec acceptance_vec = zeros<uvec>(floor(R / thin));
-  mat weights_saved = zeros<mat>(floor(R / thin), K);
+  // mat weights_saved = zeros<mat>(floor(R / thin), K);
   
   cube mean_sum_saved(P, K * B, floor(R / thin)), 
     mu_saved(P, K, floor(R / thin)),
@@ -4173,7 +4494,8 @@ Rcpp::List sampleSemisupervisedMVN (
     S_saved(P, B, floor(R / thin)), 
     cov_comb_saved(P, P * K * B, floor(R / thin)), 
     alloc_prob(N, K, floor(R / thin)), 
-    batch_corrected_data(N, P, floor(R / thin));
+    batch_corrected_data(N, P, floor(R / thin)),
+    weights_saved(K, B, floor(R / thin));
   
   // field<cube> cov_saved(my_sampler.P, my_sampler.P, K, floor(R / thin));
   mu_saved.zeros();
@@ -4181,6 +4503,7 @@ Rcpp::List sampleSemisupervisedMVN (
   cov_comb_saved.zeros();
   m_saved.zeros();
   S_saved.zeros();
+  weights_saved.zeros();
   
   uword save_int = 0;
   
@@ -4247,11 +4570,16 @@ Rcpp::List sampleSemisupervisedMVN (
     //   }
     // }
     
+    // std::cout << "\n\nUpdate weights.";
+    
     my_sampler.updateWeights();
+    
+    // std::cout << "\n\nUpdate parameters.";
     
     // Metropolis step for batch parameters
     my_sampler.metropolisStep();
 
+    // std::cout << "\n\nUpdate allocation.";
     my_sampler.updateAllocation();
     
     
@@ -4274,7 +4602,8 @@ Rcpp::List sampleSemisupervisedMVN (
       observed_likelihood( save_int ) = my_sampler.observed_likelihood;
       class_record.row( save_int ) = my_sampler.labels.t();
       acceptance_vec( save_int ) = my_sampler.accepted;
-      weights_saved.row( save_int ) = my_sampler.w.t();
+      // weights_saved.row( save_int ) = my_sampler.w.t();
+      weights_saved.slice( save_int ) = my_sampler.w;
       mu_saved.slice( save_int ) = my_sampler.mu;
       // tau_saved.slice( save_int ) = my_sampler.tau;
       // cov_saved( save_int ) = my_sampler.cov;
