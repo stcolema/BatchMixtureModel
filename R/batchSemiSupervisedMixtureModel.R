@@ -63,7 +63,6 @@ batchSemiSupervisedMixtureModel <- function(X,
                                             phi_proposal_window = 1.2**2,
                                             rho = 41.0,
                                             theta = 40.0,
-                                            lambda = 1.0,
                                             verbose = FALSE,
                                             doCombinations = FALSE,
                                             printCovariance = FALSE) {
@@ -81,10 +80,6 @@ batchSemiSupervisedMixtureModel <- function(X,
   
   if(theta < 1.0) {
     stop("rho parameter must be a positive whole.")
-  }
-  
-  if(lambda <= 0.0) {
-    stop("lambda must be a positive real number.")
   }
   
   # if(theta != (rho - 1)) {
@@ -143,7 +138,6 @@ batchSemiSupervisedMixtureModel <- function(X,
       S_proposal_window,
       rho,
       theta,
-      lambda,
       R,
       thin,
       concentration,
@@ -168,7 +162,6 @@ batchSemiSupervisedMixtureModel <- function(X,
       t_df_proposal_window,
       rho,
       theta,
-      lambda,
       R,
       thin,
       concentration,
@@ -193,7 +186,6 @@ batchSemiSupervisedMixtureModel <- function(X,
       phi_proposal_window,
       rho,
       theta,
-      lambda,
       R,
       thin,
       concentration,

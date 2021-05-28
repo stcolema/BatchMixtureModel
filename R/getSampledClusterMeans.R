@@ -40,12 +40,15 @@ getSampledClusterMeans <- function(sampled_cluster_means,
   mean_df <- data.frame(t(apply(sampled_cluster_means, 3L, rbind)))
   
   # Give sensible column names
-  colnames(mean_df) <- suppressWarnings(paste0("Mu_", sort(levels(interaction(1:K, 1:P, sep = "")))))
+  colnames(mean_df) <- suppressWarnings(paste0("Mu_", sort(as.numeric(levels(interaction(1:K, 1:P, sep = ""))))))
   
   # Add a variable for the iteration the sample comes from
   mean_df$Iteration <- c(1:(R / thin)) * thin
   
   # Pivot to a long format ready for ``ggplot2``
   mean_long_df <- tidyr::pivot_longer(mean_df, contains("Mu_"))
+  mean_long_df$Dimension <- rep(1:P, nrow(mean_long_df) / P)
+  mean_long_df$Cluster <- rep(1:K, nrow(mean_long_df) / (K * P), each = P)
+  
   mean_long_df
 }
