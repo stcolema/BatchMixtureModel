@@ -3,35 +3,22 @@
 # include <string>
 # include <iostream>
 
+# include "sampler.h"
+
 // [[Rcpp::depends(RcppArmadillo)]]
 
 using namespace Rcpp ;
-using namespace arma ;
-
-// double logGamma(double x){
-//   if( x == 1 ) {
-//     return 0;
-//   } 
-//   return (std::log(x - 1) + logGamma(x - 1));
-// }
-
-double logGamma(double x){
-  double out = 0.0;
-  mat A(1, 1);
-  A(0, 0) = x;
-  out = as_scalar(arma::lgamma(A));
-  return out;
-}
+using namespace arma ;  
 
 double gammaLogLikelihood(double x, double shape, double rate){
   double out = 0.0;
-  out = shape * std::log(rate) - logGamma(shape) + (shape - 1) * std::log(x) - rate * x;
+  out = shape * std::log(rate) - std::lgamma(shape) + (shape - 1) * std::log(x) - rate * x;
   return out;
 };
 
 double invGammaLogLikelihood(double x, double shape, double scale) {
   double out = 0.0;
-  out = shape * std::log(scale) - logGamma(shape) + (-shape - 1) * std::log(x) - scale / x;
+  out = shape * std::log(scale) - std::lgamma(shape) + (-shape - 1) * std::log(x) - scale / x;
   return out;
 };
 
@@ -67,11 +54,11 @@ double logInverseWishartProbability(arma::mat X, arma::mat Psi, double nu, arma:
 }
 
 class sampler {
-  
+
 private:
-  
+
 public:
-  
+
   arma::uword K, B, N, P, K_occ, accepted = 0;
   double observed_likelihood = 0.0, BIC = 0.0, model_score = 0.0, complete_likelihood = 0.0;
   arma::uvec labels, N_k, batch_vec, N_b, KB_inds, B_inds;
@@ -79,7 +66,7 @@ public:
   arma::umat members;
   arma::mat X, X_t, alloc;
   arma::field<arma::uvec> batch_ind;
-  
+
   // Parametrised class
   sampler(
     arma::uword _K,
@@ -89,7 +76,7 @@ public:
     arma::vec _concentration,
     arma::mat _X)
   {
-    
+
     K = _K;
     B = _B;
     labels = _labels;
@@ -97,137 +84,136 @@ public:
     concentration = _concentration;
     X = _X;
     X_t = X.t();
-    
-    // Plausibly belongs in the MVN sampler. Used for selecting slices / columns 
+
+    // Plausibly belongs in the MVN sampler. Used for selecting slices / columns
     // in the metropolis steps.
     KB_inds = linspace<uvec>(0, K - 1, K) * B;
     B_inds = linspace<uvec>(0, B - 1, B);
-    
+
     // Dimensions
     N = X.n_rows;
     P = X.n_cols;
-    
+
     // std::cout << "\nN: " << N << "\nP: " << P << "\n\n";
-    
+
     // Class populations
     N_k = zeros<uvec>(K);
     N_b = zeros<uvec>(B);
-    
+
     // The batch numbers won't ever change, so let's count them now
     for(uword b = 0; b < B; b++){
       N_b(b) = sum(batch_vec == b);
     }
-    
+
     // Weights
     // double x, y;
     w = zeros<vec>(K);
-    
+
     // Log likelihood (individual and model)
     ll = zeros<vec>(K);
     likelihood = zeros<vec>(N);
-    
+
     // Class members
     members.set_size(N, K);
     members.zeros();
-    
+
     // Allocation probability matrix (only makes sense in predictive models)
     alloc.set_size(N, K);
     alloc.zeros();
-    
+
     // The indices of the members of each batch in the dataset
     batch_ind.set_size(B);
     for(uword b = 0; b < B; b++) {
       batch_ind(b) = find(batch_vec == b);
     }
   };
-  
+
   // Destructor
   virtual ~sampler() { };
-  
+
   // Virtual functions are those that should actual point to the sub-class
   // version of the function.
   // Print the sampler type.
   virtual void printType() {
     std::cout << "\nType: NULL.\n";
   };
-  
+
   // Functions required of all mixture models
   virtual void updateWeights(){
-    
+
     double a = 0.0;
-    
+
     for (uword k = 0; k < K; k++) {
-      
+
       // Find how many labels have the value
       members.col(k) = labels == k;
       N_k(k) = sum(members.col(k));
-      
+
       // Update weights by sampling from a Gamma distribution
       a  = concentration(k) + N_k(k);
       w(k) = randg( distr_param(a, 1.0) );
     }
-    
+
     // Convert the cluster weights (previously gamma distributed) to Beta
     // distributed by normalising
     w = w / accu(w);
-    
+
   };
-  
+
   virtual void updateAllocation() {
-    
+
     double u = 0.0;
     uvec uniqueK;
     vec comp_prob(K);
-    
+
     complete_likelihood = 0.0;
     for(uword n = 0; n < N; n++){
-      
+
       ll = itemLogLikelihood(X_t.col(n), batch_vec(n));
-      
+
       // std::cout << "\n\nAllocation log likelihood: " << ll;
       // Update with weights
       comp_prob = ll + log(w);
-      
+
       likelihood(n) = accu(comp_prob);
-      
+
       // std::cout << "\n\nWeights: " << w;
       // std::cout << "\n\nAllocation log probability: " << comp_prob;
-      
+
       // Normalise and overflow
       comp_prob = exp(comp_prob - max(comp_prob));
       comp_prob = comp_prob / sum(comp_prob);
-      
+
       // Prediction and update
       u = randu<double>( );
-      
+
       labels(n) = sum(u > cumsum(comp_prob));
       alloc.row(n) = comp_prob.t();
-      
+
       complete_likelihood += ll(labels(n));
-      
+
       // Record the likelihood of the item in it's allocated component
       // likelihood(n) = ll(labels(n));
     }
-    
+
     // The model log likelihood
     observed_likelihood = accu(likelihood);
-    
+
     // Number of occupied components (used in BIC calculation)
     uniqueK = unique(labels);
     K_occ = uniqueK.n_elem;
   };
-  
+
   // The virtual functions that will be defined in any subclasses
   virtual void metropolisStep(){};
   virtual void sampleFromPriors() {};
   virtual void sampleParameters(){};
   virtual void calcBIC(){};
   virtual arma::vec itemLogLikelihood(arma::vec x, arma::uword b) { return arma::vec(); };
-  
+
 };
 
-
-class samplerBatchWeights: virtual public sampler {
+class samplerBatchWeights : virtual public sampler {
   
 private:
   
@@ -1157,8 +1143,11 @@ public:
     
     // Prior precision is the inverse of something on the scale of 1/10 the global 
     // covariance
-    // t = 1.0 / ((accu(global_cov.diag()) / P ) * 0.1);
-    t = 10 / scale_entry;
+    t = 1.0 / ((accu(global_cov.diag()) / P ) * 0.01);
+    // t = 10 / (accu(global_cov.diag()) / P);
+    
+    std::cout << t;
+    // throw;
     
     // // The shape and scale of the prior for the batch scale, S
     // rho = _rho; // 41.0; // 3.0 / 2.0;
@@ -2185,78 +2174,7 @@ public:
 };
 
 
-// class mvnPredictive : public mvnSampler, public semisupervisedSampler {
-// 
-// private:
-// 
-// public:
-// 
-//   using mvnSampler::mvnSampler;
-// 
-//   mvnPredictive(
-//     arma::uword _K,
-//     arma::uword _B,
-//     double _mu_proposal_window,
-//     double _cov_proposal_window,
-//     double _m_proposal_window,
-//     double _S_proposal_window,
-//     double _rho,
-//     double _theta,
-//     arma::uvec _labels,
-//     arma::uvec _batch_vec,
-//     arma::vec _concentration,
-//     arma::mat _X,
-//     arma::uvec _fixed
-//   ) :
-//     sampler(_K, _B, _labels, _batch_vec, _concentration, _X),
-//     mvnSampler(_K,
-//                _B,
-//                _mu_proposal_window,
-//                _cov_proposal_window,
-//                _m_proposal_window,
-//                _S_proposal_window,
-//                _rho,
-//                _theta,
-//                _labels,
-//                _batch_vec,
-//                _concentration,
-//                _X),
-//     semisupervisedSampler(_K, _B, _labels, _batch_vec, _concentration, _X, _fixed)
-//     {
-//   };
-// 
-//   virtual ~mvnPredictive() { };
-// 
-//   // virtual void sampleFromPriors() {
-//   //
-//   //   arma::mat X_k;
-//   //
-//   //   for(arma::uword k = 0; k < K; k++){
-//   //     X_k = X.rows(arma::find(labels == k && fixed == 1));
-//   //     cov.slice(k) = arma::diagmat(arma::stddev(X_k).t());
-//   //     mu.col(k) = arma::mean(X_k).t();
-//   //   }
-//   //   for(arma::uword b = 0; b < B; b++){
-//   //     for(arma::uword p = 0; p < P; p++){
-//   //
-//   //       // Fix the 0th batch at no effect; all other batches have an effect
-//   //       // relative to this
-//   //       // if(b == 0){
-//   //       S(p, b) = 1.0;
-//   //       m(p, b) = 0.0;
-//   //       // } else {
-//   //       // S(p, b) = 1.0 / arma::randg<double>( arma::distr_param(rho, 1.0 / theta ) );
-//   //       // m(p, b) = arma::randn<double>() * S(p, b) / lambda + delta(p);
-//   //       // }
-//   //     }
-//   //   }
-//   // };
-// 
-// };
-
-
-
-class mvnPredictive : public mvnSampler, public semisupervisedSamplerBatchWeights {
+class mvnPredictive : public mvnSampler, public semisupervisedSampler {
 
 private:
 
@@ -2280,7 +2198,6 @@ public:
     arma::uvec _fixed
   ) :
     sampler(_K, _B, _labels, _batch_vec, _concentration, _X),
-    samplerBatchWeights(_K, _B, _labels, _batch_vec, _concentration, _X),
     mvnSampler(_K,
                _B,
                _mu_proposal_window,
@@ -2292,15 +2209,87 @@ public:
                _labels,
                _batch_vec,
                _concentration,
-               _X
-    ),
-    semisupervisedSamplerBatchWeights(_K, _B, _labels, _batch_vec, _concentration, _X, _fixed)
-  {
+               _X),
+    semisupervisedSampler(_K, _B, _labels, _batch_vec, _concentration, _X, _fixed)
+    {
   };
 
   virtual ~mvnPredictive() { };
 
+  // virtual void sampleFromPriors() {
+  //
+  //   arma::mat X_k;
+  //
+  //   for(arma::uword k = 0; k < K; k++){
+  //     X_k = X.rows(arma::find(labels == k && fixed == 1));
+  //     cov.slice(k) = arma::diagmat(arma::stddev(X_k).t());
+  //     mu.col(k) = arma::mean(X_k).t();
+  //   }
+  //   for(arma::uword b = 0; b < B; b++){
+  //     for(arma::uword p = 0; p < P; p++){
+  //
+  //       // Fix the 0th batch at no effect; all other batches have an effect
+  //       // relative to this
+  //       // if(b == 0){
+  //       S(p, b) = 1.0;
+  //       m(p, b) = 0.0;
+  //       // } else {
+  //       // S(p, b) = 1.0 / arma::randg<double>( arma::distr_param(rho, 1.0 / theta ) );
+  //       // m(p, b) = arma::randn<double>() * S(p, b) / lambda + delta(p);
+  //       // }
+  //     }
+  //   }
+  // };
+
 };
+
+
+
+// class mvnPredictive : public mvnSampler, public semisupervisedSamplerBatchWeights {
+// 
+// private:
+// 
+// public:
+// 
+//   using mvnSampler::mvnSampler;
+// 
+//   mvnPredictive(
+//     arma::uword _K,
+//     arma::uword _B,
+//     double _mu_proposal_window,
+//     double _cov_proposal_window,
+//     double _m_proposal_window,
+//     double _S_proposal_window,
+//     double _rho,
+//     double _theta,
+//     arma::uvec _labels,
+//     arma::uvec _batch_vec,
+//     arma::vec _concentration,
+//     arma::mat _X,
+//     arma::uvec _fixed
+//   ) :
+//     sampler(_K, _B, _labels, _batch_vec, _concentration, _X),
+//     samplerBatchWeights(_K, _B, _labels, _batch_vec, _concentration, _X),
+//     mvnSampler(_K,
+//                _B,
+//                _mu_proposal_window,
+//                _cov_proposal_window,
+//                _m_proposal_window,
+//                _S_proposal_window,
+//                _rho,
+//                _theta,
+//                _labels,
+//                _batch_vec,
+//                _concentration,
+//                _X
+//     ),
+//     semisupervisedSamplerBatchWeights(_K, _B, _labels, _batch_vec, _concentration, _X, _fixed)
+//   {
+//   };
+// 
+//   virtual ~mvnPredictive() { };
+// 
+// };
 
 
 //' @name msnSampler
@@ -3099,7 +3088,7 @@ public:
     t_df_proposal_window = _t_df_proposal_window;
     
     // The constant for the item likelihood (changes if t_df != const)
-    // pdf_const = logGamma(0.5 * (t_df + P)) - logGamma(0.5 * t_df) - 0.5 * P * log(t_df);
+    // pdf_const = std::lgamma(0.5 * (t_df + P)) - std::lgamma(0.5 * t_df) - 0.5 * P * log(t_df);
   };
   
   
@@ -3112,7 +3101,7 @@ public:
   };
   
   double calcPDFCoef(double t_df){
-    double x = logGamma(0.5 * (t_df + P)) - logGamma(0.5 * t_df) - 0.5 * P * log(t_df);
+    double x = std::lgamma(0.5 * (t_df + P)) - std::lgamma(0.5 * t_df) - 0.5 * P * log(t_df);
     return x;
   };
   
@@ -3188,7 +3177,7 @@ public:
     for(arma::uword k = 0; k < K; k++){
     
       // gamma(0.5 * (nu + P)) / (gamma(0.5 * nu) * nu ^ (0.5 * P) * pi ^ (0.5 * P)  * det(cov) ^ 0.5) * (1 + (1 / nu) * (x - mu)^t * inv(cov) * (x - mu)) ^ (-0.5 * (nu + P))
-      // logGamma(0.5 * (nu + P)) - logGamma(0.5 * nu) - (0.5 * P) * log(nu) - 0.5 * P * log(pi) - 0.5 * logDet(cov) -0.5 * (nu + P) * log(1 + (1 / nu) * (x - mu)^t * inv(cov) * (x - mu))
+      // std::lgamma(0.5 * (nu + P)) - std::lgamma(0.5 * nu) - (0.5 * P) * log(nu) - 0.5 * P * log(pi) - 0.5 * logDet(cov) -0.5 * (nu + P) * log(1 + (1 / nu) * (x - mu)^t * inv(cov) * (x - mu))
       
       // my_cov_comv_inv = cov.slice(k);
       // for(arma::uword p = 0; p < P; p++) {
@@ -4485,7 +4474,7 @@ Rcpp::List sampleSemisupervisedMVN (
     complete_likelihood = zeros<vec>(floor(R / thin));
   
   uvec acceptance_vec = zeros<uvec>(floor(R / thin));
-  // mat weights_saved = zeros<mat>(floor(R / thin), K);
+  mat weights_saved = zeros<mat>(floor(R / thin), K);
   
   cube mean_sum_saved(P, K * B, floor(R / thin)), 
     mu_saved(P, K, floor(R / thin)),
@@ -4494,8 +4483,8 @@ Rcpp::List sampleSemisupervisedMVN (
     S_saved(P, B, floor(R / thin)), 
     cov_comb_saved(P, P * K * B, floor(R / thin)), 
     alloc_prob(N, K, floor(R / thin)), 
-    batch_corrected_data(N, P, floor(R / thin)),
-    weights_saved(K, B, floor(R / thin));
+    batch_corrected_data(N, P, floor(R / thin));
+    // weights_saved(K, B, floor(R / thin));
   
   // field<cube> cov_saved(my_sampler.P, my_sampler.P, K, floor(R / thin));
   mu_saved.zeros();
@@ -4503,7 +4492,7 @@ Rcpp::List sampleSemisupervisedMVN (
   cov_comb_saved.zeros();
   m_saved.zeros();
   S_saved.zeros();
-  weights_saved.zeros();
+  // weights_saved.zeros();
   
   uword save_int = 0;
   
@@ -4602,8 +4591,8 @@ Rcpp::List sampleSemisupervisedMVN (
       observed_likelihood( save_int ) = my_sampler.observed_likelihood;
       class_record.row( save_int ) = my_sampler.labels.t();
       acceptance_vec( save_int ) = my_sampler.accepted;
-      // weights_saved.row( save_int ) = my_sampler.w.t();
-      weights_saved.slice( save_int ) = my_sampler.w;
+      weights_saved.row( save_int ) = my_sampler.w.t();
+      // weights_saved.slice( save_int ) = my_sampler.w;
       mu_saved.slice( save_int ) = my_sampler.mu;
       // tau_saved.slice( save_int ) = my_sampler.tau;
       // cov_saved( save_int ) = my_sampler.cov;

@@ -17,7 +17,6 @@ sampleSemisupervisedMVN(
   S_proposal_window,
   rho,
   theta,
-  lambda,
   R,
   thin,
   concentration,

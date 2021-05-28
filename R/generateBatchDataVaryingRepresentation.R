@@ -63,6 +63,7 @@ generateBatchDataVaryingRepresentation <- function(N,
   if(ncol(class_weights) != B) {
     stop("Number of columns in class weight matrix does not match the number of batches.")
   }
+  
   if(nrow(class_weights) != K) {
     stop("Number of rows in class weight matrix does not match the number of classes.")
   }
@@ -89,14 +90,13 @@ generateBatchDataVaryingRepresentation <- function(N,
   # Generate the data
   for(p in 1:P) {
     
-    # To provide different information in each column, randomly sample the 
+    # To provide different information in each column, randomly sample the
     # parameters with each class and batch
     reordered_cluster_means <- sample(cluster_means)
     reordered_std_devs <- sample(std_dev)
-    
+
     reordered_batch_shift <- sample(batch_shift)
     reordered_batch_var <- sample(batch_var)
-    
     
     for(n in 1:N) {
       
