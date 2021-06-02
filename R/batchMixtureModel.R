@@ -16,7 +16,6 @@
 #' number of clusters found in each sample).
 #' @param alpha The concentration parameter for the stick-breaking prior and the 
 #' weights in the model.
-#' @param verbose The random seed for reproducibility.
 #' @param mu_proposal_window The proposal window for the cluster mean proposal
 #' kernel.
 #' @param cov_proposal_window The proposal window for the cluster covariance 
@@ -29,8 +28,6 @@
 #' for the multivariate t distribution (not used if type is not 'MVT').
 #' @param phi_proposal_window The proposal window for the shape parameter for
 #' the multivariate skew normal distribution (not used if type is not 'MSN').
-#' @param verbose A bool indicating if the acceptance count for each parameter 
-#' should be printed or not.
 #' @return Named list of the matrix of MCMC samples generated (each row
 #' corresponds to a different sample) and BIC for each saved iteration.
 #' @examples
@@ -57,12 +54,7 @@ batchMixtureModel <- function(X, R, thin, batch_vec, type,
                               m_proposal_window = 0.3**2,
                               S_proposal_window = 100,
                               t_df_proposal_window = 100,
-                              phi_proposal_window = 1.2**2,
-                              rho = 41.0,
-                              theta = 40.0,
-                              verbose = FALSE,
-                              doCombinations = FALSE,
-                              printCovariance = FALSE) {
+                              phi_proposal_window = 1.2**2) {
   if (!is.matrix(X)) {
     stop("X is not a matrix. Data should be in matrix format.")
   }
@@ -70,22 +62,6 @@ batchMixtureModel <- function(X, R, thin, batch_vec, type,
   if(length(batch_vec) != nrow(X)){
     stop("The number of rows in X and the number of batch labels are not equal.")
   }
-  
-  if(rho < 2.0) {
-    stop("rho parameter must be a whole number greater than or equal to 2.")
-  }
-  
-  if(theta < 1.0) {
-    stop("rho parameter must be a positive whole number.")
-  }
-  
-  if(lambda <= 0.0) {
-    stop("lambda must be a positive real number.")
-  }
-  
-  # if(theta != (rho - 1)) {
-  #   warning("The prior on the batch mean parameters is no longer expected to be standard normal.")
-  # }
   
   if (R < thin) {
     warning("Iterations to run less than thinning factor. No samples recorded.")
@@ -167,31 +143,31 @@ batchMixtureModel <- function(X, R, thin, batch_vec, type,
     )
   }
   
-  if(type == "MSN") {
-    samples <- sampleMSN(
-      X,
-      K_max,
-      B,
-      initial_labels,
-      batch_vec,
-      mu_proposal_window,
-      cov_proposal_window,
-      m_proposal_window,
-      S_proposal_window,
-      phi_proposal_window,
-      rho,
-      theta,
-      R,
-      thin,
-      concentration,
-      verbose,
-      doCombinations,
-      printCovariance
-    )
-  }
+  # if(type == "MSN") {
+  #   samples <- sampleMSN(
+  #     X,
+  #     K_max,
+  #     B,
+  #     initial_labels,
+  #     batch_vec,
+  #     mu_proposal_window,
+  #     cov_proposal_window,
+  #     m_proposal_window,
+  #     S_proposal_window,
+  #     phi_proposal_window,
+  #     rho,
+  #     theta,
+  #     R,
+  #     thin,
+  #     concentration,
+  #     verbose,
+  #     doCombinations,
+  #     printCovariance
+  #   )
+  # }
   
-  if (! type %in% c("MVN", "MSN", "MVT")) {
-    stop("Type not recognised. Please use one of 'MVN', 'MVT' or 'MSN'.")
+  if (! type %in% c("MVN", "MVT")) {
+    stop("Type not recognised. Please use one of 'MVN' or 'MVT'.")
   }
   samples
 }
