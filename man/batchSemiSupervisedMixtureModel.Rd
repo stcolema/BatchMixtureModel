@@ -19,12 +19,7 @@ batchSemiSupervisedMixtureModel(
   m_proposal_window = 0.3^2,
   S_proposal_window = 100,
   t_df_proposal_window = 100,
-  phi_proposal_window = 1.2^2,
-  rho = 41,
-  theta = 40,
-  verbose = FALSE,
-  doCombinations = FALSE,
-  printCovariance = FALSE
+  phi_proposal_window = 1.2^2
 )
 }
 \arguments{
@@ -69,9 +64,6 @@ for the multivariate t distribution (not used if type is not 'MVT').}
 
 \item{phi_proposal_window}{The proposal window for the shape parameter for
 the multivariate skew normal distribution (not used if type is not 'MSN').}
-
-\item{verbose}{A bool indicating if the acceptance count for each parameter 
-should be printed or not.}
 }
 \description{
 A Bayesian mixture model with batch effects.

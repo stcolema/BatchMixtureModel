@@ -5,38 +5,10 @@
 \title{Multivariate Normal mixture type}
 \description{
 The sampler for the Multivariate Normal mixture model for batch effects.
-
-The sampler for the Multivariate Normal mixture model for batch effects.
 }
 \section{Fields}{
 
 \describe{
-\item{\code{new}}{Constructor \itemize{
-\item Parameter: K - the number of components to model
-\item Parameter: B - the number of batches present
-\item Parameter: labels - the initial clustering of the data
-\item Parameter: concentration - the vector for the prior concentration of 
-the Dirichlet distribution of the component weights
-\item Parameter: X - the data to model
-}}
-
-\item{\code{printType}}{Print the sampler type called.}
-
-\item{\code{updateWeights}}{Update the weights of each component based on current 
-clustering.}
-
-\item{\code{updateAllocation}}{Sample a new clustering.}
-
-\item{\code{sampleFromPrior}}{Sample from the priors for the multivariate normal
-density.}
-
-\item{\code{calcBIC}}{Calculate the BIC of the model.}
-
-\item{\code{logLikelihood}}{Calculate the likelihood of a given data point in each
-component. \itemize{
-\item Parameter: point - a data point.
-}}
-
 \item{\code{new}}{Constructor \itemize{
 \item Parameter: K - the number of components to model
 \item Parameter: B - the number of batches present

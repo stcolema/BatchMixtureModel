@@ -15,14 +15,9 @@ sampleSemisupervisedMVN(
   cov_proposal_window,
   m_proposal_window,
   S_proposal_window,
-  rho,
-  theta,
   R,
   thin,
-  concentration,
-  verbose = TRUE,
-  doCombinations = FALSE,
-  printCovariance = FALSE
+  concentration
 )
 }
 \arguments{
