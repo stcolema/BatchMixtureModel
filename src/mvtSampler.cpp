@@ -180,12 +180,13 @@ double mvtSampler::clusterLikelihood(
 }
 
 double mvtSampler::batchLikelihood(
-    arma::uvec batch_inds,
-    arma::uvec labels,
-    arma::vec cov_det,
-    arma::vec t_df,
-    arma::mat mean_sum,
-    arma::cube cov_inv){
+  arma::uvec batch_inds,
+  arma::uvec labels,
+  arma::vec cov_det,
+  arma::vec t_df,
+  arma::mat mean_sum,
+  arma::cube cov_inv
+) {
   
   arma::uword k = 0;
   double score = 0.0;

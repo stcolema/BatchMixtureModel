@@ -328,7 +328,7 @@ double mvnSampler::covLogKernel(arma::uword k,
                             arma::vec cov_comb_log_det,
                             arma::cube cov_comb_inv) {
   
-  uword b = 0;
+  // uword b = 0;
   double score = 0.0;
   vec dist_from_mean(P);
   uvec cluster_ind = find(labels == k);

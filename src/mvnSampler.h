@@ -116,17 +116,19 @@ public:
   // The posterior log kernels for each parameters
   virtual double mLogKernel(arma::uword b, arma::vec m_b, arma::mat mean_sum);
   virtual double sLogKernel(arma::uword b, 
-                            arma::vec S_b, 
-                            arma::vec cov_comb_log_det,
-                            arma::cube cov_comb_inv);
+    arma::vec S_b, 
+    arma::vec cov_comb_log_det,
+    arma::cube cov_comb_inv
+  );
   
   virtual double muLogKernel(arma::uword k, arma::vec mu_k, arma::mat mean_sum);
   virtual double covLogKernel(arma::uword k, 
-                              arma::mat cov_k, 
-                              double cov_log_det,
-                              arma::mat cov_inv,
-                              arma::vec cov_comb_log_det,
-                              arma::cube cov_comb_inv);
+    arma::mat cov_k, 
+    double cov_log_det,
+    arma::mat cov_inv,
+    arma::vec cov_comb_log_det,
+    arma::cube cov_comb_inv
+  );
   
   // Metropolis-Hastings sampling for the batch scale and class covariance
   virtual void batchScaleMetropolis();
