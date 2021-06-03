@@ -271,10 +271,11 @@ double mvnSampler::mLogKernel(arma::uword b, arma::vec m_b, arma::mat mean_sum) 
   dist_from_mean.zeros();
   
   score = groupLikelihood(batch_ind(b),
-                          labels,
-                          cov_comb_log_det.col(b),
-                          mean_sum,
-                          cov_comb_inv.slices(KB_inds + b));
+    labels,
+    cov_comb_log_det.col(b),
+    mean_sum,
+    cov_comb_inv.slices(KB_inds + b)
+  );
   
   for(uword p = 0; p < P; p++) {
     score += -0.5 * (t * std::pow(m_b(p) - delta, 2.0) );
@@ -293,10 +294,11 @@ double mvnSampler::sLogKernel(arma::uword b,
   dist_from_mean.zeros();
   
   score = groupLikelihood(batch_ind(b),
-                          labels,
-                          cov_comb_log_det,
-                          mean_sum.cols(KB_inds + b),
-                          cov_comb_inv);
+    labels,
+    cov_comb_log_det,
+    mean_sum.cols(KB_inds + b),
+    cov_comb_inv
+  );
   
   for(uword p = 0; p < P; p++) {
     score +=  -((rho + 1) * std::log(S_b(p) - S_loc) + theta / (S_b(p) - S_loc));
@@ -311,10 +313,11 @@ double mvnSampler::muLogKernel(arma::uword k, arma::vec mu_k, arma::mat mean_sum
   vec dist_from_mean(P);
   
   score = groupLikelihood(cluster_ind,
-                          batch_vec,
-                          cov_comb_log_det.row(k).t(),
-                          mean_sum,
-                          cov_comb_inv.slices(k * B + B_inds));
+    batch_vec,
+    cov_comb_log_det.row(k).t(),
+    mean_sum,
+    cov_comb_inv.slices(k * B + B_inds)
+  );
   
   score += -0.5 * as_scalar(kappa * ((mu_k - xi).t() *  cov_inv.slice(k) * (mu_k - xi)));
   
@@ -334,10 +337,11 @@ double mvnSampler::covLogKernel(arma::uword k,
   uvec cluster_ind = find(labels == k);
   
   score = groupLikelihood(cluster_ind,
-                          batch_vec,
-                          cov_comb_log_det,
-                          mean_sum.cols(k * B + B_inds),
-                          cov_comb_inv);
+    batch_vec,
+    cov_comb_log_det,
+    mean_sum.cols(k * B + B_inds),
+    cov_comb_inv
+  );
   
   score += -0.5 * ( as_scalar((nu + P + 2) * cov_log_det + kappa * ((mu.col(k) - xi).t() * cov_inv * (mu.col(k) - xi)) + trace(scale * cov_inv)) );
   
@@ -389,15 +393,15 @@ void mvnSampler::batchScaleMetropolis() {
     }
     
     proposed_model_score += sLogKernel(b, 
-                                       S_proposed, 
-                                       proposed_cov_comb_log_det,
-                                       proposed_cov_comb_inv
+      S_proposed, 
+      proposed_cov_comb_log_det,
+      proposed_cov_comb_inv
     );
     
     current_model_score += sLogKernel(b, 
-                                      S.col(b), 
-                                      cov_comb_log_det.col(b),
-                                      cov_comb_inv.slices(KB_inds + b)
+      S.col(b), 
+      cov_comb_log_det.col(b),
+      cov_comb_inv.slices(KB_inds + b)
     );
     
     u = randu();

@@ -12,13 +12,18 @@
 // =============================================================================
 // sampleSemisupervisedMVN function header
 
-//' @title Mixture model
+//' @title Sample semi-supervised MVN Mixture model
 //' @description Performs MCMC sampling for a mixture model.
 //' @param X The data matrix to perform clustering upon (items to cluster in rows).
 //' @param K The number of components to model (upper limit on the number of clusters found).
+//' @param B The number of batches to model.
 //' @param labels Vector item labels to initialise from.
+//' @param batch_vec Observed batch labels.
 //' @param fixed Binary vector of the items that are fixed in their initial label.
-//' @param dataType Int, 0: independent Gaussians, 1: Multivariate normal, or 2: Categorical distributions.
+//' @param mu_proposal_window The standard deviation for the Gaussian proposal density of the cluster means.
+//' @param cov_proposal_window The degrees of freedom for the Wishart proposal density of the cluster covariances.
+//' @param m_proposal_window The standard deviation for the Gaussian proposal density of the batch mean effects.
+//' @param S_proposal_window The rate for the Gamma proposal density of the batch scale.
 //' @param R The number of iterations to run for.
 //' @param thin thinning factor for samples recorded.
 //' @param concentration Vector of concentrations for mixture weights (recommended to be symmetric).
