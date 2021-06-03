@@ -71,17 +71,16 @@ corresponds to a different sample) and BIC for each saved iteration.
 A Bayesian mixture model with batch effects.
 }
 \examples{
-# Convert data to matrix format
-X <- as.matrix(my_data)
+# Data in matrix format
+X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
+
+# Observed batches represented by integers
+batch_vec <- sample(1:5, size = 100, replace = TRUE)
 
 # Sampling parameters
-R <- 1000
-thin <- 50
+R <- 100
+thin <- 5
 
 # MCMC samples and BIC vector
-samples <- mixtureModel(X, R, thin)
-
-# Predicted clustering and PSM
-pred_cl <- mcclust::maxpear(samples$samples)$cl
-psm <- createSimilarityMatrix(pred_cl)
+samples <- batchMixtureModel(X, R, thin, batch_vec, "MVN")
 }

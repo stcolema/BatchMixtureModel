@@ -42,6 +42,7 @@
 #'   batch_weights,
 #'   dfs
 #' )
+#' @importFrom stats rnorm rchisq
 #' @export
 generateBatchDataMVT <- function(N,
                                  P,
@@ -89,11 +90,11 @@ generateBatchDataMVT <- function(N,
     for (n in 1:N) {
       
       # Draw a point from a standard normal
-      x <- rnorm(1)
+      x <- stats::rnorm(1)
       k <- cluster_IDs[n]
       b <- batch_IDs[n]
       
-      chi_draw <- rchisq(1, dfs[k])
+      chi_draw <- stats::rchisq(1, dfs[k])
       
       # For ease of reading the following lines, create class and batch parameters
       .mu <- reordered_cluster_means[k]

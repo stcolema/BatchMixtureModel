@@ -34,15 +34,18 @@ Given an array of sampled cluster means from the
 ``mixtureModel`` function, acquire a tidy version ready for ``ggplot2`` use.
 }
 \examples{
-# Convert data to matrix format
-X <- as.matrix(my_data)
+# Data in matrix format
+X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 
-# Sampling parameters
-R <- 1000
-thin <- 50
+# Observed batches represented by integers
+batch_vec <- sample(1:5, size = 100, replace = TRUE)
+
+# MCMC iterations (this is too low for real use)
+R <- 100
+thin <- 5
 
 # MCMC samples
-samples <- mixtureModel(X, R, thin)
+samples <- batchMixtureModel(X, R, thin, batch_vec, "MVN")
 
 batch_shift_df <- getSampledClusterMeans(samples$means, R = R, thin = thin)
 }

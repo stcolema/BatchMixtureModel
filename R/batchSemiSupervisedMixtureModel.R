@@ -29,19 +29,28 @@
 #' @param phi_proposal_window The proposal window for the shape parameter for
 #' the multivariate skew normal distribution (not used if type is not 'MSN').
 #' @examples
-#' # Convert data to matrix format
-#' X <- as.matrix(my_data)
+#' 
+#' # Data in a matrix format
+#' X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 #'
+#' # Initial labelling
+#' labels <- c(rep(1, 10), 
+#'   sample(c(1,2), size = 40, replace = TRUE), 
+#'   rep(2, 10), 
+#'   sample(c(1,2), size = 40, replace = TRUE)
+#' )
+#' 
+#' fixed <- c(rep(1, 10), rep(0, 40), rep(1, 10), rep(0, 40))
+#' 
+#' # Batch
+#' batch_vec <- sample(1:5, replace = TRUE, size = 100)
+#' 
 #' # Sampling parameters
 #' R <- 1000
 #' thin <- 50
 #'
 #' # MCMC samples and BIC vector
-#' samples <- mixtureModel(X, R, thin)
-#'
-#' # Predicted clustering and PSM
-#' pred_cl <- mcclust::maxpear(samples$samples)$cl
-#' psm <- createSimilarityMatrix(pred_cl)
+#' samples <- batchSemiSupervisedMixtureModel(X, R, thin, labels, fixed, batch_vec, "MVN")
 #' @export
 batchSemiSupervisedMixtureModel <- function(X, 
                                             R, 
@@ -85,9 +94,7 @@ batchSemiSupervisedMixtureModel <- function(X,
   
   # Check that the initial labels starts at 0, if not remedy this.
   if (!any(initial_labels == 0)) {
-    initial_labels <- initial_labels %>%
-      as.factor() %>%
-      as.numeric() - 1
+    initial_labels <- as.numeric(as.factor(initial_labels)) - 1
   }
   
   if(max(initial_labels) != (length(unique(initial_labels)) - 1)){
@@ -96,9 +103,7 @@ batchSemiSupervisedMixtureModel <- function(X,
   
   # Check that the batch labels starts at 0, if not remedy this.
   if (!any(batch_vec == 0)) {
-    batch_vec <- batch_vec %>%
-      as.factor() %>%
-      as.numeric() - 1
+    batch_vec <- as.numeric(as.factor(batch_vec)) - 1
   }
   
   if(max(batch_vec) != (length(unique(batch_vec)) - 1)){
@@ -178,7 +183,7 @@ batchSemiSupervisedMixtureModel <- function(X,
   #   )
   # }
   
-  if (! type %in% c("MVN", "MSN")) { #, "MVT")) {
+  if (! type %in% c("MVN", "MVT")) { 
     stop("Type not recognised. Please use one of 'MVN' or 'MVT'.")
   }
   

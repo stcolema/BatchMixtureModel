@@ -31,7 +31,10 @@ generateBatchData(
 
 \item{cluster_weights}{A vector of the expected proportion of N in each cluster.}
 
-\item{batch_weights}{A vector of the expected proportion of N in each batch..}
+\item{batch_weights}{A vector of the expected proportion of N in each batch.}
+
+\item{frac_known}{The expected fraction of observed labels. Used to generate
+a ``fixed`` vector to feed into the ``batchSemiSupervisedMixtureModel`` function.}
 }
 \value{
 A list of 4 objects; the data generated from the clusters with and
@@ -51,7 +54,7 @@ B <- 5
 mean_dist <- 4
 batch_dist <- 0.3
 cluster_means <- 1:K * mean_dist
-batch_shift <- rnorm(B, sd = batch_dist)
+batch_shift <- stats::rnorm(B, sd = batch_dist)
 std_dev <- rep(2, K)
 batch_var <- rep(1.2, B)
 cluster_weights <- rep(1 / K, K)

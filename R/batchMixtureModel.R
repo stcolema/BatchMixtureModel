@@ -31,19 +31,18 @@
 #' @return Named list of the matrix of MCMC samples generated (each row
 #' corresponds to a different sample) and BIC for each saved iteration.
 #' @examples
-#' # Convert data to matrix format
-#' X <- as.matrix(my_data)
-#'
+#' # Data in matrix format
+#' X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
+#' 
+#' # Observed batches represented by integers
+#' batch_vec <- sample(1:5, size = 100, replace = TRUE)
+#' 
 #' # Sampling parameters
-#' R <- 1000
-#' thin <- 50
+#' R <- 100
+#' thin <- 5
 #'
 #' # MCMC samples and BIC vector
-#' samples <- mixtureModel(X, R, thin)
-#'
-#' # Predicted clustering and PSM
-#' pred_cl <- mcclust::maxpear(samples$samples)$cl
-#' psm <- createSimilarityMatrix(pred_cl)
+#' samples <- batchMixtureModel(X, R, thin, batch_vec, "MVN")
 #' @export
 batchMixtureModel <- function(X, R, thin, batch_vec, type,
                               initial_labels = NULL,
@@ -78,16 +77,12 @@ batchMixtureModel <- function(X, R, thin, batch_vec, type,
   
   # Check that the initial labels starts at 0, if not remedy this.
   if (!any(initial_labels == 0)) {
-    initial_labels <- initial_labels %>%
-      as.factor() %>%
-      as.numeric() - 1
+    initial_labels <- as.numeric(as.factor(initial_labels)) - 1
   }
   
   # Check that the batch labels starts at 0, if not remedy this.
   if (!any(batch_vec == 0)) {
-    batch_vec <- batch_vec %>%
-      as.factor() %>%
-      as.numeric() - 1
+    batch_vec <- as.numeric(as.factor(batch_vec)) - 1
   }
   
   # The number of batches present
@@ -109,14 +104,9 @@ batchMixtureModel <- function(X, R, thin, batch_vec, type,
       cov_proposal_window,
       m_proposal_window,
       S_proposal_window,
-      rho,
-      theta,
       R,
       thin,
-      concentration,
-      verbose,
-      doCombinations,
-      printCovariance
+      concentration
     )
   }
   
@@ -132,14 +122,9 @@ batchMixtureModel <- function(X, R, thin, batch_vec, type,
       m_proposal_window,
       S_proposal_window,
       t_df_proposal_window,
-      rho,
-      theta,
       R,
       thin,
-      concentration,
-      verbose,
-      doCombinations,
-      printCovariance
+      concentration
     )
   }
   

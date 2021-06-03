@@ -34,15 +34,18 @@ A wide data.frame of all the sampled parameters and the iteration.
 Turns the output from the mixture models into a data.frame
 }
 \examples{
-# Convert data to matrix format
-X <- as.matrix(my_data)
+# Data in matrix format
+X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 
-# Sampling parameters
-R <- 1000
-thin <- 50
+# Observed batches represented by integers
+batch_vec <- sample(1:5, size = 100, replace = TRUE)
+
+# MCMC iterations (this is too low for real use)
+R <- 100
+thin <- 5
 
 # MCMC samples
-samples <- batchMixtureModel(X, R, thin, type = "MVN")
+samples <- batchMixtureModel(X, R, thin, batch_vec, "MVN")
 
 samples_df <- samplesToDF(samples, "MVN", R = R, thin = thin)
 }

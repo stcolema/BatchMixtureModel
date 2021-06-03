@@ -1,21 +1,11 @@
 #!/usr/bin/Rscript
 #' @title Collect acceptance rate
 #' @description Collects the acceptance rates for each parameter into a data.frame
+#' @param samples The output of either the ``batchMixtureModel`` or 
+#' ``batchSemiSupervisedMixtureModel`` function.
 #' @param type The type of mixture model used; this changes which parameters
 #' the function expects to find.
 #' @return A wide data.frame of all the sampled parameters and the iteration.
-#' @examples
-#' # Convert data to matrix format
-#' X <- as.matrix(my_data)
-#'
-#' # Sampling parameters
-#' R <- 1000
-#' thin <- 50
-#'
-#' # MCMC samples
-#' samples <- batchMixtureModel(X, R, thin, type = "MVN")
-#'
-#' acceptance_df <- collectAcceptanceRates(samples, "MVN")
 #' @export
 collectAcceptanceRates <- function(samples, type) {
   

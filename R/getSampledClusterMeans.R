@@ -12,18 +12,21 @@
 #' @param thin The thinning factor of the sampler. Defaults to 1. 
 #' @return A data.frame of three columns; the parameter, the sampled value and the iteration.
 #' @examples
-#' # Convert data to matrix format
-#' X <- as.matrix(my_data)
-#'
-#' # Sampling parameters
-#' R <- 1000
-#' thin <- 50
+#' # Data in matrix format
+#' X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
+#' 
+#' # Observed batches represented by integers
+#' batch_vec <- sample(1:5, size = 100, replace = TRUE)
+#' 
+#' # MCMC iterations (this is too low for real use)
+#' R <- 100
+#' thin <- 5
 #'
 #' # MCMC samples
-#' samples <- mixtureModel(X, R, thin)
+#' samples <- batchMixtureModel(X, R, thin, batch_vec, "MVN")
 #'
 #' batch_shift_df <- getSampledClusterMeans(samples$means, R = R, thin = thin)
-#' @importFrom tidyr pivot_longer 
+#' @importFrom tidyr pivot_longer contains
 #' @export
 getSampledClusterMeans <- function(sampled_cluster_means, 
                                    K = dim(sampled_cluster_means)[2], 
@@ -46,7 +49,7 @@ getSampledClusterMeans <- function(sampled_cluster_means,
   mean_df$Iteration <- c(1:(R / thin)) * thin
   
   # Pivot to a long format ready for ``ggplot2``
-  mean_long_df <- tidyr::pivot_longer(mean_df, contains("Mu_"))
+  mean_long_df <- tidyr::pivot_longer(mean_df, tidyr::contains("Mu_"))
   mean_long_df$Dimension <- rep(1:P, nrow(mean_long_df) / P)
   mean_long_df$Cluster <- rep(1:K, nrow(mean_long_df) / (K * P), each = P)
   
