@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{sampleMVN}
 \alias{sampleMVN}
-\title{Sample batch mixture model}
+\title{Sample mixture of multivariate normal distributions with batch effects}
 \usage{
 sampleMVN(
   X,
@@ -14,15 +14,9 @@ sampleMVN(
   cov_proposal_window,
   m_proposal_window,
   S_proposal_window,
-  rho,
-  theta,
-  lambda,
   R,
   thin,
-  concentration,
-  verbose = TRUE,
-  doCombinations = FALSE,
-  printCovariance = FALSE
+  concentration
 )
 }
 \arguments{
@@ -30,15 +24,25 @@ sampleMVN(
 
 \item{K}{The number of components to model (upper limit on the number of clusters found).}
 
+\item{B}{The number of batches to model.}
+
 \item{labels}{Vector item labels to initialise from.}
+
+\item{batch_vec}{Observed batch labels.}
+
+\item{mu_proposal_window}{The standard deviation for the Gaussian proposal density of the cluster means.}
+
+\item{cov_proposal_window}{The degrees of freedom for the Wishart proposal density of the cluster covariances.}
+
+\item{m_proposal_window}{The standard deviation for the Gaussian proposal density of the batch mean effects.}
+
+\item{S_proposal_window}{The rate for the Gamma proposal density of the batch scale.}
 
 \item{R}{The number of iterations to run for.}
 
 \item{thin}{thinning factor for samples recorded.}
 
 \item{concentration}{Vector of concentrations for mixture weights (recommended to be symmetric).}
-
-\item{dataType}{Int, 0: independent Gaussians, 1: Multivariate normal, or 2: Categorical distributions.}
 }
 \value{
 Named list of the matrix of MCMC samples generated (each row 

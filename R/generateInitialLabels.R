@@ -30,13 +30,16 @@
 #'   batch_weights
 #' )
 #' 
-#' initial_labels <- generateInitialLabels(my_data$labels, my_data$fixed)
+#' initial_labels <- generateInitialLabels(my_data$cluster_IDs, my_data$fixed)
 #' @export
 generateInitialLabels <- function(labels, fixed) {
   N <- length(labels)
   N_fixed <- sum(fixed)
   N_unfixed <- N - N_fixed
   ratio <- table(labels[fixed == 1]) / N_fixed
-  labels[fixed == 0] <- sample(unique(labels), N_unfixed, replace = T, prob = ratio)
+  labels[fixed == 0] <- sample(unique(labels), N_unfixed, 
+    replace = TRUE, 
+    prob = ratio
+  )
   labels
 }

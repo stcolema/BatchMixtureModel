@@ -43,5 +43,5 @@ my_data <- generateBatchData(
   batch_weights
 )
 
-initial_labels <- generateInitialLabels(my_data$labels, my_data$fixed)
+initial_labels <- generateInitialLabels(my_data$cluster_IDs, my_data$fixed)
 }

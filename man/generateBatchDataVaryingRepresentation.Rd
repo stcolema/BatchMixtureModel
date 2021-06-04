@@ -7,7 +7,7 @@
 generateBatchDataVaryingRepresentation(
   N,
   P,
-  cluster_means,
+  class_means,
   std_dev,
   batch_shift,
   batch_var,
@@ -21,7 +21,7 @@ generateBatchDataVaryingRepresentation(
 
 \item{P}{The number of columns in the generated dataset.}
 
-\item{cluster_means}{A vector of the class means for a column.}
+\item{class_means}{A vector of the class means for a column.}
 
 \item{std_dev}{A vector of class standard deviations for a column.}
 
@@ -29,9 +29,12 @@ generateBatchDataVaryingRepresentation(
 
 \item{batch_var}{A vector of batch standard deviations within a column.}
 
+\item{class_weights}{A K x B matrix of the expected proportion of N in each class in each batch.}
+
 \item{batch_weights}{A vector of the expected proportion of N in each batch.}
 
-\item{cluster_weights}{A K x B matrix of the expected proportion of N in each class in each batch.}
+\item{frac_known}{The expected fraction of observed labels. Used to generate
+a ``fixed`` vector to feed into the ``batchSemiSupervisedMixtureModel`` function.}
 }
 \value{
 A list of 4 objects; the data generated from the clusters with and
@@ -50,25 +53,26 @@ K <- 2
 B <- 5
 mean_dist <- 4
 batch_dist <- 0.3
-cluster_means <- 1:K * mean_dist
+class_means <- 1:K * mean_dist
 batch_shift <- rnorm(B, mean = batch_dist, sd = batch_dist)
 std_dev <- rep(2, K)
 batch_var <- rep(1.2, B)
-cluster_weights <- matrix(c(
+class_weights <- matrix(c(
   0.8, 0.6, 0.4, 0.2, 0.2,
-  0.2, 0.4, 0.6, 0.8, 0.8),
-  nrow = K, ncol = B, byrow = T
+  0.2, 0.4, 0.6, 0.8, 0.8
+),
+nrow = K, ncol = B, byrow = TRUE
 )
 batch_weights <- rep(1 / B, B)
 
 my_data <- generateBatchDataVaryingRepresentation(
   N,
   P,
-  cluster_means,
+  class_means,
   std_dev,
   batch_shift,
   batch_var,
-  cluster_weights,
+  class_weights,
   batch_weights
 )
 }

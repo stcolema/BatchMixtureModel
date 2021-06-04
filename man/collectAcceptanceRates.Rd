@@ -7,6 +7,9 @@
 collectAcceptanceRates(samples, type)
 }
 \arguments{
+\item{samples}{The output of either the ``batchMixtureModel`` or 
+``batchSemiSupervisedMixtureModel`` function.}
+
 \item{type}{The type of mixture model used; this changes which parameters
 the function expects to find.}
 }
@@ -15,17 +18,4 @@ A wide data.frame of all the sampled parameters and the iteration.
 }
 \description{
 Collects the acceptance rates for each parameter into a data.frame
-}
-\examples{
-# Convert data to matrix format
-X <- as.matrix(my_data)
-
-# Sampling parameters
-R <- 1000
-thin <- 50
-
-# MCMC samples
-samples <- batchMixtureModel(X, R, thin, type = "MVN")
-
-acceptance_df <- collectAcceptanceRates(samples, "MVN")
 }

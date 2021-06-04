@@ -12,18 +12,21 @@
 #' @param thin The thinning factor of the sampler. Defaults to 1. 
 #' @return A data.frame of three columns; the parameter, the sampled value and the iteration.
 #' @examples
-#' # Convert data to matrix format
-#' X <- as.matrix(my_data)
+#' # Data in matrix format
+#' X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
+#' 
+#' # Observed batches represented by integers
+#' batch_vec <- sample(1:5, size = 100, replace = TRUE)
+#' 
+#' # MCMC iterations (this is too low for real use)
+#' R <- 100
+#' thin <- 5
 #'
-#' # Sampling parameters
-#' R <- 1000
-#' thin <- 50
-#'
-#' # MCMC samples
-#' samples <- mixtureModel(X, R, thin)
+#' # MCMC samples and BIC vector
+#' samples <- batchMixtureModel(X, R, thin, batch_vec, "MVN")
 #'
 #' batch_shift_df <- getSampledBatchShift(samples$batch_shift, R = R, thin = thin)
-#' @importFrom tidyr pivot_longer 
+#' @importFrom tidyr pivot_longer contains
 #' @export
 getSampledBatchShift <- function(sampled_batch_shift, 
                                  B = dim(sampled_batch_shift)[2], 
@@ -46,7 +49,7 @@ getSampledBatchShift <- function(sampled_batch_shift,
   sample_df$Iteration <- c(1:(R / thin)) * thin
 
   # Pivot to a long format ready for ``ggplot2``
-  long_sample_df <- tidyr::pivot_longer(sample_df, contains("M_"))
+  long_sample_df <- tidyr::pivot_longer(sample_df, tidyr::contains("M_"))
   long_sample_df$Dimension <- rep(1:P, nrow(long_sample_df) / P)
   long_sample_df$Batch <- rep(1:B, nrow(long_sample_df) / (B * P), each = P)
   

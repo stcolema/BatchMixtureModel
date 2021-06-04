@@ -7,19 +7,25 @@
 #' @param R The number of iterations run. Defaults to the number of samples for
 #' the cluster membership.
 #' @param thin The thinning factor of the sampler. Defaults to 1. 
+#' @param burn_in The samples at the beginning of the chain to drop. Defaults to 0.
 #' @return A ggplot object of the values in each sampled batch mean per iteration.
 #' @examples
-#' # Convert data to matrix format
-#' X <- as.matrix(my_data)
+#' # Data in matrix format
+#' X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
+#' 
+#' # Observed batches represented by integers
+#' batch_vec <- sample(1:5, size = 100, replace = TRUE)
+#' 
+#' # MCMC iterations (this is too low for real use)
+#' R <- 50
+#' thin <- 1
 #'
-#' # Sampling parameters
-#' R <- 1000
-#' thin <- 50
-#'
-#' # MCMC samples
-#' samples <- mixtureModel(X, R, thin)
+#' # MCMC samples and BIC vector
+#' samples <- batchMixtureModel(X, R, thin, batch_vec, "MVN")
+#' 
+#' # Plot the sampled value of the cluster means against MCMC iteration 
 #' parameter <- "means"
-#' plotSampledBatchScales(samples, parameter, R, thin)
+#' plotSampledParameter(samples, parameter, R, thin)
 #' @importFrom ggplot2 ggplot aes geom_point facet_wrap labs
 #' @export
 plotSampledParameter <- function(samples, parameter, R = NULL, thin = 1, burn_in = 0) {

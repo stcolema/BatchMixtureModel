@@ -11,10 +11,13 @@
 #' @param batch_shift A vector of batch means in a column.
 #' @param batch_var A vector of batch standard deviations within a column.
 #' @param cluster_weights A vector of the expected proportion of N in each cluster.
-#' @param batch_weights A vector of the expected proportion of N in each batch..
+#' @param batch_weights A vector of the expected proportion of N in each batch.
+#' @param frac_known The expected fraction of observed labels. Used to generate
+#' a ``fixed`` vector to feed into the ``batchSemiSupervisedMixtureModel`` function.
 #' @return A list of 4 objects; the data generated from the clusters with and
 #' without batch effects, the label indicating the generating cluster and the
 #' batch label.
+#' @importFrom stats rnorm
 #' @examples
 #' N <- 500
 #' P <- 2
@@ -23,7 +26,7 @@
 #' mean_dist <- 4
 #' batch_dist <- 0.3
 #' cluster_means <- 1:K * mean_dist
-#' batch_shift <- rnorm(B, sd = batch_dist)
+#' batch_shift <- stats::rnorm(B, sd = batch_dist)
 #' std_dev <- rep(2, K)
 #' batch_var <- rep(1.2, B)
 #' cluster_weights <- rep(1 / K, K)
@@ -80,7 +83,7 @@ generateBatchData <- function(N, P,
     for (n in 1:N) {
 
       # Draw a point from a standard normal
-      x <- rnorm(1)
+      x <- stats::rnorm(1)
 
       # Adjust to the cluster distribution
       my_corrected_data[n, p] <- x * reordered_std_devs[cluster_IDs[n]] + reordered_cluster_means[cluster_IDs[n]]

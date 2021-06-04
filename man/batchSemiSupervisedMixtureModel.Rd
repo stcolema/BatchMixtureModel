@@ -19,12 +19,7 @@ batchSemiSupervisedMixtureModel(
   m_proposal_window = 0.3^2,
   S_proposal_window = 100,
   t_df_proposal_window = 100,
-  phi_proposal_window = 1.2^2,
-  rho = 41,
-  theta = 40,
-  verbose = FALSE,
-  doCombinations = FALSE,
-  printCovariance = FALSE
+  phi_proposal_window = 1.2^2
 )
 }
 \arguments{
@@ -69,25 +64,31 @@ for the multivariate t distribution (not used if type is not 'MVT').}
 
 \item{phi_proposal_window}{The proposal window for the shape parameter for
 the multivariate skew normal distribution (not used if type is not 'MSN').}
-
-\item{verbose}{A bool indicating if the acceptance count for each parameter 
-should be printed or not.}
 }
 \description{
 A Bayesian mixture model with batch effects.
 }
 \examples{
-# Convert data to matrix format
-X <- as.matrix(my_data)
+
+# Data in a matrix format
+X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
+
+# Initial labelling
+labels <- c(rep(1, 10), 
+  sample(c(1,2), size = 40, replace = TRUE), 
+  rep(2, 10), 
+  sample(c(1,2), size = 40, replace = TRUE)
+)
+
+fixed <- c(rep(1, 10), rep(0, 40), rep(1, 10), rep(0, 40))
+
+# Batch
+batch_vec <- sample(1:5, replace = TRUE, size = 100)
 
 # Sampling parameters
 R <- 1000
 thin <- 50
 
 # MCMC samples and BIC vector
-samples <- mixtureModel(X, R, thin)
-
-# Predicted clustering and PSM
-pred_cl <- mcclust::maxpear(samples$samples)$cl
-psm <- createSimilarityMatrix(pred_cl)
+samples <- batchSemiSupervisedMixtureModel(X, R, thin, labels, fixed, batch_vec, "MVN")
 }
