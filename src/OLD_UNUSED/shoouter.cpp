@@ -137,8 +137,8 @@ arma::vec my_main() {
   // );
   //
   // double prior_contribution_0
-
-  std::cout << val1 << "\n\n" << val2;
+// 
+//   std::cout << val1 << "\n\n" << val2;
 
   // double val1_expect= -22.02085, val2_expect = -78.48748;
 

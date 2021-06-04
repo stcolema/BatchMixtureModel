@@ -31,8 +31,6 @@ public:
     double _m_proposal_window,
     double _S_proposal_window,
     double _phi_proposal_window,
-    // double _rho,
-    // double _theta,
     arma::uvec _labels,
     arma::uvec _batch_vec,
     arma::vec _concentration,

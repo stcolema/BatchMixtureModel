@@ -1,13 +1,10 @@
 // mvnSampler.cpp
 // =============================================================================
 //
-// [[Rcpp::depends(BH)]]
-//
 // included dependencies
 # include <RcppArmadillo.h>
 # include <testthat.h>
 # include "mvtSampler.h"
-// # include <boost/math/distributions/normal.hpp>
 
 // =============================================================================
 // namespace

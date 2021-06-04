@@ -153,8 +153,6 @@ BEGIN_RCPP
 END_RCPP
 }
 
-RcppExport SEXP run_testthat_tests(SEXP);
-
 static const R_CallMethodDef CallEntries[] = {
     {"_BatchMixtureModel_gammaLogLikelihood", (DL_FUNC) &_BatchMixtureModel_gammaLogLikelihood, 3},
     {"_BatchMixtureModel_invGammaLogLikelihood", (DL_FUNC) &_BatchMixtureModel_invGammaLogLikelihood, 3},
@@ -164,7 +162,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_BatchMixtureModel_sampleMVT", (DL_FUNC) &_BatchMixtureModel_sampleMVT, 13},
     {"_BatchMixtureModel_sampleSemisupervisedMVN", (DL_FUNC) &_BatchMixtureModel_sampleSemisupervisedMVN, 13},
     {"_BatchMixtureModel_sampleSemisupervisedMVT", (DL_FUNC) &_BatchMixtureModel_sampleSemisupervisedMVT, 14},
-    {"run_testthat_tests", (DL_FUNC) &run_testthat_tests, 1},
     {NULL, NULL, 0}
 };
 

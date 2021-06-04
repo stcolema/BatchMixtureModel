@@ -1,14 +1,14 @@
 Package: BatchMixtureModel
 Type: Package
 Title: Bayesian mixture models for batch effects
-License: GPL-3
+License: GPL-3 + file LICENSE
 Version: 1.0
 Date: 2021-01-15
 Author: c(person("Stephen", "Coleman", role=c("aut","cre"), email = "stephen.coleman@mrc-bsu.cam.ac.uk")
 Maintainer: Stephen Coleman <stephen.coleman@mrc-bsu.cam.ac.uk>
 Description: This package is for Bayesian mixture models extended to model batch effects.
 Imports: Rcpp (>= 1.0.5), RcppArmadillo, tidyr, ggplot2, stringr
-LinkingTo: Rcpp, RcppArmadillo, testthat, BH
+LinkingTo: Rcpp, RcppArmadillo, testthat
 Suggests: xml2
 SystemRequirements: GNU make
 Encoding: UTF-8

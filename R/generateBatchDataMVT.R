@@ -62,20 +62,20 @@ generateBatchDataMVT <- function(N,
   B <- length(batch_shift)
   
   # The membership vector for the N points
-  cluster_IDs <- sample(K, N, replace = T, prob = cluster_weights)
+  cluster_IDs <- sample(seq(1, K), N, replace = T, prob = cluster_weights)
   
   # The batch labels for the N points
-  batch_IDs <- sample(1:B, N, prob = batch_weights, replace = T)
+  batch_IDs <- sample(seq(1, B), N, prob = batch_weights, replace = T)
   
   # Fixed labels
-  fixed <- sample(0:1, N, replace = T, prob = c(1 - frac_known, frac_known))
+  fixed <- sample(seq(0, 1), N, replace = T, prob = c(1 - frac_known, frac_known))
   
   # The data matrices
   observed_data <- true_data <- matrix(nrow = N, ncol = P)
   
   # Iterate over each of the columns permuting the means associated with each
   # label.
-  for (p in 1:P)
+  for (p in seq(1, P))
   {
     
     # To provide different information in each column, randomly sample the 
@@ -87,7 +87,7 @@ generateBatchDataMVT <- function(N,
     reordered_batch_var <- sample(batch_var)
     
     # Draw n points from the K univariate Gaussians defined by the permuted means.
-    for (n in 1:N) {
+    for (n in seq(1, N)) {
       
       # Draw a point from a standard normal
       x <- stats::rnorm(1)

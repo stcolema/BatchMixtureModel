@@ -140,12 +140,6 @@ _X) {
   
 };
 
-
-// Print the sampler type.
-void mvnSampler::printType() {
-  std::cout << "\nType: MVN.\n";
-};
-
 void mvnSampler::sampleCovPrior() {
   for(uword k = 0; k < K; k++){
     cov.slice(k) = iwishrnd(scale, nu);

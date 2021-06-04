@@ -25,7 +25,7 @@
 #' 
 #' # Plot the sampled value of the batch scales against MCMC iteration 
 #' plotSampledBatchScales(samples, R, thin)
-#' @importFrom ggplot2 ggplot aes geom_point facet_grid labs labeller label_both
+#' @importFrom ggplot2 ggplot aes_string geom_point facet_grid labs labeller label_both
 #' @export
 plotSampledBatchScales <- function(samples, R = NULL, thin = 1, burn_in = 0) {
   B <- dim(samples$batch_shift)[2]
@@ -44,7 +44,9 @@ plotSampledBatchScales <- function(samples, R = NULL, thin = 1, burn_in = 0) {
 
   sampled_batch_scale <- sampled_batch_scale[sampled_batch_scale$Iteration > burn_in, ]
 
-  p <- ggplot2::ggplot(sampled_batch_scale, ggplot2::aes(x = Iteration, y = value)) +
+  p <- ggplot2::ggplot(sampled_batch_scale, 
+      ggplot2::aes_string(x = "Iteration", y = "value")
+    ) +
     ggplot2::geom_point() +
     ggplot2::facet_grid(Batch ~ Dimension,
       labeller = ggplot2::labeller(

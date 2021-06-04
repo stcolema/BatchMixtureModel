@@ -22,8 +22,6 @@ the class weights
 \item Parameter: X - an N x P matrix of the observed data to model.
 }}
 
-\item{\code{printType}}{Print the sampler type called.}
-
 \item{\code{updateWeights}}{Update the weights of each component based on current 
 clustering.}
 

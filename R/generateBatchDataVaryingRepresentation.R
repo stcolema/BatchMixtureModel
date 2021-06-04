@@ -76,23 +76,23 @@ generateBatchDataVaryingRepresentation <- function(N,
   labels <- rep(0, N)
 
   # The batch labels for the N points
-  batches <- sample(1:B, N, replace = T, prob = batch_weights)
+  batches <- sample(seq(1, B), N, replace = T, prob = batch_weights)
 
   # The fixed labels for the semi-supervised case
-  fixed <- sample(0:1, N, replace = T, prob = c(1 - frac_known, frac_known))
+  fixed <- sample(seq(0, 1), N, replace = T, prob = c(1 - frac_known, frac_known))
 
   # The data matrices
   corrected_data <- observed_data <- matrix(0, nrow = N, ncol = P)
 
   # Iterate over the batches to sample appropriate labels
-  for (b in 1:B) {
+  for (b in seq(1, B)) {
     batch_ind <- which(batches == b)
     N_b <- length(batch_ind)
     labels[batch_ind] <- sample(1:K, N_b, replace = T, prob = class_weights[, b])
   }
 
   # Generate the data
-  for (p in 1:P) {
+  for (p in seq(1, P)) {
 
     # To provide different information in each column, randomly sample the
     # parameters with each class and batch
@@ -102,7 +102,7 @@ generateBatchDataVaryingRepresentation <- function(N,
     reordered_batch_shift <- sample(batch_shift)
     reordered_batch_var <- sample(batch_var)
 
-    for (n in 1:N) {
+    for (n in seq(1, N)) {
 
       # Find the class and batch
       b <- batches[n]

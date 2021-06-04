@@ -25,7 +25,7 @@
 #' 
 #' # Plot the sampled value of the batch mean shift against MCMC iteration 
 #' plotSampledBatchMeans(samples, R, thin)
-#' @importFrom ggplot2 ggplot aes geom_point facet_grid labs labeller label_both
+#' @importFrom ggplot2 ggplot aes_string geom_point facet_grid labs labeller label_both
 #' @export
 plotSampledBatchMeans <- function(samples, R = NULL, thin = 1, burn_in = 0) {
   B <- dim(samples$batch_shift)[2]
@@ -44,7 +44,9 @@ plotSampledBatchMeans <- function(samples, R = NULL, thin = 1, burn_in = 0) {
 
   sampled_batch_shift <- sampled_batch_shift[sampled_batch_shift$Iteration > burn_in, ]
 
-  p <- ggplot2::ggplot(sampled_batch_shift, ggplot2::aes(x = Iteration, y = value)) +
+  p <- ggplot2::ggplot(sampled_batch_shift, 
+      ggplot2::aes_string(x = "Iteration", y = "value")
+    ) +
     ggplot2::geom_point() +
     ggplot2::facet_grid(Batch ~ Dimension,
       labeller = ggplot2::labeller(

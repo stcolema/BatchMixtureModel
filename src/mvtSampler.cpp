@@ -65,11 +65,6 @@ mvnSampler(
   t_df_proposal_window = _t_df_proposal_window;
 };
 
-// Print the sampler type.
-void mvtSampler::printType() {
-  std::cout << "\nType: Multivariate T.\n";
-};
-
 double mvtSampler::calcPDFCoef(double t_df){
   double x = std::lgamma(0.5 * (t_df + P)) - std::lgamma(0.5 * t_df) - 0.5 * P * log(t_df);
   return x;

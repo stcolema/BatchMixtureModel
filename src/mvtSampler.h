@@ -29,7 +29,6 @@
 //' the class weights
 //' \item Parameter: X - an N x P matrix of the observed data to model.
 //' }
-//' @field printType Print the sampler type called.
 //' @field updateWeights Update the weights of each component based on current 
 //' clustering.
 //' @field updateAllocation Sample a new clustering. 
@@ -86,10 +85,7 @@ public:
   
   // Destructor
   virtual ~mvtSampler() { };
-  
-  // Print the sampler type.
-  virtual void printType() override;
-  
+
   // Calculate the leading coefficient of the MVT pdf
   double calcPDFCoef(double t_df);
   

@@ -16,7 +16,6 @@
 #' the class weights
 #' \item Parameter: X - an N x P matrix of the observed data to model.
 #' }
-#' @field printType Print the sampler type called.
 #' @field updateWeights Update the weights of each component based on current 
 #' clustering.
 #' @field updateAllocation Sample a new clustering. 
