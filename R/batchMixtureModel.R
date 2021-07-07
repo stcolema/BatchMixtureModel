@@ -31,6 +31,9 @@
 #' @return Named list of the matrix of MCMC samples generated (each row
 #' corresponds to a different sample) and BIC for each saved iteration.
 #' @examples
+#' # Random seed
+#' set.seed(1)
+#' 
 #' # Data in matrix format
 #' X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 #' 
