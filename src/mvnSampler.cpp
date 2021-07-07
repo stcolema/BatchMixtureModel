@@ -140,12 +140,6 @@ _X) {
   
 };
 
-
-// Print the sampler type.
-void mvnSampler::printType() {
-  std::cout << "\nType: MVN.\n";
-};
-
 void mvnSampler::sampleCovPrior() {
   for(uword k = 0; k < K; k++){
     cov.slice(k) = iwishrnd(scale, nu);
@@ -370,7 +364,7 @@ void mvnSampler::batchScaleMetropolis() {
       
       S_proposed(p) = S_loc + randg( distr_param( (S(p, b) - S_loc) * S_proposal_window, 1.0 / S_proposal_window) );
       
-      if(S_proposed(p) <= 0.0) {
+      if(S_proposed(p) <= S_loc) {
         next = true;
       }
 

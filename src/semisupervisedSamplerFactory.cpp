@@ -75,6 +75,7 @@ std::unique_ptr<semisupervisedSampler> semisupervisedSamplerFactory::createSemis
       X,
       fixed
     );
+    
   default: throw "invalid sampler type.";
   }
 

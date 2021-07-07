@@ -27,10 +27,6 @@ Rcpp::List sampleMVT (
     arma::vec concentration
 ) {
   
-  // The random seed is set at the R level via set.seed() apparently.
-  // std::default_random_engine generator(seed);
-  // arma::arma_rng::set_seed(seed);
-  
   mvtSampler my_sampler(K,
     B,
     mu_proposal_window,

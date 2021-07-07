@@ -1,13 +1,10 @@
 // mvnSampler.cpp
 // =============================================================================
 //
-// [[Rcpp::depends(BH)]]
-//
 // included dependencies
 # include <RcppArmadillo.h>
 # include <testthat.h>
 # include "mvnSampler.h"
-// # include <boost/math/distributions/normal.hpp>
 
 // =============================================================================
 // namespace
@@ -39,10 +36,6 @@ context("Unit test for MVN posterior kernels.") {
   batch_vec = {0, 1, 0, 1, 0, 1, 1, 2, 2, 2};
   concentration = {1.0, 1.0};
 
-
-  // mat A = { 1, 2 };
-  //
-  // std::cout << A;
 
   arma::mat Y = { 7.2,
                   3.1,
@@ -106,10 +99,6 @@ context("Unit test for MVN posterior kernels.") {
 
   val1 = toy_sampler.muLogKernel(0, mu_0, mean_sum_0);
   val2 = toy_sampler.muLogKernel(1, mu_1, mean_sum_1);
-
-  // double val1_expect= -22.02085, val2_expect = -78.48748;
-
-  // std::cout << val1;
   
   test_that("mu log posterior kernel") {
     expect_true(compareDoubles2(val1, -32.02085, 1e-5));

@@ -26,7 +26,6 @@
 //' the class weights
 //' \item Parameter: X - an N x P matrix of the observed data to model.
 //' }
-//' @field printType Print the sampler type called.
 //' @field updateWeights Update the weights of each component based on current 
 //' clustering.
 //' @field updateAllocation Sample a new clustering. 
@@ -56,14 +55,10 @@ public:
     t = 0.0,
     // lambda,
     
-    // Hyperparameters for the batch scale. These choices give > 99% of sampled
+    // Hyperparameters for the batch scale. These choices expects sampled
     // values in the range of 1.2 to 2.0 which seems a sensible prior belief.
-    // Posisbly a little too informative; if S = 2.0 we're saying the batch 
-    // provides as much variation as the biology. However, as our batch scales 
-    // are strictly greater than 1.0 some shared global scaling is collected 
-    // here.
-    rho = 21,
-    theta = 10, 
+    rho = 51,
+    theta = 15, 
     S_loc = 1.0, // this gives the batch scale a support of (1.0, \infty)
     
     // Proposal windows
@@ -94,8 +89,6 @@ public:
   
   // Destructor
   virtual ~mvnSampler() { };
-  
-  virtual void printType();
   
   // Parameter specific priors
   void sampleCovPrior();
