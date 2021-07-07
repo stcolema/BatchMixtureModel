@@ -609,41 +609,6 @@ void mvnSampler::updateBatchCorrectedData() {
   Y = ((X_t - mu_mat - m.cols(batch_vec)) / sqrt(S.cols(batch_vec)) + mu_mat).t();
 }
 
-void mvnSampler::checkPositiveDefinite(arma::uword r) {
-  for(arma::uword k = 0; k < K; k++) {
-    if(! cov.slice(k).is_sympd()) {
-      
-      std::cout << "\nIteration " << r;
-      std::cout << "\n\nCovariance " << k << " is not positive definite.\n\n" 
-                << cov.slice(k);
-      
-      throw;
-    }
-    if(! cov_inv.slice(k).is_sympd()) {
-      
-      std::cout << "\nIteration " << r;
-      std::cout << "\n\nCovariance inverse " << k << 
-        " is not positive definite.\n\n" << cov_inv.slice(k);
-      throw;
-    }
-    for(arma::uword b = 0; b < B; b++) {
-      if(! cov_comb.slice(k * B + b).is_sympd()) {
-        std::cout << "\nIteration " << r;
-        std::cout << "\n\nCombined covariance for cluster " << k << " and batch " 
-                  << b << " is not positive definite.\n\n" << cov_comb.slice(k * B + b);
-        std::cout << "\n\nS(b):\n" << S.col(b) << "\n\nCov(k):\n" << cov.slice(k);
-        throw;
-      }
-      if(! cov_comb_inv.slice(k * B + b).is_sympd()) {
-        std::cout << "\nIteration " << r;
-        std::cout << "\n\nCombined covariance inverse for cluster " << k << " and batch " 
-                  << b << " is not positive definite.\n\n" << cov_comb_inv.slice(k * B + b);
-        throw;
-      }
-    }
-  }
-}
-
 void mvnSampler::metropolisStep() {
   
   // Metropolis step for cluster parameters

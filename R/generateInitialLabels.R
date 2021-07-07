@@ -30,7 +30,7 @@
 #'   batch_weights
 #' )
 #' 
-#' initial_labels <- generateInitialLabels(my_data$cluster_IDs, my_data$fixed)
+#' initial_labels <- generateInitialLabels(my_data$group_IDs, my_data$fixed)
 #' @export
 generateInitialLabels <- function(labels, fixed) {
   N <- length(labels)
