@@ -57,11 +57,11 @@ public:
     
     // Hyperparameters for the batch scale. These choices expects sampled
     // values in the range of 1.2 to 2.0 which seems a sensible prior belief.
-    rho = 51,
-    theta = 15, 
+    rho = 3.0,
+    theta = 1.0, 
     S_loc = 1.0, // this gives the batch scale a support of (1.0, \infty)
     
-    // Proposal windows
+    // Proposal windows (initialised but assigned values by user)
     mu_proposal_window = 0.0,
     cov_proposal_window = 0.0,
     m_proposal_window = 0.0,
