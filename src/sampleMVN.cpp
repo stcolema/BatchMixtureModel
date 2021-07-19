@@ -24,7 +24,10 @@ Rcpp::List sampleMVN (
     double S_proposal_window,
     arma::uword R,
     arma::uword thin,
-    arma::vec concentration
+    arma::vec concentration,
+    double m_scale,
+    double rho,
+    double theta
 ) {
   
   mvnSampler my_sampler(K,
@@ -36,7 +39,10 @@ Rcpp::List sampleMVN (
     labels,
     batch_vec,
     concentration,
-    X
+    X,
+    m_scale,
+    rho,
+    theta
   );
   
   // We use this enough that declaring it is worthwhile

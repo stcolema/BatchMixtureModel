@@ -43,7 +43,10 @@ Rcpp::List sampleSemisupervisedMVN (
     double S_proposal_window,
     arma::uword R,
     arma::uword thin,
-    arma::vec concentration
+    arma::vec concentration,
+    double m_scale,
+    double rho,
+    double theta
 ) ;
 
 #endif /* SAMPLESEMISUPERVISEDMVN_H */
