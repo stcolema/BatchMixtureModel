@@ -18,7 +18,10 @@ batchMixtureModel(
   m_proposal_window = 0.3^2,
   S_proposal_window = 100,
   t_df_proposal_window = 100,
-  phi_proposal_window = 1.2^2
+  phi_proposal_window = 1.2^2,
+  m_scale = 0.01,
+  rho = 3,
+  theta = 1
 )
 }
 \arguments{
@@ -71,11 +74,14 @@ corresponds to a different sample) and BIC for each saved iteration.
 A Bayesian mixture model with batch effects.
 }
 \examples{
+# Random seed
+set.seed(1)
+
 # Data in matrix format
 X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 
 # Observed batches represented by integers
-batch_vec <- sample(1:5, size = 100, replace = TRUE)
+batch_vec <- sample(seq(1, 5), size = 100, replace = TRUE)
 
 # Sampling parameters
 R <- 100

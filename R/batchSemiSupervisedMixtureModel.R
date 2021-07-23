@@ -43,7 +43,7 @@
 #' fixed <- c(rep(1, 10), rep(0, 40), rep(1, 10), rep(0, 40))
 #' 
 #' # Batch
-#' batch_vec <- sample(1:5, replace = TRUE, size = 100)
+#' batch_vec <- sample(seq(1, 5), replace = TRUE, size = 100)
 #' 
 #' # Sampling parameters
 #' R <- 1000
@@ -78,18 +78,6 @@ batchSemiSupervisedMixtureModel <- function(X,
   if(length(batch_vec) != nrow(X)){
     stop("The number of rows in X and the number of batch labels are not equal.")
   }
-  
-  # if(rho < 2.0) {
-  #   stop("rho parameter must be a whole number greater than or equal to 2.")
-  # }
-  # 
-  # if(theta < 1.0) {
-  #   stop("rho parameter must be a positive whole.")
-  # }
-  
-  # if(theta != (rho - 1)) {
-  #   warning("The prior on the batch mean parameters is no longer expected to be standard normal.")
-  # }
   
   if (R < thin) {
     warning("Iterations to run less than thinning factor. No samples recorded.")
@@ -167,30 +155,6 @@ batchSemiSupervisedMixtureModel <- function(X,
       theta
     )
   }
-  
-  # if(type == "MSN") {
-  #   samples <- sampleSemisupervisedMSN(
-  #     X,
-  #     K_max,
-  #     B,
-  #     initial_labels,
-  #     batch_vec,
-  #     fixed,
-  #     mu_proposal_window,
-  #     cov_proposal_window,
-  #     m_proposal_window,
-  #     S_proposal_window,
-  #     phi_proposal_window,
-  #     rho,
-  #     theta,
-  #     R,
-  #     thin,
-  #     concentration,
-  #     m_scale,
-  #     rho,
-  #     theta
-  #   )
-  # }
   
   if (! type %in% c("MVN", "MVT")) { 
     stop("Type not recognised. Please use one of 'MVN' or 'MVT'.")

@@ -20,7 +20,7 @@
 #' fixed <- c(rep(1, 10), rep(0, 40), rep(1, 10), rep(0, 40))
 #' 
 #' # Batch
-#' batch_vec <- sample(1:5, replace = TRUE, size = 100)
+#' batch_vec <- sample(seq(1, 5), replace = TRUE, size = 100)
 #' 
 #' # Sampling parameters
 #' R <- 1000
@@ -38,7 +38,8 @@
 #' @export
 calcAllocProb <- function(samples, burn){
   if (burn > 0) {
-    samples <- samples[, , -c(1:burn)]
+    dropped_samples <- seq(1, burn)
+    samples <- samples[, , -dropped_samples]
   }
   prob <- rowSums(samples, dims = 2) / dim(samples)[3]
   prob

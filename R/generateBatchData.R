@@ -1,5 +1,4 @@
 #!/usr/bin/Rscript
-#
 #' @title Generate batch data
 #' @description Generate data from groups across batches. Assumes independence
 #' across columns. In each column the parameters are randomly permuted for both
@@ -25,7 +24,7 @@
 #' B <- 5
 #' mean_dist <- 4
 #' batch_dist <- 0.3
-#' group_means <- 1:K * mean_dist
+#' group_means <- seq(1, K) * mean_dist
 #' batch_shift <- stats::rnorm(B, sd = batch_dist)
 #' std_dev <- rep(2, K)
 #' batch_var <- rep(1.2, B)
@@ -58,13 +57,16 @@ generateBatchData <- function(N, P,
   B <- length(batch_shift)
 
   # The membership vector for the N points
-  group_IDs <- sample(seq(1, K), N, replace = T, prob = group_weights)
+  group_IDs <- sample(seq(1, K), N, replace = TRUE, prob = group_weights)
 
   # The batch labels for the N points
-  batch_IDs <- sample(seq(1, B), N, replace = T, prob = batch_weights)
+  batch_IDs <- sample(seq(1, B), N, replace = TRUE, prob = batch_weights)
 
   # The fixed labels for the semi-supervised case
-  fixed <- sample(seq(0, 1), N, replace = T, prob = c(1 - frac_known, frac_known))
+  fixed <- sample(seq(0, 1), N, 
+    replace = TRUE, 
+    prob = c(1 - frac_known, frac_known)
+  )
   
   # The data matrices
   observed_data <- true_data <- matrix(nrow = N, ncol = P)
@@ -85,11 +87,20 @@ generateBatchData <- function(N, P,
       # Draw a point from a standard normal
       x <- stats::rnorm(1)
 
+      # For ease of reading the following lines, create group and batch parameters
+      k <- group_IDs[n]
+      b <- batch_IDs[n]
+      
+      .mu <- reordered_group_means[k]
+      .sd <- reordered_std_devs[k]
+      .m <- reordered_batch_shift[b]
+      .s <- reordered_batch_var[b]
+      
       # Adjust to the group distribution
-      true_data[n, p] <- x * reordered_std_devs[group_IDs[n]] + reordered_group_means[group_IDs[n]]
+      true_data[n, p] <- x * .sd + .mu
 
       # Adjust to the batched group distribution
-      observed_data[n, p] <- x * reordered_std_devs[group_IDs[n]] * reordered_batch_var[batch_IDs[n]] + reordered_group_means[group_IDs[n]] + reordered_batch_shift[batch_IDs[n]]
+      observed_data[n, p] <- x * .sd * .s + .mu + .m
     }
   }
 

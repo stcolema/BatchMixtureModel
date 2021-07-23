@@ -18,7 +18,7 @@ getSampledClusterMeans(
 \item{K}{The number of clusters present. Defaults to the number of columns in
 the batch mean matrix from the first sample.}
 
-\item{P}{The dimension of the batch mean shifts. Defaults to the number of 
+\item{P}{The dimension of the batch mean shifts. Defaults to the number of
 rows in the batch mean matrix from the first sample.}
 
 \item{R}{The number of iterations run. Defaults to the number of slices in
@@ -30,7 +30,7 @@ the sampled batch mean array.}
 A data.frame of three columns; the parameter, the sampled value and the iteration.
 }
 \description{
-Given an array of sampled cluster means from the 
+Given an array of sampled cluster means from the
 ``mixtureModel`` function, acquire a tidy version ready for ``ggplot2`` use.
 }
 \examples{
@@ -38,7 +38,7 @@ Given an array of sampled cluster means from the
 X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 
 # Observed batches represented by integers
-batch_vec <- sample(1:5, size = 100, replace = TRUE)
+batch_vec <- sample(seq(1, 5), size = 100, replace = TRUE)
 
 # MCMC iterations (this is too low for real use)
 R <- 100
