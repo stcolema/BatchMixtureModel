@@ -160,5 +160,12 @@ batchSemiSupervisedMixtureModel <- function(X,
     stop("Type not recognised. Please use one of 'MVN' or 'MVT'.")
   }
   
+  samples$thin <- thin
+  samples$R <- R
+  samples$type <- type
+  samples$P <- ncol(X)
+  samples$N <- nrow(X)
+  samples$K_max <- K_max
+  
   samples
 }
