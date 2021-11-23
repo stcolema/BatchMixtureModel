@@ -17,7 +17,10 @@ sampleSemisupervisedMVN(
   S_proposal_window,
   R,
   thin,
-  concentration
+  concentration,
+  m_scale,
+  rho,
+  theta
 )
 }
 \arguments{

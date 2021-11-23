@@ -53,7 +53,7 @@ K <- 2
 B <- 5
 mean_dist <- 4
 batch_dist <- 0.3
-group_means <- 1:K * mean_dist
+group_means <- seq(1, K) * mean_dist
 batch_shift <- rnorm(B, mean = batch_dist, sd = batch_dist)
 std_dev <- rep(2, K)
 batch_var <- rep(1.2, B)

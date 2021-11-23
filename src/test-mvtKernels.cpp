@@ -27,7 +27,10 @@ context("Unit test for MVT posterior kernels.") {
       cov_proposal_window = 200,
       m_proposal_window = 0.4,
       S_proposal_window = 100,
-      t_df_proposal_window = 35;
+      t_df_proposal_window = 35,
+      m_scale = 0.01,
+      rho = 3.0,
+      theta = 1.0;
   
   uvec labels(10), batch_vec(10);
   vec concentration(K);
@@ -59,7 +62,10 @@ context("Unit test for MVT posterior kernels.") {
     labels,
     batch_vec,
     concentration,
-    X
+    X,
+    m_scale,
+    rho,
+    theta
   );
   
   double val1 = 0.0,

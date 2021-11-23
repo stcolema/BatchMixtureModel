@@ -23,7 +23,10 @@ std::unique_ptr<sampler> samplerFactory::createSampler(samplerType type,
   arma::uvec labels,
   arma::uvec batch_vec,
   arma::vec concentration,
-  arma::mat X
+  arma::mat X,
+  double m_scale,
+  double rho,
+  double theta
 ) {
   switch (type) {
   // case G: return std::make_unique<gaussianSampler>(K, labels, concentration, X);
@@ -38,7 +41,10 @@ std::unique_ptr<sampler> samplerFactory::createSampler(samplerType type,
       labels,
       batch_vec,
       concentration,
-      X
+      X,
+      m_scale,
+      rho,
+      theta
     );
     
   case MVT: 
@@ -52,7 +58,10 @@ std::unique_ptr<sampler> samplerFactory::createSampler(samplerType type,
       labels,
       batch_vec,
       concentration,
-      X
+      X,
+      m_scale,
+      rho,
+      theta
     );
     
   case MSN: 
@@ -66,7 +75,10 @@ std::unique_ptr<sampler> samplerFactory::createSampler(samplerType type,
       labels,
       batch_vec,
       concentration,
-      X
+      X,
+      m_scale,
+      rho,
+      theta
     );
     
   default: throw "invalid sampler type.";

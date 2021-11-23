@@ -13,7 +13,7 @@ stickBreakingPrior <- function(alpha, K) {
   stick <- 1
   w <- rep(0, K)
   
-  for (i in 1:K) {
+  for (i in seq(1, K)) {
     w[i] <- v[i] * stick
     stick <- stick - w[i]
   }

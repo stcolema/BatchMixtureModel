@@ -80,7 +80,10 @@ public:
     arma::uvec _labels,
     arma::uvec _batch_vec,
     arma::vec _concentration,
-    arma::mat _X
+    arma::mat _X,
+    double _m_scale,
+    double _rho,
+    double _theta
   ) ;
   
   // Destructor

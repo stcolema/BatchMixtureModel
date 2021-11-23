@@ -24,7 +24,7 @@
 #' B <- 5
 #' mean_dist <- 4
 #' batch_dist <- 0.3
-#' group_means <- 1:K * mean_dist
+#' group_means <- seq(1, K)* mean_dist
 #' batch_shift <- rnorm(B, mean = batch_dist, sd = batch_dist)
 #' std_dev <- rep(2, K)
 #' batch_var <- rep(1.2, B)
@@ -62,13 +62,16 @@ generateBatchDataMVT <- function(N,
   B <- length(batch_shift)
   
   # The membership vector for the N points
-  group_IDs <- sample(seq(1, K), N, replace = T, prob = group_weights)
+  group_IDs <- sample(seq(1, K), N, replace = TRUE, prob = group_weights)
   
   # The batch labels for the N points
-  batch_IDs <- sample(seq(1, B), N, prob = batch_weights, replace = T)
+  batch_IDs <- sample(seq(1, B), N, prob = batch_weights, replace = TRUE)
   
   # Fixed labels
-  fixed <- sample(seq(0, 1), N, replace = T, prob = c(1 - frac_known, frac_known))
+  fixed <- sample(seq(0, 1), N, 
+    replace = TRUE, 
+    prob = c(1 - frac_known, frac_known)
+  )
   
   # The data matrices
   observed_data <- true_data <- matrix(nrow = N, ncol = P)

@@ -21,13 +21,14 @@ std::unique_ptr<semisupervisedSampler> semisupervisedSamplerFactory::createSemis
   double S_proposal_window,
   double t_df_proposal_window,
   double phi_proposal_window,
-  double rho,
-  double theta,
   arma::uvec labels,
   arma::uvec batch_vec,
   arma::vec concentration,
   arma::mat X,
-  arma::uvec fixed
+  arma::uvec fixed,
+  double m_scale,
+  double rho,
+  double theta
 ) {
   switch (type) {
   // case G: return std::make_unique<gaussianSampler>(K, labels, concentration, X);
@@ -43,7 +44,10 @@ std::unique_ptr<semisupervisedSampler> semisupervisedSamplerFactory::createSemis
       batch_vec,
       concentration,
       X,
-      fixed
+      fixed,
+      m_scale,
+      rho,
+      theta
    );
     
   case MVT: 
@@ -58,7 +62,10 @@ std::unique_ptr<semisupervisedSampler> semisupervisedSamplerFactory::createSemis
       batch_vec,
       concentration,
       X,
-      fixed
+      fixed,
+      m_scale,
+      rho,
+      theta
     );
     
   case MSN: 
@@ -73,7 +80,10 @@ std::unique_ptr<semisupervisedSampler> semisupervisedSamplerFactory::createSemis
       batch_vec,
       concentration,
       X,
-      fixed
+      fixed,
+      m_scale,
+      rho,
+      theta
     );
     
   default: throw "invalid sampler type.";

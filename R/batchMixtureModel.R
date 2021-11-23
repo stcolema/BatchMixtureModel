@@ -38,7 +38,7 @@
 #' X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 #' 
 #' # Observed batches represented by integers
-#' batch_vec <- sample(1:5, size = 100, replace = TRUE)
+#' batch_vec <- sample(seq(1, 5), size = 100, replace = TRUE)
 #' 
 #' # Sampling parameters
 #' R <- 100
@@ -56,7 +56,10 @@ batchMixtureModel <- function(X, R, thin, batch_vec, type,
                               m_proposal_window = 0.3**2,
                               S_proposal_window = 100,
                               t_df_proposal_window = 100,
-                              phi_proposal_window = 1.2**2) {
+                              phi_proposal_window = 1.2**2,
+                              m_scale = 0.01,
+                              rho = 3.0,
+                              theta = 1.0) {
   if (!is.matrix(X)) {
     stop("X is not a matrix. Data should be in matrix format.")
   }
@@ -109,7 +112,10 @@ batchMixtureModel <- function(X, R, thin, batch_vec, type,
       S_proposal_window,
       R,
       thin,
-      concentration
+      concentration,
+      m_scale,
+      rho,
+      theta
     )
   }
   
@@ -127,7 +133,10 @@ batchMixtureModel <- function(X, R, thin, batch_vec, type,
       t_df_proposal_window,
       R,
       thin,
-      concentration
+      concentration,
+      m_scale,
+      rho,
+      theta
     )
   }
   
@@ -148,9 +157,9 @@ batchMixtureModel <- function(X, R, thin, batch_vec, type,
   #     R,
   #     thin,
   #     concentration,
-  #     verbose,
-  #     doCombinations,
-  #     printCovariance
+  #     m_scale,
+  #     rho,
+  #     theta
   #   )
   # }
   

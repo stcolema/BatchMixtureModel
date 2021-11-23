@@ -19,7 +19,10 @@ batchSemiSupervisedMixtureModel(
   m_proposal_window = 0.3^2,
   S_proposal_window = 100,
   t_df_proposal_window = 100,
-  phi_proposal_window = 1.2^2
+  phi_proposal_window = 1.2^2,
+  m_scale = 0.01,
+  rho = 3,
+  theta = 1
 )
 }
 \arguments{
@@ -83,7 +86,7 @@ labels <- c(rep(1, 10),
 fixed <- c(rep(1, 10), rep(0, 40), rep(1, 10), rep(0, 40))
 
 # Batch
-batch_vec <- sample(1:5, replace = TRUE, size = 100)
+batch_vec <- sample(seq(1, 5), replace = TRUE, size = 100)
 
 # Sampling parameters
 R <- 1000

@@ -24,7 +24,10 @@ Rcpp::List sampleMVT (
     double t_df_proposal_window,
     arma::uword R,
     arma::uword thin,
-    arma::vec concentration
+    arma::vec concentration,
+    double m_scale,
+    double rho,
+    double theta
 ) {
   
   mvtSampler my_sampler(K,
@@ -37,7 +40,10 @@ Rcpp::List sampleMVT (
     labels,
     batch_vec,
     concentration,
-    X
+    X,
+    m_scale,
+    rho,
+    theta
   );
   
   // We use this enough that declaring it is worthwhile

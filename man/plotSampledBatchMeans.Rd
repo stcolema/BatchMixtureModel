@@ -29,7 +29,7 @@ for large B or P.
 X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 
 # Observed batches represented by integers
-batch_vec <- sample(1:5, size = 100, replace = TRUE)
+batch_vec <- sample(seq(1, 5), size = 100, replace = TRUE)
 
 # MCMC iterations (this is too low for real use)
 R <- 100

@@ -24,7 +24,10 @@ mvnSampler::mvnSampler(
   arma::uvec _labels,
   arma::uvec _batch_vec,
   arma::vec _concentration,
-  arma::mat _X
+  arma::mat _X,
+  double _m_scale,
+  double _rho,
+  double _theta
 ) : sampler(_K,
 _B,
 _labels,
@@ -78,10 +81,16 @@ _X) {
   
   // The mean of the prior distribution for the batch shift, m, parameter
   delta = 0.0;
+  m_scale = _m_scale;
   
   // Prior precision is the inverse of something on the scale of 1/10 the global 
   // covariance
-  t = 1.0 / ((accu(global_cov.diag()) / P ) * 0.01);
+  // t = 1.0 / ((accu(global_cov.diag()) / P ) * 0.01);
+  t = 1.0 / ((accu(global_cov.diag()) / P ) * m_scale);
+  
+  // Hyperparameters for the batch scale
+  rho = _rho;
+  theta = _theta;
 
   // Set the size of the objects to hold the component specific parameters
   mu.set_size(P, K);

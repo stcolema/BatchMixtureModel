@@ -29,7 +29,10 @@ msnSampler::msnSampler(
   arma::uvec _labels,
   arma::uvec _batch_vec,
   arma::vec _concentration,
-  arma::mat _X
+  arma::mat _X,
+  double _m_scale,
+  double _rho,
+  double _theta
 ) : sampler(_K,
 _B,
 _labels,
@@ -46,7 +49,10 @@ mvnSampler(
   _labels,
   _batch_vec,
   _concentration,
-  _X
+  _X,
+  _m_scale,
+  _rho,
+  _theta
 ) {
   
   // Hyperparameter for the prior on the shape of the skew normal

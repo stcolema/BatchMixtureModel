@@ -53,6 +53,7 @@ public:
     // Hyperparameters for the batch mean
     delta = 0.0,
     t = 0.0,
+    m_scale = 0.01,
     // lambda,
     
     // Hyperparameters for the batch scale. These choices expects sampled
@@ -84,7 +85,10 @@ public:
     arma::uvec _labels,
     arma::uvec _batch_vec,
     arma::vec _concentration,
-    arma::mat _X
+    arma::mat _X,
+    double m_scale,
+    double rho,
+    double theta
   );
   
   // Destructor
@@ -136,7 +140,7 @@ public:
   virtual void updateBatchCorrectedData();
   
   // Used in determining problems - probably unnecessary now.
-  virtual void checkPositiveDefinite(arma::uword r);
+  // virtual void checkPositiveDefinite(arma::uword r);
   
   // Mixture specific functions
   virtual void metropolisStep() override;
