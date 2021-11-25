@@ -11,7 +11,7 @@ batchMixtureModel(
   batch_vec,
   type,
   initial_labels = NULL,
-  K_max = 50,
+  K_max = 15,
   alpha = 1,
   mu_proposal_window = 0.5^2,
   cov_proposal_window = 100,
@@ -65,6 +65,13 @@ for the multivariate t distribution (not used if type is not 'MVT').}
 
 \item{phi_proposal_window}{The proposal window for the shape parameter for
 the multivariate skew normal distribution (not used if type is not 'MSN').}
+
+\item{m_scale}{The scale hyperparameter for the batch shift prior 
+distribution.}
+
+\item{rho}{The shape of the prior distribution for the batch scale.}
+
+\item{theta}{The scale of the prior distribution for the batch scale.}
 }
 \value{
 Named list of the matrix of MCMC samples generated (each row
@@ -74,18 +81,16 @@ corresponds to a different sample) and BIC for each saved iteration.
 A Bayesian mixture model with batch effects.
 }
 \examples{
-# Random seed
-set.seed(1)
 
-# Data in matrix format
+# Data in a matrix format
 X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 
-# Observed batches represented by integers
-batch_vec <- sample(seq(1, 5), size = 100, replace = TRUE)
+# Batch
+batch_vec <- sample(seq(1, 5), replace = TRUE, size = 100)
 
 # Sampling parameters
-R <- 100
-thin <- 5
+R <- 1000
+thin <- 50
 
 # MCMC samples and BIC vector
 samples <- batchMixtureModel(X, R, thin, batch_vec, "MVN")

@@ -28,6 +28,10 @@
 #' for the multivariate t distribution (not used if type is not 'MVT').
 #' @param phi_proposal_window The proposal window for the shape parameter for
 #' the multivariate skew normal distribution (not used if type is not 'MSN').
+#' @param m_scale The scale hyperparameter for the batch shift prior 
+#' distribution.
+#' @param rho The shape of the prior distribution for the batch scale.
+#' @param theta The scale of the prior distribution for the batch scale.
 #' @examples
 #' 
 #' # Data in a matrix format
@@ -114,7 +118,7 @@ batchSemiSupervisedMixtureModel <- function(X,
 
   # Pull samples from the mixture model
   if(type == "MVN") {
-    samples <- sampleSemisupervisedMVN(
+    mcmc_output <- sampleSemisupervisedMVN(
       X,
       K_max,
       B,
@@ -135,7 +139,7 @@ batchSemiSupervisedMixtureModel <- function(X,
   }
   
   if(type == "MVT") {
-    samples <- sampleSemisupervisedMVT(
+    mcmc_output <- sampleSemisupervisedMVT(
       X,
       K_max,
       B,
@@ -160,12 +164,13 @@ batchSemiSupervisedMixtureModel <- function(X,
     stop("Type not recognised. Please use one of 'MVN' or 'MVT'.")
   }
   
-  samples$thin <- thin
-  samples$R <- R
-  samples$type <- type
-  samples$P <- ncol(X)
-  samples$N <- nrow(X)
-  samples$K_max <- K_max
-  
-  samples
+  mcmc_output$thin <- thin
+  mcmc_output$R <- R
+  mcmc_output$type <- type
+  mcmc_output$P <- ncol(X)
+  mcmc_output$N <- nrow(X)
+  mcmc_output$K_max <- K_max
+  mcmc_output$B <- B
+    
+  mcmc_output
 }

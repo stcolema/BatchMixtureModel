@@ -4,28 +4,17 @@
 \alias{samplesToDF}
 \title{Samples to data frame}
 \usage{
-samplesToDF(
-  samples,
-  type,
-  R = nrow(samples$samples),
-  thin = 1,
-  keep_allocation = TRUE
-)
+samplesToDF(samples, keep_allocation = TRUE)
 }
 \arguments{
 \item{samples}{Output from the ``batchSemiSupervisedMixtureModel`` or
 ``batchMixtureModel``.}
 
-\item{type}{The type of mixture model used; this changes which parameters
-the function expects to find.}
-
-\item{R}{The number of iterations run. Defaults to the number of slices in
-the sampled batch mean array.}
-
-\item{thin}{The thinning factor of the sampler. Defaults to 1.}
-
 \item{keep_allocation}{A logical indicating if the final data frame should
 include the sampled class/cluster membership variables.}
+
+\item{type}{The type of mixture model used; this changes which parameters
+the function expects to find.}
 }
 \value{
 A wide data.frame of all the sampled parameters and the iteration.
