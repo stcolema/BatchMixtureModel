@@ -30,26 +30,28 @@
 #' the multivariate skew normal distribution (not used if type is not 'MSN').
 #' @return Named list of the matrix of MCMC samples generated (each row
 #' corresponds to a different sample) and BIC for each saved iteration.
+#' @param m_scale The scale hyperparameter for the batch shift prior 
+#' distribution.
+#' @param rho The shape of the prior distribution for the batch scale.
+#' @param theta The scale of the prior distribution for the batch scale.
 #' @examples
-#' # Random seed
-#' set.seed(1)
 #' 
-#' # Data in matrix format
+#' # Data in a matrix format
 #' X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 #' 
-#' # Observed batches represented by integers
-#' batch_vec <- sample(seq(1, 5), size = 100, replace = TRUE)
+#' # Batch
+#' batch_vec <- sample(seq(1, 5), replace = TRUE, size = 100)
 #' 
 #' # Sampling parameters
-#' R <- 100
-#' thin <- 5
+#' R <- 1000
+#' thin <- 50
 #'
 #' # MCMC samples and BIC vector
 #' samples <- batchMixtureModel(X, R, thin, batch_vec, "MVN")
 #' @export
 batchMixtureModel <- function(X, R, thin, batch_vec, type,
                               initial_labels = NULL,
-                              K_max = 50,
+                              K_max = 15,
                               alpha = 1,
                               mu_proposal_window = 0.5**2,
                               cov_proposal_window = 100,
@@ -74,7 +76,7 @@ batchMixtureModel <- function(X, R, thin, batch_vec, type,
   
   if (is.null(initial_labels)) {
     # Sample the stick breaking prior
-    initial_labels <- priorLabels(alpha, K_max, nrow(X))
+    initial_labels <- samplePriorLabels(alpha, K_max, nrow(X))
   } else {
     if(length(initial_labels) != nrow(X)){
       stop("Number of membership labels does not equal the number of items in X.")
@@ -100,7 +102,7 @@ batchMixtureModel <- function(X, R, thin, batch_vec, type,
   
   # Pull samples from the mixture model
   if(type == "MVN") {
-    samples <- sampleMVN(
+    mcmc_output <- sampleMVN(
       X,
       K_max,
       B,
@@ -120,7 +122,7 @@ batchMixtureModel <- function(X, R, thin, batch_vec, type,
   }
   
   if(type == "MVT") {
-    samples <- sampleMVT(
+    mcmc_output <- sampleMVT(
       X,
       K_max,
       B,
@@ -140,31 +142,17 @@ batchMixtureModel <- function(X, R, thin, batch_vec, type,
     )
   }
   
-  # if(type == "MSN") {
-  #   samples <- sampleMSN(
-  #     X,
-  #     K_max,
-  #     B,
-  #     initial_labels,
-  #     batch_vec,
-  #     mu_proposal_window,
-  #     cov_proposal_window,
-  #     m_proposal_window,
-  #     S_proposal_window,
-  #     phi_proposal_window,
-  #     rho,
-  #     theta,
-  #     R,
-  #     thin,
-  #     concentration,
-  #     m_scale,
-  #     rho,
-  #     theta
-  #   )
-  # }
-  
   if (! type %in% c("MVN", "MVT")) {
     stop("Type not recognised. Please use one of 'MVN' or 'MVT'.")
   }
-  samples
+  
+  mcmc_output$thin <- thin
+  mcmc_output$R <- R
+  mcmc_output$type <- type
+  mcmc_output$P <- ncol(X)
+  mcmc_output$N <- nrow(X)
+  mcmc_output$K_max <- K_max
+  mcmc_output$B <- B
+  
+  mcmc_output
 }

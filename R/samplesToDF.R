@@ -5,9 +5,6 @@
 #' ``batchMixtureModel``.
 #' @param type The type of mixture model used; this changes which parameters
 #' the function expects to find.
-#' @param R The number of iterations run. Defaults to the number of slices in
-#' the sampled batch mean array.
-#' @param thin The thinning factor of the sampler. Defaults to 1.
 #' @param keep_allocation A logical indicating if the final data frame should
 #' include the sampled class/cluster membership variables.
 #' @return A wide data.frame of all the sampled parameters and the iteration.
@@ -25,20 +22,23 @@
 #' # MCMC samples
 #' samples <- batchMixtureModel(X, R, thin, batch_vec, "MVN")
 #'
-#' samples_df <- samplesToDF(samples, "MVN", R = R, thin = thin)
+#' samples_df <- samplesToDF(samples)
 #' @importFrom stringr str_match
 #' @export
-samplesToDF <- function(samples, type,
-                        R = nrow(samples$samples),
-                        thin = 1,
+samplesToDF <- function(samples,
                         keep_allocation = TRUE) {
 
+  R <- samples$R
+  thin <- samples$thin
+  
   # Number of classes and batches
-  K <- ncol(samples$means[, , 1])
-  B <- ncol(samples$batch_shift[, , 1])
-  P <- nrow(samples$means[, , 1])
-  N <- ncol(samples$samples)
+  K <- samples$K_max  # ncol(samples$means[, , 1, drop = F])
+  B <- samples$B      # ncol(samples$batch_shift[, , 1, drop = F])
+  P <- samples$P      # nrow(samples$means[, , 1, drop = F])
+  N <- samples$N      # ncol(samples$samples)
 
+  type <- samples$type
+  
   # Stack the sampled matrices on top of each other
   means_df <- data.frame(t(apply(samples$means, 3L, rbind)))
   batch_shift_df <- data.frame(t(apply(samples$batch_shift, 3L, rbind)))
@@ -90,7 +90,7 @@ samplesToDF <- function(samples, type,
   correct_comb <- which(mean_sum_names$Mu %% 10 == mean_sum_names$m %% 10)
   mean_sum_names <- mean_sum_names[correct_comb, ]
 
-  inds <- matrix(seq(1, (P * B * K)), nrow = 4, byrow = T)
+  inds <- matrix(seq(1, (P * B * K)), nrow = P * K, byrow = T)
   colnames(mean_sums_df) <- mean_sum_names$Comb[order(mean_sum_names$Mu)][c(inds)]
 
   # The covariance is slightly more awkward
@@ -111,11 +111,14 @@ samplesToDF <- function(samples, type,
     )
   )
 
-  # The combined batch and cluster covariances - this only effects the diagonal
-  # entries, so let's keep only them
+  # The combined batch and cluster covariances
   cov_comb_df <- data.frame(t(apply(samples$cov_comb, 3L, rbind)))
-  cov_comb_df <- cov_comb_df[, seq(1, ncol(cov_comb_df)) %% 4 %in% c(0, 1)]
-
+  
+  if(P == 2) {
+    # this only effects the diagonal entries of the group covariance, so let's 
+    # drop the rest
+    cov_comb_df <- cov_comb_df[, seq(1, ncol(cov_comb_df)) %% 4 %in% c(0, 1)]
+    
   comb_cov_names <- c(
     suppressWarnings(
       levels(
@@ -142,8 +145,29 @@ samplesToDF <- function(samples, type,
   nrow = 2,
   byrow = TRUE
   )
-
   colnames(cov_comb_df) <- comb_cov_names[c(inds)]
+  }
+  if(P == 1) {
+    comb_cov_names <- c(
+      suppressWarnings(
+        levels(
+          interaction(
+            colnames(cov_df),
+            colnames(batch_scale_df)
+          )
+        )
+      )[(seq(1, (P * K * B)) %% 2) %in% 1],
+      suppressWarnings(
+        levels(
+          interaction(
+            colnames(cov_df),
+            colnames(batch_scale_df)
+          )
+        )
+      )[(seq(1, (P * K * B)) %% 2) %in% 0]
+    )
+    colnames(cov_comb_df) <- comb_cov_names
+  }
 
   # The sampled weights
   weights_df <- as.data.frame(samples$weights)
