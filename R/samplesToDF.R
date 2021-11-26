@@ -22,7 +22,7 @@
 #' # MCMC samples
 #' samples <- batchMixtureModel(X, R, thin, batch_vec, "MVN")
 #'
-#' samples_df <- samplesToDF(samples, "MVN", R = R, thin = thin)
+#' samples_df <- samplesToDF(samples)
 #' @importFrom stringr str_match
 #' @export
 samplesToDF <- function(samples,

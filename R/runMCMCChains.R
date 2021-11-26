@@ -59,7 +59,7 @@
 #' n_chains <- 4
 #'
 #' # MCMC samples and BIC vector
-#' samples <- runMCMCChains(X, R, thin, labels, fixed, batch_vec, "MVN")
+#' samples <- runMCMCChains(X, n_chains, R, thin, labels, fixed, batch_vec, "MVN")
 #' @export
 runMCMCChains <- function(X,
                           n_chains,

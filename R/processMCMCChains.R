@@ -1,8 +1,8 @@
 #!/usr/bin/Rscript
 #' @title Process MCMC chains
 #' @description Applies a burn in to and finds a point estimate for each of the 
-#' chains outputted from ``processMCMCChains``. 
-#' @param mcmc_lst Output from ``processMCMCChains``
+#' chains outputted from ``runMCMCChains``. 
+#' @param mcmc_lst Output from ``runMCMCChains``
 #' @param burn The number of MCMC samples to drop as part of a burn in.
 #' @returns A named list similar to the output of 
 #' ``batchSemiSupervisedMixtureModel`` with some additional entries:
@@ -63,7 +63,7 @@
 #' n_chains <- 4
 #'
 #' # MCMC samples and BIC vector
-#' samples <- runMCMCChains(X, R, thin, labels, fixed, batch_vec, "MVN")
+#' samples <- runMCMCChains(X, n_chains, R, thin, labels, fixed, batch_vec, "MVN")
 #' 
 #' # Process the MCMC samples 
 #' processed_samples <- processMCMCChains(samples, burn)

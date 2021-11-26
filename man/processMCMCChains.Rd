@@ -7,7 +7,7 @@
 processMCMCChains(mcmc_lst, burn)
 }
 \arguments{
-\item{mcmc_lst}{Output from ``processMCMCChains``}
+\item{mcmc_lst}{Output from ``runMCMCChains``}
 
 \item{burn}{The number of MCMC samples to drop as part of a burn in.}
 }
@@ -50,7 +50,7 @@ A named list similar to the output of
 }
 \description{
 Applies a burn in to and finds a point estimate for each of the 
-chains outputted from ``processMCMCChains``.
+chains outputted from ``runMCMCChains``.
 }
 \examples{
 
@@ -76,7 +76,7 @@ thin <- 50
 n_chains <- 4
 
 # MCMC samples and BIC vector
-samples <- runMCMCChains(X, R, thin, labels, fixed, batch_vec, "MVN")
+samples <- runMCMCChains(X, n_chains, R, thin, labels, fixed, batch_vec, "MVN")
 
 # Process the MCMC samples 
 processed_samples <- processMCMCChains(samples, burn)

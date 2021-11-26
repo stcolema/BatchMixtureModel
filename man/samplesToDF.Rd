@@ -36,5 +36,5 @@ thin <- 5
 # MCMC samples
 samples <- batchMixtureModel(X, R, thin, batch_vec, "MVN")
 
-samples_df <- samplesToDF(samples, "MVN", R = R, thin = thin)
+samples_df <- samplesToDF(samples)
 }
