@@ -4,6 +4,8 @@
 #' of ``batchSemiSupervisedMixtureModel``. 
 #' @param mcmc_output Output from ``batchSemiSupervisedMixtureModel``
 #' @param burn The number of MCMC samples to drop as part of a burn in.
+#' @param point_estimate_method Summary statistic used to define the point 
+#' estimate. Must be ``'mean'`` or ``'median'``. ``'median'`` is the default.
 #' @returns A named list similar to the output of 
 #' ``batchSemiSupervisedMixtureModel`` with some additional entries:
 #' 
@@ -31,6 +33,8 @@
 #'  
 #'  * ``inferred_dataset``: $(N x P)$ matrix. The inferred ``batch-free''
 #'  dataset.
+#' 
+#' If the original model was semi-supervised then the output also includes:
 #'  
 #'  * ``allocation_probability``: $(N x K)$ matrix. The point estimate of 
 #'  the allocation probabilities for each datapoint to each class.
@@ -67,7 +71,7 @@
 #' # Process the MCMC samples 
 #' processed_samples <- processMCMCChain(samples, burn)
 #' @export
-processMCMCChain <- function(mcmc_output, burn) {
+processMCMCChain <- function(mcmc_output, burn, point_estimate_method = "median") {
   
   # Dimensions of the dataset
   N <- mcmc_output$N
@@ -82,8 +86,19 @@ processMCMCChain <- function(mcmc_output, burn) {
   batch_inds <- seq(1, B)
   cluster_inds <- seq(1, K_max)
   
+  # MCMC iterations and thinning
   R <- mcmc_output$R
   thin <- mcmc_output$thin
+  
+  # Is the output semisupervised
+  is_semisupervised <- mcmc_output$Semisupervised
+  
+  # What summary statistic is used to define our point estimates
+  use_median <- point_estimate_method == "median"
+  use_mean <- point_estimate_method == "mean"
+  wrong_method <- ! (use_median | use_mean)
+  if(wrong_method)
+    stop("Wrong point estimate method given. Must be one of 'mean' or 'median'")
   
   # We burn the floor of burn / thin of these 
   eff_burn <- floor(burn / thin)
@@ -106,7 +121,9 @@ processMCMCChain <- function(mcmc_output, burn) {
   
   # The allocations and allocation probabilities
   new_output$samples <- mcmc_output$samples[-dropped_indices, ]
-  new_output$alloc <- mcmc_output$alloc[, , -dropped_indices]
+  
+  if(is_semisupervised)
+    new_output$alloc <- mcmc_output$alloc[, , -dropped_indices]
   
   # The sampled parameters
   new_output$means <- mcmc_output$means[, , -dropped_indices]
@@ -119,18 +136,33 @@ processMCMCChain <- function(mcmc_output, burn) {
   new_output$weights <- mcmc_output$weights[-dropped_indices, ]
   
   # The mean of the posterior samples for the parameters
-  mean_est <- rowMeans(new_output$means, dims = 2L)
-  shift_est <- rowMeans(new_output$batch_shift, dims = 2L)
-  scale_est <- rowMeans(new_output$batch_scale, dims = 2L)
+  if(use_mean) {
+    mean_est <- rowMeans(new_output$means, dims = 2L)
+    shift_est <- rowMeans(new_output$batch_shift, dims = 2L)
+    scale_est <- rowMeans(new_output$batch_scale, dims = 2L)
+  }
+  
+  if(use_median) {
+    mean_est <- apply(new_output$means, c(1, 2), median)
+    shift_est <- apply(new_output$batch_shift, c(1, 2), median)
+    scale_est <- apply(new_output$batch_scale, c(1, 2), median)
+  }
   
   if(type == "MVT") {
     new_output$t_df <- mcmc_output$t_df[-dropped_indices, ]
-    new_output$t_df_est <- colMeans(new_output$t_df)
+    if(use_mean) 
+      new_output$t_df_est <- colMeans(new_output$t_df)
+    if(use_median) 
+      new_output$t_df_est <-apply(new_output$t_df, 2, median)
   }
   
   # The covariance is represented as a matrix for reasons, but is more naturally 
   # thought of as a 3D array
-  cov_est <- rowMeans(new_output$covariance, dims = 2L)
+  if(use_mean)
+    cov_est <- rowMeans(new_output$covariance, dims = 2L)
+  if(use_median)
+    cov_est <- apply(new_output$covariance, c(1, 2), median)
+  
   cov_est_better_format <- array(0, c(P, P, K_max))
   
   # The indices for the columns corresponding to the first column for each 
@@ -146,10 +178,18 @@ processMCMCChain <- function(mcmc_output, burn) {
   
   # The combinations of the batch and group parameters are a little awkward
   # Do a nicer a format and record point estimates
-  mean_sum_est <- rowMeans(new_output$mean_sum, dims = 2L)
+  if(use_mean)
+    mean_sum_est <- rowMeans(new_output$mean_sum, dims = 2L)
+  if(use_median)
+    mean_sum_est <- apply(new_output$mean_sum, c(1, 2), median)
+  
   mean_sum_better_format <- array(0, c(P, K_max, B))
   
-  cov_comb_est <- rowMeans(new_output$cov_comb, dims = 2L) 
+  if(use_mean)
+    cov_comb_est <- rowMeans(new_output$cov_comb, dims = 2L)
+  if(use_median)
+    cov_comb_est <- apply(new_output$cov_comb, c(1, 2), median)
+  
   cov_comb_better_format <- vector("list", B)
   cov_comb_better_format_entry <- array(0, c(P, P, K_max))
   
@@ -181,14 +221,23 @@ processMCMCChain <- function(mcmc_output, burn) {
   new_output$cov_comb_est <- cov_comb_better_format
   
   # The estimate of the inferred dataset
-  inferred_dataset <- rowMeans(new_output$batch_corrected_data, dims = 2L)
+  if(use_mean)
+    inferred_dataset <- rowMeans(new_output$batch_corrected_data, dims = 2L)
+  if(use_median)
+    inferred_dataset <- apply(new_output$batch_corrected_data, c(1, 2), median)
+  
   new_output$inferred_dataset <- inferred_dataset
   
-  # The estimate of the allocation probability matrix, the probability of the 
-  # most probable class and the predicted class
-  new_output$allocation_probability <- .alloc_prob <- rowMeans(new_output$alloc, dims = 2L)
-  new_output$prob <- apply(.alloc_prob, 1, max)
-  new_output$pred <- apply(.alloc_prob, 1, which.max)
+  if(is_semisupervised) {
+    # The estimate of the allocation probability matrix, the probability of the 
+    # most probable class and the predicted class
+    new_output$allocation_probability <- .alloc_prob <- calcAllocProb(new_output, 
+      method = point_estimate_method
+    )
+    
+    new_output$prob <- apply(.alloc_prob, 1, max)
+    new_output$pred <- apply(.alloc_prob, 1, which.max)
+  } 
   
   # Return the MCMC object with burn in applied and point estimates found
   new_output

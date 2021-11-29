@@ -1,5 +1,5 @@
 #!/usr/bin/Rscript
-#' @title Batch semi-supervised mixture model
+#' @title Batch semisupervised mixture model
 #' @description A Bayesian mixture model with batch effects.
 #' @param X Data to cluster as a matrix with the items to cluster held in rows.
 #' @param initial_labels Initial clustering.
@@ -172,6 +172,8 @@ batchSemiSupervisedMixtureModel <- function(X,
   mcmc_output$N <- nrow(X)
   mcmc_output$K_max <- K_max
   mcmc_output$B <- B
+  
+  mcmc_output$Semisupervised <- TRUE
     
   mcmc_output
 }

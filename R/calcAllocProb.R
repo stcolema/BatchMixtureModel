@@ -2,8 +2,7 @@
 #' @title Calculate allocation probabilities
 #' @description Calculate the empirical allocation probability for each class
 #' based on the sampled allocation probabilities.
-#' @param samples Sampled allocation probabilities in output from the
-#' ``batchSemiSupervisedMixtureModel`` or ``batchMixtureModel``.
+#' @param mcmc_samples Output from ``batchSemiSupervisedMixtureModel``.
 #' @param burn The number of samples to discard.
 #' @param method The point estimate to use. ``method = 'mean'`` or
 #' ``method = 'median'``. ``'median'`` is the default.
@@ -61,8 +60,10 @@ calcAllocProb <- function(mcmc_samples, burn = 0, method = "median") {
   if(method == "mean") {
     probs <- rowSums(.alloc, dims = 2) / dim(.alloc)[3]
   }
-  if(probs == "NULL") {
-    stop("``method`` must be one of 'mean' or 'median'")
+  if(length(probs) == 1) {
+    if(is.null(probs)) {
+      stop("``method`` must be one of 'mean' or 'median'")
+    }
   }
   probs
 }

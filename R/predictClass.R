@@ -41,7 +41,7 @@
 #' eff_burn <- burn / thin 
 #' 
 #' # Probability across classes
-#' probs <- calcAllocProb(samples$alloc, burn = eff_burn)
+#' probs <- calcAllocProb(samples, burn = burn)
 #' 
 #' # Predict the class
 #' preds <- predictClass(probs)

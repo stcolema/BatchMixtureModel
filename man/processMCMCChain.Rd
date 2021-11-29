@@ -4,12 +4,15 @@
 \alias{processMCMCChain}
 \title{Process MCMC chain}
 \usage{
-processMCMCChain(mcmc_output, burn)
+processMCMCChain(mcmc_output, burn, point_estimate_method = "median")
 }
 \arguments{
 \item{mcmc_output}{Output from ``batchSemiSupervisedMixtureModel``}
 
 \item{burn}{The number of MCMC samples to drop as part of a burn in.}
+
+\item{point_estimate_method}{Summary statistic used to define the point 
+estimate. Must be ``'mean'`` or ``'median'``. ``'median'`` is the default.}
 }
 \value{
 A named list similar to the output of 
@@ -39,6 +42,8 @@ A named list similar to the output of
  
  * ``inferred_dataset``: $(N x P)$ matrix. The inferred ``batch-free''
  dataset.
+
+If the original model was semi-supervised then the output also includes:
  
  * ``allocation_probability``: $(N x K)$ matrix. The point estimate of 
  the allocation probabilities for each datapoint to each class.

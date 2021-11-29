@@ -153,5 +153,7 @@ batchUnsupervisedMixtureModel <- function(X, R, thin, batch_vec, type,
   mcmc_output$K_max <- K_max
   mcmc_output$B <- B
 
+  mcmc_output$Semisupervised <- FALSE
+  
   mcmc_output
 }

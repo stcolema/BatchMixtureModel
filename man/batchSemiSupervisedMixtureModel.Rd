@@ -2,7 +2,7 @@
 % Please edit documentation in R/batchSemiSupervisedMixtureModel.R
 \name{batchSemiSupervisedMixtureModel}
 \alias{batchSemiSupervisedMixtureModel}
-\title{Batch semi-supervised mixture model}
+\title{Batch semisupervised mixture model}
 \usage{
 batchSemiSupervisedMixtureModel(
   X,

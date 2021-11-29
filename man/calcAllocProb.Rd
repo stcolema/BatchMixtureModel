@@ -7,13 +7,12 @@
 calcAllocProb(mcmc_samples, burn = 0, method = "median")
 }
 \arguments{
+\item{mcmc_samples}{Output from ``batchSemiSupervisedMixtureModel``.}
+
 \item{burn}{The number of samples to discard.}
 
 \item{method}{The point estimate to use. ``method = 'mean'`` or
 ``method = 'median'``. ``'median'`` is the default.}
-
-\item{samples}{Sampled allocation probabilities in output from the
-``batchSemiSupervisedMixtureModel`` or ``batchMixtureModel``.}
 }
 \value{
 An N x K matrix of class probabilities.
