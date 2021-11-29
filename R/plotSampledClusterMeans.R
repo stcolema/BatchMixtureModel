@@ -1,12 +1,10 @@
 #!/usr/bin/Rscript
 #' @title Plot sampled cluster means
 #' @description Plot the sampled values for the cluster means in each
-#' dimension from the output of the ``mixtureModel`` function. Not recommended
+#' dimension from the output of the mixture model functions. Not recommended
 #' for large K or P.
-#' @param samples The output of the ``mixtureModel`` function.
-#' @param R The number of iterations run. Defaults to the number of samples for
-#' the cluster membership.
-#' @param thin The thinning factor of the sampler. Defaults to 1.
+#' @param samples The output of the ``batchUnsupervisedMixtureModel`` or
+#' ``batchSemiSupervisedMixtureModel`` functions.
 #' @param burn_in The samples at the beginning of the chain to drop. Defaults to 0.
 #' @return A ggplot object of the values in each sampled cluster mean per iteration.
 #' @examples
@@ -21,19 +19,19 @@
 #' thin <- 5
 #'
 #' # MCMC samples and BIC vector
-#' samples <- batchMixtureModel(X, R, thin, batch_vec, "MVN")
+#' samples <- batchUnsupervisedMixtureModel(X, R, thin, batch_vec, "MVN")
 #'
 #' # Plot the sampled value of the cluster means against MCMC iteration
-#' plotSampledClusterMeans(samples, R, thin)
+#' plotSampledClusterMeans(samples)
 #' @importFrom ggplot2 ggplot aes_string geom_point facet_grid labs labeller label_both
 #' @export
-plotSampledClusterMeans <- function(samples, R = NULL, thin = 1, burn_in = 0) {
-  K <- dim(samples$means)[2]
-  P <- dim(samples$means)[1]
-
-  if (is.null(R)) {
-    R <- nrow(samples$samples)
-  }
+plotSampledClusterMeans <- function(samples, burn_in = 0) {
+  
+  K <- samples$K_max
+  P <- samples$P
+  
+  R <- samples$R
+  thin <- samples$thin
 
   # Check that the values of R and thin make sense
   if (floor(R / thin) != nrow(samples$samples)) {

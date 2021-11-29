@@ -2,9 +2,7 @@
 #' @title Samples to data frame
 #' @description Turns the output from the mixture models into a data.frame
 #' @param samples Output from the ``batchSemiSupervisedMixtureModel`` or
-#' ``batchMixtureModel``.
-#' @param type The type of mixture model used; this changes which parameters
-#' the function expects to find.
+#' ``batchUnsupervisedMixtureModel``.
 #' @param keep_allocation A logical indicating if the final data frame should
 #' include the sampled class/cluster membership variables.
 #' @return A wide data.frame of all the sampled parameters and the iteration.
@@ -20,7 +18,7 @@
 #' thin <- 5
 #'
 #' # MCMC samples
-#' samples <- batchMixtureModel(X, R, thin, batch_vec, "MVN")
+#' samples <- batchUnsupervisedMixtureModel(X, R, thin, batch_vec, "MVN")
 #'
 #' samples_df <- samplesToDF(samples)
 #' @importFrom stringr str_match

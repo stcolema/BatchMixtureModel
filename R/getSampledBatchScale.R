@@ -23,7 +23,7 @@
 #' thin <- 5
 #'
 #' # MCMC samples and BIC vector
-#' samples <- batchMixtureModel(X, R, thin, batch_vec, "MVN")
+#' samples <- batchUnsupervisedMixtureModel(X, R, thin, batch_vec, "MVN")
 #'
 #' batch_scale_df <- getSampledBatchShift(samples$batch_scale, R = R, thin = thin)
 #' @importFrom tidyr pivot_longer contains
