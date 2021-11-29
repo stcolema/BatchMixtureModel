@@ -26,13 +26,14 @@ mvtPredictive::mvtPredictive(
   double _m_proposal_window,
   double _S_proposal_window,
   double _t_df_proposal_window,
-  // double _rho,
-  // double _theta,
   arma::uvec _labels,
   arma::uvec _batch_vec,
   arma::vec _concentration,
   arma::mat _X,
-  arma::uvec _fixed
+  arma::uvec _fixed,
+  double _m_scale,
+  double _rho,
+  double _theta
 ) : 
   sampler(_K, _B, _labels, _batch_vec, _concentration, _X),
   mvnSampler(                           
@@ -45,7 +46,10 @@ mvtPredictive::mvtPredictive(
     _labels,
     _batch_vec,
     _concentration,
-    _X
+    _X,
+    _m_scale,
+    _rho,
+    _theta
   ), mvtSampler(                           
       _K,
       _B,
@@ -54,12 +58,13 @@ mvtPredictive::mvtPredictive(
       _m_proposal_window,
       _S_proposal_window,
       _t_df_proposal_window,
-      // _rho,
-      // _theta,
       _labels,
       _batch_vec,
       _concentration,
-      _X
+      _X,
+      _m_scale,
+      _rho,
+      _theta
   ), semisupervisedSampler(_K, _B, _labels, _batch_vec, _concentration, _X, _fixed)
 {
 };

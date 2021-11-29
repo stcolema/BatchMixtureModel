@@ -2,22 +2,25 @@
 % Please edit documentation in R/calcAllocProb.R
 \name{calcAllocProb}
 \alias{calcAllocProb}
-\title{Caclulate allocation probabilities}
+\title{Calculate allocation probabilities}
 \usage{
-calcAllocProb(samples, burn)
+calcAllocProb(mcmc_samples, burn = 0, method = "median")
 }
 \arguments{
+\item{burn}{The number of samples to discard.}
+
+\item{method}{The point estimate to use. ``method = 'mean'`` or
+``method = 'median'``. ``'median'`` is the default.}
+
 \item{samples}{Sampled allocation probabilities in output from the
 ``batchSemiSupervisedMixtureModel`` or ``batchMixtureModel``.}
-
-\item{burn}{The number of samples to discard.}
 }
 \value{
 An N x K matrix of class probabilities.
 }
 \description{
 Calculate the empirical allocation probability for each class
-based on the sampled allocations.
+based on the sampled allocation probabilities.
 }
 \examples{
 # Data in matrix format
@@ -33,7 +36,7 @@ labels <- c(rep(1, 10),
 fixed <- c(rep(1, 10), rep(0, 40), rep(1, 10), rep(0, 40))
 
 # Batch
-batch_vec <- sample(1:5, replace = TRUE, size = 100)
+batch_vec <- sample(seq(1, 5), replace = TRUE, size = 100)
 
 # Sampling parameters
 R <- 1000
@@ -47,5 +50,5 @@ burn <- 20
 eff_burn <- burn / thin
 
 # Probability across classes
-probs <- calcAllocProb(samples$alloc, burn = eff_burn)
+probs <- calcAllocProb(samples, burn = burn)
 }

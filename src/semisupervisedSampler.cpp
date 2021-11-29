@@ -48,7 +48,8 @@ void semisupervisedSampler::updateAllocation() {
   complete_likelihood = 0.0;
   observed_likelihood = 0.0;
   
-  for (auto& n : unfixed_ind) {
+  // for (auto& n : unfixed_ind) {
+  for (uword n = 0; n < N; n++) {
     
     // The mixture-specific log likelihood for each observation in each class
     ll = itemLogLikelihood(X_t.col(n), batch_vec(n));
@@ -67,10 +68,13 @@ void semisupervisedSampler::updateAllocation() {
     // Prediction and update
     u = randu<double>( );
     
-    labels(n) = sum(u > cumsum(comp_prob));
-    
-    // The allocation probability for each class
-    alloc.row(n) = comp_prob.t();
+    if(fixed(n) == 0) {
+      labels(n) = sum(u > cumsum(comp_prob));
+      
+      // The allocation probability for each class
+      alloc.row(n) = comp_prob.t();
+      
+    }
     
     // Update the complete likelihood based on the new labelling
     complete_likelihood += ll(labels(n));

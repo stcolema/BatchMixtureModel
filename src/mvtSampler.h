@@ -29,7 +29,6 @@
 //' the class weights
 //' \item Parameter: X - an N x P matrix of the observed data to model.
 //' }
-//' @field printType Print the sampler type called.
 //' @field updateWeights Update the weights of each component based on current 
 //' clustering.
 //' @field updateAllocation Sample a new clustering. 
@@ -54,7 +53,7 @@ public:
   // https://statmodeling.stat.columbia.edu/2015/05/17/do-we-have-any-recommendations-for-priors-for-student_ts-degrees-of-freedom-parameter/)
   // This gives a very wide range and a support of [2.0, infty).
   double psi = 2.0, 
-    chi = 0.01, 
+    chi = 0.1, 
     t_loc = 2.0,
     
     // Our proposal window
@@ -81,15 +80,15 @@ public:
     arma::uvec _labels,
     arma::uvec _batch_vec,
     arma::vec _concentration,
-    arma::mat _X
+    arma::mat _X,
+    double _m_scale,
+    double _rho,
+    double _theta
   ) ;
   
   // Destructor
   virtual ~mvtSampler() { };
-  
-  // Print the sampler type.
-  virtual void printType() override;
-  
+
   // Calculate the leading coefficient of the MVT pdf
   double calcPDFCoef(double t_df);
   

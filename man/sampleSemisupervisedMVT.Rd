@@ -18,7 +18,10 @@ sampleSemisupervisedMVT(
   t_df_proposal_window,
   R,
   thin,
-  concentration
+  concentration,
+  m_scale,
+  rho,
+  theta
 )
 }
 \arguments{
@@ -49,6 +52,13 @@ sampleSemisupervisedMVT(
 \item{thin}{thinning factor for samples recorded.}
 
 \item{concentration}{Vector of concentrations for mixture weights (recommended to be symmetric).}
+
+\item{m_scale}{The scale hyperparameter for the batch shift prior 
+distribution.}
+
+\item{rho}{The shape of the prior distribution for the batch scale.}
+
+\item{theta}{The scale of the prior distribution for the batch scale.}
 }
 \value{
 Named list of the matrix of MCMC samples generated (each row 

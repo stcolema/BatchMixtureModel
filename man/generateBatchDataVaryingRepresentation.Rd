@@ -7,11 +7,11 @@
 generateBatchDataVaryingRepresentation(
   N,
   P,
-  class_means,
+  group_means,
   std_dev,
   batch_shift,
   batch_var,
-  class_weights,
+  group_weights,
   batch_weights,
   frac_known = 0.2
 )
@@ -21,15 +21,15 @@ generateBatchDataVaryingRepresentation(
 
 \item{P}{The number of columns in the generated dataset.}
 
-\item{class_means}{A vector of the class means for a column.}
+\item{group_means}{A vector of the group means for a column.}
 
-\item{std_dev}{A vector of class standard deviations for a column.}
+\item{std_dev}{A vector of group standard deviations for a column.}
 
 \item{batch_shift}{A vector of batch means in a column.}
 
 \item{batch_var}{A vector of batch standard deviations within a column.}
 
-\item{class_weights}{A K x B matrix of the expected proportion of N in each class in each batch.}
+\item{group_weights}{A K x B matrix of the expected proportion of N in each group in each batch.}
 
 \item{batch_weights}{A vector of the expected proportion of N in each batch.}
 
@@ -37,14 +37,14 @@ generateBatchDataVaryingRepresentation(
 a ``fixed`` vector to feed into the ``batchSemiSupervisedMixtureModel`` function.}
 }
 \value{
-A list of 4 objects; the data generated from the clusters with and
-without batch effects, the label indicating the generating cluster and the
+A list of 4 objects; the data generated from the groups with and
+without batch effects, the label indicating the generating group and the
 batch label.
 }
 \description{
-Generate data from clusters across batches. Assumes independence
+Generate data from groups across batches. Assumes independence
 across columns. In each column the parameters are randomly permuted for both
-the clusters and batches.
+the groups and batches.
 }
 \examples{
 N <- 500
@@ -53,11 +53,11 @@ K <- 2
 B <- 5
 mean_dist <- 4
 batch_dist <- 0.3
-class_means <- 1:K * mean_dist
+group_means <- seq(1, K) * mean_dist
 batch_shift <- rnorm(B, mean = batch_dist, sd = batch_dist)
 std_dev <- rep(2, K)
 batch_var <- rep(1.2, B)
-class_weights <- matrix(c(
+group_weights <- matrix(c(
   0.8, 0.6, 0.4, 0.2, 0.2,
   0.2, 0.4, 0.6, 0.8, 0.8
 ),
@@ -68,11 +68,11 @@ batch_weights <- rep(1 / B, B)
 my_data <- generateBatchDataVaryingRepresentation(
   N,
   P,
-  class_means,
+  group_means,
   std_dev,
   batch_shift,
   batch_var,
-  class_weights,
+  group_weights,
   batch_weights
 )
 }

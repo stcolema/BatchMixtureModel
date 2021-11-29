@@ -16,16 +16,19 @@
 #' X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 #' 
 #' # Observed batches represented by integers
-#' batch_vec <- sample(1:5, size = 100, replace = TRUE)
+#' batch_vec <- sample(seq(1, 5), size = 100, replace = TRUE)
 #' 
 #' # MCMC iterations (this is too low for real use)
 #' R <- 100
 #' thin <- 5
 #'
 #' # MCMC samples and BIC vector
-#' samples <- batchMixtureModel(X, R, thin, batch_vec, "MVN")
+#' samples <- batchUnsupervisedMixtureModel(X, R, thin, batch_vec, "MVN")
 #'
-#' batch_shift_df <- getSampledBatchShift(samples$batch_shift, R = R, thin = thin)
+#' batch_shift_df <- getSampledBatchShift(samples$batch_shift, 
+#'   R = R, 
+#'   thin = thin
+#' )
 #' @importFrom tidyr pivot_longer contains
 #' @export
 getSampledBatchShift <- function(sampled_batch_shift, 
@@ -42,16 +45,27 @@ getSampledBatchShift <- function(sampled_batch_shift,
   # Stack the sampled matrices on top of each other
   sample_df <- data.frame(t(apply(sampled_batch_shift, 3L, rbind)))
   
+  # Indices over columns and batches
+  col_inds <- seq(1, P)
+  batch_inds <- seq(1, B)
+  
   # Give sensible column names
-  colnames(sample_df) <- suppressWarnings(paste0("M_", sort(as.numeric(levels(interaction(1:B, 1:P, sep = ""))))))
+  colnames(sample_df) <- suppressWarnings(
+    paste0("M_",
+           sort(as.numeric(levels(interaction(batch_inds, col_inds, sep = ""))))
+     )
+  )
   
   # Add a variable for the iteration the sample comes from
-  sample_df$Iteration <- c(1:(R / thin)) * thin
-
+  iterations <- seq(1, R / thin) * thin
+  sample_df$Iteration <- iterations
+  
   # Pivot to a long format ready for ``ggplot2``
   long_sample_df <- tidyr::pivot_longer(sample_df, tidyr::contains("M_"))
-  long_sample_df$Dimension <- rep(1:P, nrow(long_sample_df) / P)
-  long_sample_df$Batch <- rep(1:B, nrow(long_sample_df) / (B * P), each = P)
+  long_sample_df$Dimension <- rep(col_inds, nrow(long_sample_df) / P)
+  long_sample_df$Batch <- rep(batch_inds, nrow(long_sample_df) / (B * P), 
+    each = P
+  )
   
   long_sample_df
 }

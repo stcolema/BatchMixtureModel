@@ -38,14 +38,17 @@ Given an array of sampled batch mean shifts from the
 X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 
 # Observed batches represented by integers
-batch_vec <- sample(1:5, size = 100, replace = TRUE)
+batch_vec <- sample(seq(1, 5), size = 100, replace = TRUE)
 
 # MCMC iterations (this is too low for real use)
 R <- 100
 thin <- 5
 
 # MCMC samples and BIC vector
-samples <- batchMixtureModel(X, R, thin, batch_vec, "MVN")
+samples <- batchUnsupervisedMixtureModel(X, R, thin, batch_vec, "MVN")
 
-batch_shift_df <- getSampledBatchShift(samples$batch_shift, R = R, thin = thin)
+batch_shift_df <- getSampledBatchShift(samples$batch_shift, 
+  R = R, 
+  thin = thin
+)
 }

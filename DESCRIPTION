@@ -1,14 +1,25 @@
 Package: BatchMixtureModel
 Type: Package
-Title: Bayesian mixture models for batch effects
-License: GPL-3
-Version: 1.0
+Title: Semi-supervised Bayesian mixture models incorporating batch correction
+License: GPL-3 + file LICENSE
+Version: 1.0.1
 Date: 2021-01-15
-Author: c(person("Stephen", "Coleman", role=c("aut","cre"), email = "stephen.coleman@mrc-bsu.cam.ac.uk")
-Maintainer: Stephen Coleman <stephen.coleman@mrc-bsu.cam.ac.uk>
-Description: This package is for Bayesian mixture models extended to model batch effects.
+Authors@R: c(person(given = "Stephen", family = "Coleman",
+                    email = "stephen.coleman@mrc-bsu.cam.ac.uk",
+                    role = c("aut","cre")),
+             person(given = "Paul", family ="Kirk",
+                    email = "paul.kirk@mrc-bsu.cam.ac.uk",
+                    role = "aut"),
+             person(given = "Chris", family ="Wallace",
+                    email = "cew54@cam.ac.uk",
+                    role = "aut"))
+Description: This package includes a C++ implementation of both semi- and 
+  un-supervised Bayesian mixture models that jointly infer the group and a batch
+  correction. Denities available are the multivariate normal and the multivariate 
+  t. This package is aimed at analysis of low-dimensional assay data generated
+  across several batches such as Enzyme-Linked Immunosorbent Assay data.
 Imports: Rcpp (>= 1.0.5), RcppArmadillo, tidyr, ggplot2, stringr
-LinkingTo: Rcpp, RcppArmadillo, testthat, BH
+LinkingTo: Rcpp, RcppArmadillo, testthat
 Suggests: xml2
 SystemRequirements: GNU make
 Encoding: UTF-8

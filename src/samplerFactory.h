@@ -48,7 +48,10 @@ public:
     arma::uvec labels,
     arma::uvec batch_vec,
     arma::vec concentration,
-    arma::mat X
+    arma::mat X,
+    double m_scale,
+    double rho,
+    double theta
   );
   
 };

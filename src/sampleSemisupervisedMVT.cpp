@@ -26,7 +26,10 @@ Rcpp::List sampleSemisupervisedMVT (
     double t_df_proposal_window,
     arma::uword R,
     arma::uword thin,
-    arma::vec concentration
+    arma::vec concentration,
+    double m_scale,
+    double rho,
+    double theta
 ) {
 
   mvtPredictive my_sampler(K,
@@ -40,7 +43,10 @@ Rcpp::List sampleSemisupervisedMVT (
     batch_vec,
     concentration,
     X,
-    fixed
+    fixed,
+    m_scale,
+    rho,
+    theta
   );
   
   uword P = X.n_cols, N = X.n_rows;

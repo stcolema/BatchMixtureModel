@@ -16,7 +16,6 @@
 #' the class weights
 #' \item Parameter: X - an N x P matrix of the observed data to model.
 #' }
-#' @field printType Print the sampler type called.
 #' @field updateWeights Update the weights of each component based on current 
 #' clustering.
 #' @field updateAllocation Sample a new clustering. 
@@ -85,63 +84,95 @@ invWishartLogLikelihood <- function(X, Psi, nu, P) {
 #' @title Sample mixture of multivariate normal distributions with batch effects
 #' @description Performs MCMC sampling for a mixture model with batch effects.
 #' @param X The data matrix to perform clustering upon (items to cluster in rows).
-#' @param K The number of components to model (upper limit on the number of clusters found).
+#' @param K The number of components to model (upper limit on the number of 
+#' clusters found).
 #' @param B The number of batches to model.
 #' @param labels Vector item labels to initialise from.
 #' @param batch_vec Observed batch labels.
-#' @param mu_proposal_window The standard deviation for the Gaussian proposal density of the cluster means.
-#' @param cov_proposal_window The degrees of freedom for the Wishart proposal density of the cluster covariances.
-#' @param m_proposal_window The standard deviation for the Gaussian proposal density of the batch mean effects.
-#' @param S_proposal_window The rate for the Gamma proposal density of the batch scale.
+#' @param mu_proposal_window The standard deviation for the Gaussian proposal
+#' density of the cluster means.
+#' @param cov_proposal_window The degrees of freedom for the Wishart proposal
+#' density of the cluster covariances.
+#' @param m_proposal_window The standard deviation for the Gaussian proposal
+#' density of the batch mean effects.
+#' @param S_proposal_window The rate for the Gamma proposal density of the 
+#' batch scale.
 #' @param R The number of iterations to run for.
 #' @param thin thinning factor for samples recorded.
-#' @param concentration Vector of concentrations for mixture weights (recommended to be symmetric).
+#' @param concentration Vector of concentrations for mixture weights
+#' (recommended to be symmetric).
+#' @param m_scale The scale hyperparameter for the batch shift prior 
+#' distribution.
+#' @param rho The shape of the prior distribution for the batch scale.
+#' @param theta The scale of the prior distribution for the batch scale.
 #' @return Named list of the matrix of MCMC samples generated (each row 
 #' corresponds to a different sample) and BIC for each saved iteration.
-sampleMVN <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration) {
-    .Call(`_BatchMixtureModel_sampleMVN`, X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration)
+sampleMVN <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta) {
+    .Call(`_BatchMixtureModel_sampleMVN`, X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta)
 }
 
 #' @title Sample mixture of multivariate t-distributions with batch effects
 #' @description Performs MCMC sampling for a MVT mixture model with batch effects.
 #' @param X The data matrix to perform clustering upon (items to cluster in rows).
-#' @param K The number of components to model (upper limit on the number of clusters found).
+#' @param K The number of components to model (upper limit on the number of 
+#' clusters found).
 #' @param B The number of batches to model.
 #' @param labels Vector item labels to initialise from.
 #' @param batch_vec Observed batch labels.
-#' @param mu_proposal_window The standard deviation for the Gaussian proposal density of the cluster means.
-#' @param cov_proposal_window The degrees of freedom for the Wishart proposal density of the cluster covariances.
-#' @param m_proposal_window The standard deviation for the Gaussian proposal density of the batch mean effects.
-#' @param S_proposal_window The rate for the Gamma proposal density of the batch scale.
-#' @param t_df_proposal_window The rate for the Gamma proposal density of the cluster degrees of freedom.
+#' @param mu_proposal_window The standard deviation for the Gaussian proposal 
+#' density of the cluster means.
+#' @param cov_proposal_window The degrees of freedom for the Wishart proposal 
+#' density of the cluster covariances.
+#' @param m_proposal_window The standard deviation for the Gaussian proposal 
+#' density of the batch mean effects.
+#' @param S_proposal_window The rate for the Gamma proposal density of the 
+#' batch scale.
+#' @param t_df_proposal_window The rate for the Gamma proposal density of the 
+#' cluster degrees of freedom.
 #' @param R The number of iterations to run for.
 #' @param thin thinning factor for samples recorded.
-#' @param concentration Vector of concentrations for mixture weights (recommended to be symmetric).
+#' @param concentration Vector of concentrations for mixture weights 
+#' (recommended to be symmetric).
+#' @param m_scale The scale hyperparameter for the batch shift prior 
+#' distribution.
+#' @param rho The shape of the prior distribution for the batch scale.
+#' @param theta The scale of the prior distribution for the batch scale.
 #' @return Named list of the matrix of MCMC samples generated (each row 
 #' corresponds to a different sample) and BIC for each saved iteration.
-sampleMVT <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration) {
-    .Call(`_BatchMixtureModel_sampleMVT`, X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration)
+sampleMVT <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta) {
+    .Call(`_BatchMixtureModel_sampleMVT`, X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta)
 }
 
 #' @title Sample semi-supervised MVN Mixture model
 #' @description Performs MCMC sampling for a mixture model.
-#' @param X The data matrix to perform clustering upon (items to cluster in rows).
-#' @param K The number of components to model (upper limit on the number of clusters found).
+#' @param X The data matrix to perform clustering upon (items to cluster in
+#' rows).
+#' @param K The number of components to model (upper limit on the number of
+#' clusters found).
 #' @param B The number of batches to model.
 #' @param labels Vector item labels to initialise from.
 #' @param batch_vec Observed batch labels.
-#' @param fixed Binary vector of the items that are fixed in their initial label.
-#' @param mu_proposal_window The standard deviation for the Gaussian proposal density of the cluster means.
-#' @param cov_proposal_window The degrees of freedom for the Wishart proposal density of the cluster covariances.
-#' @param m_proposal_window The standard deviation for the Gaussian proposal density of the batch mean effects.
+#' @param fixed Binary vector of the items that are fixed in their initial
+#' label.
+#' @param mu_proposal_window The standard deviation for the Gaussian proposal
+#'  density of the cluster means.
+#' @param cov_proposal_window The degrees of freedom for the Wishart proposal
+#'  density of the cluster covariances.
+#' @param m_proposal_window The standard deviation for the Gaussian proposal
+#'  density of the batch mean effects.
 #' @param S_proposal_window The rate for the Gamma proposal density of the batch scale.
 #' @param R The number of iterations to run for.
 #' @param thin thinning factor for samples recorded.
-#' @param concentration Vector of concentrations for mixture weights (recommended to be symmetric).
+#' @param concentration Vector of concentrations for mixture weights 
+#' (recommended to be symmetric).
+#' @param m_scale The scale hyperparameter for the batch shift prior 
+#' distribution.
+#' @param rho The shape of the prior distribution for the batch scale.
+#' @param theta The scale of the prior distribution for the batch scale.
 #' @return Named list of the matrix of MCMC samples generated (each row 
 #' corresponds to a different sample) and BIC for each saved iteration.
-sampleSemisupervisedMVN <- function(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration) {
-    .Call(`_BatchMixtureModel_sampleSemisupervisedMVN`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration)
+sampleSemisupervisedMVN <- function(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta) {
+    .Call(`_BatchMixtureModel_sampleSemisupervisedMVN`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta)
 }
 
 #' @title Sample semi-supervised MVT Mixture model
@@ -160,9 +191,13 @@ sampleSemisupervisedMVN <- function(X, K, B, labels, batch_vec, fixed, mu_propos
 #' @param R The number of iterations to run for.
 #' @param thin thinning factor for samples recorded.
 #' @param concentration Vector of concentrations for mixture weights (recommended to be symmetric).
+#' @param m_scale The scale hyperparameter for the batch shift prior 
+#' distribution.
+#' @param rho The shape of the prior distribution for the batch scale.
+#' @param theta The scale of the prior distribution for the batch scale.
 #' @return Named list of the matrix of MCMC samples generated (each row 
 #' corresponds to a different sample) and BIC for each saved iteration.
-sampleSemisupervisedMVT <- function(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration) {
-    .Call(`_BatchMixtureModel_sampleSemisupervisedMVT`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration)
+sampleSemisupervisedMVT <- function(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta) {
+    .Call(`_BatchMixtureModel_sampleSemisupervisedMVT`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta)
 }
 

@@ -46,13 +46,14 @@ public:
     double S_proposal_window,
     double t_df_proposal_window,
     double phi_proposal_window,
-    double rho,
-    double theta,
     arma::uvec labels,
     arma::uvec batch_vec,
     arma::vec concentration,
     arma::mat X,
-    arma::uvec fixed
+    arma::uvec fixed,
+    double m_scale,
+    double rho,
+    double theta
   );
 };
 

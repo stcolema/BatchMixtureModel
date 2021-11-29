@@ -32,14 +32,21 @@ labels <- c(rep(1, 10),
 fixed <- c(rep(1, 10), rep(0, 40), rep(1, 10), rep(0, 40))
 
 # Batch
-batch_vec <- sample(1:5, replace = TRUE, size = 100)
+batch_vec <- sample(seq(1, 5), replace = TRUE, size = 100)
 
 # Sampling parameters
 R <- 1000
 thin <- 50
 
 # MCMC samples and BIC vector
-samples <- batchSemiSupervisedMixtureModel(X, R, thin, labels, fixed, batch_vec, "MVN")
+samples <- batchSemiSupervisedMixtureModel(X, 
+  R, 
+  thin, 
+  labels, 
+  fixed, 
+  batch_vec, 
+  "MVN"
+)
 
 # Burn in
 burn <- 200

@@ -24,7 +24,10 @@ mvnSampler::mvnSampler(
   arma::uvec _labels,
   arma::uvec _batch_vec,
   arma::vec _concentration,
-  arma::mat _X
+  arma::mat _X,
+  double _m_scale,
+  double _rho,
+  double _theta
 ) : sampler(_K,
 _B,
 _labels,
@@ -78,10 +81,16 @@ _X) {
   
   // The mean of the prior distribution for the batch shift, m, parameter
   delta = 0.0;
+  m_scale = _m_scale;
   
   // Prior precision is the inverse of something on the scale of 1/10 the global 
   // covariance
-  t = 1.0 / ((accu(global_cov.diag()) / P ) * 0.01);
+  // t = 1.0 / ((accu(global_cov.diag()) / P ) * 0.01);
+  t = 1.0 / ((accu(global_cov.diag()) / P ) * m_scale);
+  
+  // Hyperparameters for the batch scale
+  rho = _rho;
+  theta = _theta;
 
   // Set the size of the objects to hold the component specific parameters
   mu.set_size(P, K);
@@ -138,12 +147,6 @@ _X) {
   m_proposal_window = _m_proposal_window;
   S_proposal_window = _S_proposal_window;
   
-};
-
-
-// Print the sampler type.
-void mvnSampler::printType() {
-  std::cout << "\nType: MVN.\n";
 };
 
 void mvnSampler::sampleCovPrior() {
@@ -370,7 +373,7 @@ void mvnSampler::batchScaleMetropolis() {
       
       S_proposed(p) = S_loc + randg( distr_param( (S(p, b) - S_loc) * S_proposal_window, 1.0 / S_proposal_window) );
       
-      if(S_proposed(p) <= 0.0) {
+      if(S_proposed(p) <= S_loc) {
         next = true;
       }
 
@@ -613,41 +616,6 @@ void mvnSampler::updateBatchCorrectedData() {
   arma::mat mu_mat = mu.cols(labels);
   
   Y = ((X_t - mu_mat - m.cols(batch_vec)) / sqrt(S.cols(batch_vec)) + mu_mat).t();
-}
-
-void mvnSampler::checkPositiveDefinite(arma::uword r) {
-  for(arma::uword k = 0; k < K; k++) {
-    if(! cov.slice(k).is_sympd()) {
-      
-      std::cout << "\nIteration " << r;
-      std::cout << "\n\nCovariance " << k << " is not positive definite.\n\n" 
-                << cov.slice(k);
-      
-      throw;
-    }
-    if(! cov_inv.slice(k).is_sympd()) {
-      
-      std::cout << "\nIteration " << r;
-      std::cout << "\n\nCovariance inverse " << k << 
-        " is not positive definite.\n\n" << cov_inv.slice(k);
-      throw;
-    }
-    for(arma::uword b = 0; b < B; b++) {
-      if(! cov_comb.slice(k * B + b).is_sympd()) {
-        std::cout << "\nIteration " << r;
-        std::cout << "\n\nCombined covariance for cluster " << k << " and batch " 
-                  << b << " is not positive definite.\n\n" << cov_comb.slice(k * B + b);
-        std::cout << "\n\nS(b):\n" << S.col(b) << "\n\nCov(k):\n" << cov.slice(k);
-        throw;
-      }
-      if(! cov_comb_inv.slice(k * B + b).is_sympd()) {
-        std::cout << "\nIteration " << r;
-        std::cout << "\n\nCombined covariance inverse for cluster " << k << " and batch " 
-                  << b << " is not positive definite.\n\n" << cov_comb_inv.slice(k * B + b);
-        throw;
-      }
-    }
-  }
 }
 
 void mvnSampler::metropolisStep() {

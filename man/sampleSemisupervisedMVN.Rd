@@ -17,13 +17,18 @@ sampleSemisupervisedMVN(
   S_proposal_window,
   R,
   thin,
-  concentration
+  concentration,
+  m_scale,
+  rho,
+  theta
 )
 }
 \arguments{
-\item{X}{The data matrix to perform clustering upon (items to cluster in rows).}
+\item{X}{The data matrix to perform clustering upon (items to cluster in
+rows).}
 
-\item{K}{The number of components to model (upper limit on the number of clusters found).}
+\item{K}{The number of components to model (upper limit on the number of
+clusters found).}
 
 \item{B}{The number of batches to model.}
 
@@ -31,13 +36,17 @@ sampleSemisupervisedMVN(
 
 \item{batch_vec}{Observed batch labels.}
 
-\item{fixed}{Binary vector of the items that are fixed in their initial label.}
+\item{fixed}{Binary vector of the items that are fixed in their initial
+label.}
 
-\item{mu_proposal_window}{The standard deviation for the Gaussian proposal density of the cluster means.}
+\item{mu_proposal_window}{The standard deviation for the Gaussian proposal
+density of the cluster means.}
 
-\item{cov_proposal_window}{The degrees of freedom for the Wishart proposal density of the cluster covariances.}
+\item{cov_proposal_window}{The degrees of freedom for the Wishart proposal
+density of the cluster covariances.}
 
-\item{m_proposal_window}{The standard deviation for the Gaussian proposal density of the batch mean effects.}
+\item{m_proposal_window}{The standard deviation for the Gaussian proposal
+density of the batch mean effects.}
 
 \item{S_proposal_window}{The rate for the Gamma proposal density of the batch scale.}
 
@@ -45,7 +54,15 @@ sampleSemisupervisedMVN(
 
 \item{thin}{thinning factor for samples recorded.}
 
-\item{concentration}{Vector of concentrations for mixture weights (recommended to be symmetric).}
+\item{concentration}{Vector of concentrations for mixture weights 
+(recommended to be symmetric).}
+
+\item{m_scale}{The scale hyperparameter for the batch shift prior 
+distribution.}
+
+\item{rho}{The shape of the prior distribution for the batch scale.}
+
+\item{theta}{The scale of the prior distribution for the batch scale.}
 }
 \value{
 Named list of the matrix of MCMC samples generated (each row 

@@ -24,12 +24,11 @@ Rcpp::List sampleMVT (
     double t_df_proposal_window,
     arma::uword R,
     arma::uword thin,
-    arma::vec concentration
+    arma::vec concentration,
+    double m_scale,
+    double rho,
+    double theta
 ) {
-  
-  // The random seed is set at the R level via set.seed() apparently.
-  // std::default_random_engine generator(seed);
-  // arma::arma_rng::set_seed(seed);
   
   mvtSampler my_sampler(K,
     B,
@@ -41,7 +40,10 @@ Rcpp::List sampleMVT (
     labels,
     batch_vec,
     concentration,
-    X
+    X,
+    m_scale,
+    rho,
+    theta
   );
   
   // We use this enough that declaring it is worthwhile

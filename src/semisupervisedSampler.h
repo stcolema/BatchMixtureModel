@@ -58,7 +58,7 @@ public:
   virtual ~semisupervisedSampler() { };
   
   // The allocation function is slightly different in the semisupervised sampler.
-  virtual void updateAllocation();
+  virtual void updateAllocation() override;
 };
 
 #endif /* SEMISUPERVISEDSAMPLER_H */

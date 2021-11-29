@@ -28,7 +28,6 @@
 //' the class weights
 //' \item Parameter: X - an N x P matrix of the observed data to model.
 //' }
-//' @field printType Print the sampler type called.
 //' @field updateWeights Update the weights of each component based on current 
 //' clustering.
 //' @field updateAllocation Sample a new clustering. 
@@ -66,14 +65,14 @@ public:
     arma::uvec _labels,
     arma::uvec _batch_vec,
     arma::vec _concentration,
-    arma::mat _X
+    arma::mat _X,
+    double _m_scale,
+    double _rho,
+    double _theta
   );
   
   // Destructor
   virtual ~msnSampler() { };
-  
-  // Print the sampler type.
-  virtual void printType() override;
   
   void sampleDFPrior();
   

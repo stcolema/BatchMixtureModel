@@ -26,7 +26,6 @@
 //' the class weights
 //' \item Parameter: X - an N x P matrix of the observed data to model.
 //' }
-//' @field printType Print the sampler type called.
 //' @field updateWeights Update the weights of each component based on current 
 //' clustering.
 //' @field updateAllocation Sample a new clustering. 
@@ -54,19 +53,16 @@ public:
     // Hyperparameters for the batch mean
     delta = 0.0,
     t = 0.0,
+    m_scale = 0.01,
     // lambda,
     
-    // Hyperparameters for the batch scale. These choices give > 99% of sampled
+    // Hyperparameters for the batch scale. These choices expects sampled
     // values in the range of 1.2 to 2.0 which seems a sensible prior belief.
-    // Posisbly a little too informative; if S = 2.0 we're saying the batch 
-    // provides as much variation as the biology. However, as our batch scales 
-    // are strictly greater than 1.0 some shared global scaling is collected 
-    // here.
-    rho = 21,
-    theta = 10, 
+    rho = 3.0,
+    theta = 1.0, 
     S_loc = 1.0, // this gives the batch scale a support of (1.0, \infty)
     
-    // Proposal windows
+    // Proposal windows (initialised but assigned values by user)
     mu_proposal_window = 0.0,
     cov_proposal_window = 0.0,
     m_proposal_window = 0.0,
@@ -89,13 +85,14 @@ public:
     arma::uvec _labels,
     arma::uvec _batch_vec,
     arma::vec _concentration,
-    arma::mat _X
+    arma::mat _X,
+    double m_scale,
+    double rho,
+    double theta
   );
   
   // Destructor
   virtual ~mvnSampler() { };
-  
-  virtual void printType();
   
   // Parameter specific priors
   void sampleCovPrior();
@@ -143,7 +140,7 @@ public:
   virtual void updateBatchCorrectedData();
   
   // Used in determining problems - probably unnecessary now.
-  virtual void checkPositiveDefinite(arma::uword r);
+  // virtual void checkPositiveDefinite(arma::uword r);
   
   // Mixture specific functions
   virtual void metropolisStep() override;

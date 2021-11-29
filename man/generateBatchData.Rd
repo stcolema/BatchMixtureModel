@@ -7,11 +7,11 @@
 generateBatchData(
   N,
   P,
-  cluster_means,
+  group_means,
   std_dev,
   batch_shift,
   batch_var,
-  cluster_weights,
+  group_weights,
   batch_weights,
   frac_known = 0.2
 )
@@ -21,15 +21,15 @@ generateBatchData(
 
 \item{P}{The number of columns in the generated dataset.}
 
-\item{cluster_means}{A vector of the cluster means for a column.}
+\item{group_means}{A vector of the group means for a column.}
 
-\item{std_dev}{A vector of cluster standard deviations for a column.}
+\item{std_dev}{A vector of group standard deviations for a column.}
 
 \item{batch_shift}{A vector of batch means in a column.}
 
 \item{batch_var}{A vector of batch standard deviations within a column.}
 
-\item{cluster_weights}{A vector of the expected proportion of N in each cluster.}
+\item{group_weights}{A vector of the expected proportion of N in each group.}
 
 \item{batch_weights}{A vector of the expected proportion of N in each batch.}
 
@@ -37,14 +37,14 @@ generateBatchData(
 a ``fixed`` vector to feed into the ``batchSemiSupervisedMixtureModel`` function.}
 }
 \value{
-A list of 4 objects; the data generated from the clusters with and
-without batch effects, the label indicating the generating cluster and the
+A list of 4 objects; the data generated from the groups with and
+without batch effects, the label indicating the generating group and the
 batch label.
 }
 \description{
-Generate data from clusters across batches. Assumes independence
+Generate data from groups across batches. Assumes independence
 across columns. In each column the parameters are randomly permuted for both
-the clusters and batches.
+the groups and batches.
 }
 \examples{
 N <- 500
@@ -53,21 +53,21 @@ K <- 2
 B <- 5
 mean_dist <- 4
 batch_dist <- 0.3
-cluster_means <- 1:K * mean_dist
+group_means <- seq(1, K) * mean_dist
 batch_shift <- stats::rnorm(B, sd = batch_dist)
 std_dev <- rep(2, K)
 batch_var <- rep(1.2, B)
-cluster_weights <- rep(1 / K, K)
+group_weights <- rep(1 / K, K)
 batch_weights <- rep(1 / B, B)
 
 my_data <- generateBatchData(
   N,
   P,
-  cluster_means,
+  group_means,
   std_dev,
   batch_shift,
   batch_var,
-  cluster_weights,
+  group_weights,
   batch_weights
 )
 }
