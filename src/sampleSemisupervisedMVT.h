@@ -28,6 +28,10 @@
 //' @param R The number of iterations to run for.
 //' @param thin thinning factor for samples recorded.
 //' @param concentration Vector of concentrations for mixture weights (recommended to be symmetric).
+//' @param m_scale The scale hyperparameter for the batch shift prior 
+//' distribution.
+//' @param rho The shape of the prior distribution for the batch scale.
+//' @param theta The scale of the prior distribution for the batch scale.
 //' @return Named list of the matrix of MCMC samples generated (each row 
 //' corresponds to a different sample) and BIC for each saved iteration.
 // [[Rcpp::export]]
