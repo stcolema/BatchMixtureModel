@@ -9,8 +9,7 @@
 #' @param thin The factor by which the samples generated are thinned, e.g. if 
 #' ``thin=50`` only every 50th sample is kept.
 #' @param type Character indicating density type to use. One of 'MVN' 
-#' (multivariate normal distribution), 'MVT' (multivariate t distribution) or 
-#' 'MSN' (multivariate skew normal distribution).
+#' (multivariate normal distribution) or 'MVT' (multivariate t distribution).
 #' @param K_max The number of components to include (the upper bound on the
 #' number of clusters in each sample). Defaults to the number of unique labels 
 #' in ``initial_labels``.
@@ -32,6 +31,9 @@
 #' distribution.
 #' @param rho The shape of the prior distribution for the batch scale.
 #' @param theta The scale of the prior distribution for the batch scale.
+#' @return A named list containing the sampled partitions, cluster and batch
+#' parameters, model fit measures and some details on the model call.
+#' @export
 #' @examples
 #' 
 #' # Data in a matrix format
@@ -55,7 +57,6 @@
 #'
 #' # MCMC samples and BIC vector
 #' samples <- batchSemiSupervisedMixtureModel(X, R, thin, labels, fixed, batch_vec, "MVN")
-#' @export
 batchSemiSupervisedMixtureModel <- function(X, 
                                             R, 
                                             thin, 
@@ -71,9 +72,9 @@ batchSemiSupervisedMixtureModel <- function(X,
                                             S_proposal_window = 100,
                                             t_df_proposal_window = 100,
                                             phi_proposal_window = 1.2**2,
-                                            m_scale = 0.01,
-                                            rho = 3.0,
-                                            theta = 1.0
+                                            m_scale = 0.1,
+                                            rho = 11.0,
+                                            theta = 5.0
 ) {
   if (!is.matrix(X)) {
     stop("X is not a matrix. Data should be in matrix format.")
