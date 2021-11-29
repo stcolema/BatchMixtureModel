@@ -23,7 +23,7 @@
 #' thin <- 5
 #'
 #' # MCMC samples and BIC vector
-#' samples <- batchMixtureModel(X, R, thin, batch_vec, "MVN")
+#' samples <- batchUnsupervisedMixtureModel(X, R, thin, batch_vec, "MVN")
 #'
 #' batch_shift_df <- getSampledBatchShift(samples$batch_shift, 
 #'   R = R, 

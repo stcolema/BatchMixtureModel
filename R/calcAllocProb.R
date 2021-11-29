@@ -1,10 +1,12 @@
 #!/usr/bin/Rscript
-#' @title Caclulate allocation probabilities
+#' @title Calculate allocation probabilities
 #' @description Calculate the empirical allocation probability for each class
-#' based on the sampled allocations.
+#' based on the sampled allocation probabilities.
 #' @param samples Sampled allocation probabilities in output from the
 #' ``batchSemiSupervisedMixtureModel`` or ``batchMixtureModel``.
 #' @param burn The number of samples to discard.
+#' @param method The point estimate to use. ``method = 'mean'`` or
+#' ``method = 'median'``. ``'median'`` is the default.
 #' @return An N x K matrix of class probabilities.
 #' @examples
 #' # Data in matrix format
@@ -34,13 +36,33 @@
 #' eff_burn <- burn / thin
 #' 
 #' # Probability across classes
-#' probs <- calcAllocProb(samples$alloc, burn = eff_burn)
+#' probs <- calcAllocProb(samples, burn = burn)
 #' @export
-calcAllocProb <- function(samples, burn){
-  if (burn > 0) {
-    dropped_samples <- seq(1, burn)
-    samples <- samples[, , -dropped_samples]
+calcAllocProb <- function(mcmc_samples, burn = 0, method = "median") {
+  R <- mcmc_samples$R
+  thin <- mcmc_samples$thin
+  .alloc <- mcmc_samples$alloc
+  
+  if(burn > 0) {
+    if(burn > R) {
+      stop("Burn in exceeds number of iterations run.")
+    }
+    
+    eff_burn <- floor(burn / thin)
+    dropped_samples <- seq(1, eff_burn)
+    .alloc <- .alloc[, , -dropped_samples]
   }
-  prob <- rowSums(samples, dims = 2) / dim(samples)[3]
-  prob
+  
+  probs <- NULL
+  
+  if(method == "median") {
+    probs <- apply(.alloc, c(1, 2), median)
+  }
+  if(method == "mean") {
+    probs <- rowSums(.alloc, dims = 2) / dim(.alloc)[3]
+  }
+  if(probs == "NULL") {
+    stop("``method`` must be one of 'mean' or 'median'")
+  }
+  probs
 }

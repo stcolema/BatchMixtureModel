@@ -20,9 +20,9 @@ batchSemiSupervisedMixtureModel(
   S_proposal_window = 100,
   t_df_proposal_window = 100,
   phi_proposal_window = 1.2^2,
-  m_scale = 0.01,
-  rho = 3,
-  theta = 1
+  m_scale = 0.1,
+  rho = 11,
+  theta = 5
 )
 }
 \arguments{
@@ -40,8 +40,7 @@ batchSemiSupervisedMixtureModel(
 \item{batch_vec}{Labels identifying which batch each item being clustered is from.}
 
 \item{type}{Character indicating density type to use. One of 'MVN' 
-(multivariate normal distribution), 'MVT' (multivariate t distribution) or 
-'MSN' (multivariate skew normal distribution).}
+(multivariate normal distribution) or 'MVT' (multivariate t distribution).}
 
 \item{K_max}{The number of components to include (the upper bound on the
 number of clusters in each sample). Defaults to the number of unique labels 
@@ -74,6 +73,10 @@ distribution.}
 \item{rho}{The shape of the prior distribution for the batch scale.}
 
 \item{theta}{The scale of the prior distribution for the batch scale.}
+}
+\value{
+A named list containing the sampled partitions, cluster and batch
+parameters, model fit measures and some details on the model call.
 }
 \description{
 A Bayesian mixture model with batch effects.

@@ -23,7 +23,7 @@
 #' thin <- 5
 #'
 #' # MCMC samples
-#' samples <- batchMixtureModel(X, R, thin, batch_vec, "MVN")
+#' samples <- batchUnsupervisedMixtureModel(X, R, thin, batch_vec, "MVN")
 #'
 #' batch_shift_df <- getSampledClusterMeans(samples$means, R = R, thin = thin)
 #' @importFrom tidyr pivot_longer contains

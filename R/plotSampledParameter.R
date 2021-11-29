@@ -21,7 +21,7 @@
 #' thin <- 1
 #'
 #' # MCMC samples and BIC vector
-#' samples <- batchMixtureModel(X, R, thin, batch_vec, "MVN")
+#' samples <- batchUnsupervisedMixtureModel(X, R, thin, batch_vec, "MVN")
 #' 
 #' # Plot the sampled value of the cluster means against MCMC iteration 
 #' parameter <- "means"
