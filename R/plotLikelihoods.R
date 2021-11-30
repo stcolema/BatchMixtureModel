@@ -6,6 +6,7 @@
 #' ``'observed_likelihood'``, ``'complete_likelihood'`` or ``'BIC'``. Defaults
 #' to ``'complete_likelihood'``.
 #' @return A ggplot2 object. Line plot of likelihood across iteration.
+#' @importFrom ggplot2 ggplot aes_string geom_line
 #' @export
 #' @examples
 #'
@@ -44,7 +45,7 @@ plotLikelihoods <- function(mcmc_outputs, choice = "complete_likelihood") {
 
   lkl_df <- do.call(rbind, lkl_lst)
 
-  p <- ggplot(
+  p <- ggplot2::ggplot(
     data = lkl_df,
     mapping = ggplot2::aes_string(
       x = "iteration",
