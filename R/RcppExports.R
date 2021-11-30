@@ -105,10 +105,28 @@ invWishartLogLikelihood <- function(X, Psi, nu, P) {
 #' distribution.
 #' @param rho The shape of the prior distribution for the batch scale.
 #' @param theta The scale of the prior distribution for the batch scale.
+#' @param initial_mu A P x K matrix of initial values for the class means.
+#' @param initial_cov A P x P x K cube of initial values for the class 
+#' covariance matrices.
+#' @param initial_m A P x B matrix of initial values for the batch shift 
+#' effects.
+#' @param initial_S A P x B matrix of initial values for the batch scales.
+#' @param mu_initialised Bool indicating if the class means are initialised by
+#' the user. If ``false`` then initial values are drawn from the prior 
+#' distribution.
+#' @param cov_initialised Bool indicating if the class covariance matrices are 
+#' initialised by the user. If ``false`` then initial values are drawn from the
+#' prior distribution.
+#' @param m_initialised Bool indicating if the batch shift effects are 
+#' initialised by the user. If ``false`` then initial values are drawn from the
+#' prior distribution.
+#' @param S_initialised Bool indicating if the batch scales are initialised by 
+#' the user. If ``false`` then initial values are drawn from the prior 
+#' distribution.
 #' @return Named list of the matrix of MCMC samples generated (each row 
 #' corresponds to a different sample) and BIC for each saved iteration.
-sampleMVN <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta) {
-    .Call(`_BatchMixtureModel_sampleMVN`, X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta)
+sampleMVN <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_m, initial_S, mu_initialised, cov_initialised, m_initialised, S_initialised) {
+    .Call(`_BatchMixtureModel_sampleMVN`, X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_m, initial_S, mu_initialised, cov_initialised, m_initialised, S_initialised)
 }
 
 #' @title Sample mixture of multivariate t-distributions with batch effects
@@ -137,10 +155,33 @@ sampleMVN <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_propos
 #' distribution.
 #' @param rho The shape of the prior distribution for the batch scale.
 #' @param theta The scale of the prior distribution for the batch scale.
+#' @param initial_mu A P x K matrix of initial values for the class means.
+#' @param initial_cov A P x P x K cube of initial values for the class 
+#' covariance matrices.
+#' @param initial_df A K vector of initial values for the class degrees of
+#' freedom.
+#' @param initial_m A P x B matrix of initial values for the batch shift 
+#' effects.
+#' @param initial_S A P x B matrix of initial values for the batch scales.
+#' @param mu_initialised Bool indicating if the class means are initialised by
+#' the user. If ``false`` then initial values are drawn from the prior 
+#' distribution.
+#' @param cov_initialised Bool indicating if the class covariance matrices are 
+#' initialised by the user. If ``false`` then initial values are drawn from the
+#' prior distribution.
+#' @param df_initialised Bool indicating if the class degrees of freedom are 
+#' initialised by the user. If ``false`` then initial values are drawn from the 
+#' prior distribution.
+#' @param m_initialised Bool indicating if the batch shift effects are 
+#' initialised by the user. If ``false`` then initial values are drawn from the
+#' prior distribution.
+#' @param S_initialised Bool indicating if the batch scales are initialised by 
+#' the user. If ``false`` then initial values are drawn from the prior 
+#' distribution.
 #' @return Named list of the matrix of MCMC samples generated (each row 
 #' corresponds to a different sample) and BIC for each saved iteration.
-sampleMVT <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta) {
-    .Call(`_BatchMixtureModel_sampleMVT`, X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta)
+sampleMVT <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_df, initial_m, initial_S, mu_initialised, cov_initialised, df_initialised, m_initialised, S_initialised) {
+    .Call(`_BatchMixtureModel_sampleMVT`, X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_df, initial_m, initial_S, mu_initialised, cov_initialised, df_initialised, m_initialised, S_initialised)
 }
 
 #' @title Sample semi-supervised MVN Mixture model
@@ -169,10 +210,28 @@ sampleMVT <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_propos
 #' distribution.
 #' @param rho The shape of the prior distribution for the batch scale.
 #' @param theta The scale of the prior distribution for the batch scale.
+#' @param initial_mu A P x K matrix of initial values for the class means.
+#' @param initial_cov A P x P x K cube of initial values for the class 
+#' covariance matrices.
+#' @param initial_m A P x B matrix of initial values for the batch shift 
+#' effects.
+#' @param initial_S A P x B matrix of initial values for the batch scales.
+#' @param mu_initialised Bool indicating if the class means are initialised by
+#' the user. If ``false`` then initial values are drawn from the prior 
+#' distribution.
+#' @param cov_initialised Bool indicating if the class covariance matrices are 
+#' initialised by the user. If ``false`` then initial values are drawn from the
+#' prior distribution.
+#' @param m_initialised Bool indicating if the batch shift effects are 
+#' initialised by the user. If ``false`` then initial values are drawn from the
+#' prior distribution.
+#' @param S_initialised Bool indicating if the batch scales are initialised by 
+#' the user. If ``false`` then initial values are drawn from the prior 
+#' distribution.
 #' @return Named list of the matrix of MCMC samples generated (each row 
 #' corresponds to a different sample) and BIC for each saved iteration.
-sampleSemisupervisedMVN <- function(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta) {
-    .Call(`_BatchMixtureModel_sampleSemisupervisedMVN`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta)
+sampleSemisupervisedMVN <- function(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_m, initial_S, mu_initialised, cov_initialised, m_initialised, S_initialised) {
+    .Call(`_BatchMixtureModel_sampleSemisupervisedMVN`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_m, initial_S, mu_initialised, cov_initialised, m_initialised, S_initialised)
 }
 
 #' @title Sample semi-supervised MVT Mixture model
@@ -195,9 +254,32 @@ sampleSemisupervisedMVN <- function(X, K, B, labels, batch_vec, fixed, mu_propos
 #' distribution.
 #' @param rho The shape of the prior distribution for the batch scale.
 #' @param theta The scale of the prior distribution for the batch scale.
+#' @param initial_mu A P x K matrix of initial values for the class means.
+#' @param initial_cov A P x P x K cube of initial values for the class 
+#' covariance matrices.
+#' @param initial_df A K vector of initial values for the class degrees of
+#' freedom.
+#' @param initial_m A P x B matrix of initial values for the batch shift 
+#' effects.
+#' @param initial_S A P x B matrix of initial values for the batch scales.
+#' @param mu_initialised Bool indicating if the class means are initialised by
+#' the user. If ``false`` then initial values are drawn from the prior 
+#' distribution.
+#' @param cov_initialised Bool indicating if the class covariance matrices are 
+#' initialised by the user. If ``false`` then initial values are drawn from the
+#' prior distribution.
+#' @param df_initialised Bool indicating if the class degrees of freedom are 
+#' initialised by the user. If ``false`` then initial values are drawn from the 
+#' prior distribution.
+#' @param m_initialised Bool indicating if the batch shift effects are 
+#' initialised by the user. If ``false`` then initial values are drawn from the
+#' prior distribution.
+#' @param S_initialised Bool indicating if the batch scales are initialised by 
+#' the user. If ``false`` then initial values are drawn from the prior 
+#' distribution.
 #' @return Named list of the matrix of MCMC samples generated (each row 
 #' corresponds to a different sample) and BIC for each saved iteration.
-sampleSemisupervisedMVT <- function(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta) {
-    .Call(`_BatchMixtureModel_sampleSemisupervisedMVT`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta)
+sampleSemisupervisedMVT <- function(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_df, initial_m, initial_S, mu_initialised, cov_initialised, df_initialised, m_initialised, S_initialised) {
+    .Call(`_BatchMixtureModel_sampleSemisupervisedMVT`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_df, initial_m, initial_S, mu_initialised, cov_initialised, df_initialised, m_initialised, S_initialised)
 }
 
