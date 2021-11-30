@@ -17,7 +17,6 @@
 #' @param B The number of batches being modelled.
 #' @param type The type of mixture model used; one of "MVN" or "MVT".
 #' @return A named list containing the different parameters.
-#' @examples
 prepareInitialParameters <- function(initial_class_means,
                                      initial_class_covariance,
                                      initial_batch_shift,
