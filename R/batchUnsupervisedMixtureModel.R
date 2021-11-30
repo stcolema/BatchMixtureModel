@@ -31,6 +31,16 @@
 #' distribution.
 #' @param rho The shape of the prior distribution for the batch scale.
 #' @param theta The scale of the prior distribution for the batch scale.
+#' @param initial_cluster_means A $P x K$ matrix of initial values for the class 
+#' means. Defaults to draws from the prior distribution.
+#' @param initial_cluster_covariance A $P x P x K$ array of initial values for the 
+#' class covariance matrices. Defaults to draws from the prior distribution.
+#' @param initial_batch_shift A $P x B$ matrix of initial values for the batch 
+#' shift effect Defaults to draws from the prior distribution.
+#' @param initial_batch_scale A $P x B$ matrix of initial values for the batch
+#' scales Defaults to draws from the prior distribution.
+#' @param initial_cluster_df A $K$ vector of initial values for the class degrees
+#' of freedom. Defaults to draws from the prior distribution.
 #' @return A named list containing the sampled partitions, cluster and batch
 #' parameters, model fit measures and some details on the model call.
 #' @export
@@ -60,7 +70,13 @@ batchUnsupervisedMixtureModel <- function(X, R, thin, batch_vec, type,
                                           phi_proposal_window = 1.2**2,
                                           m_scale = 0.1,
                                           rho = 11.0,
-                                          theta = 5.0) {
+                                          theta = 5.0,
+                                          initial_cluster_means = NULL,
+                                          initial_cluster_covariance = NULL,
+                                          initial_batch_shift = NULL,
+                                          initial_batch_scale = NULL,
+                                          initial_cluster_df = NULL
+) {
   if (!is.matrix(X)) {
     stop("X is not a matrix. Data should be in matrix format.")
   }
@@ -99,6 +115,34 @@ batchUnsupervisedMixtureModel <- function(X, R, thin, batch_vec, type,
   # component weights.
   concentration <- rep(alpha, K_max)
 
+  P <- ncol(X)
+  
+  # Check if an initial value is passed for any of the parameters. Prepare the
+  # parameters to be passed to C++.
+  cluster_mean_passed <- !is.null(initial_cluster_means)
+  cluster_covariance_passed <- !is.null(initial_cluster_covariance)
+  batch_shift_passed <- !is.null(initial_batch_shift)
+  batch_scale_passed <- !is.null(initial_batch_scale)
+  cluster_df_passed <- !is.null(initial_cluster_df)
+  
+  initial_parameters <- prepareInitialParameters(initial_cluster_means,
+                                                 initial_cluster_covariance,
+                                                 initial_batch_shift,
+                                                 initial_batch_scale,
+                                                 initial_cluster_df,
+                                                 P,
+                                                 K_max,
+                                                 B,
+                                                 type
+  )
+  
+  cluster_means <- initial_parameters$class_means
+  cluster_cov <- initial_parameters$class_cov
+  batch_shift <- initial_parameters$batch_shift
+  batch_scale <- initial_parameters$batch_scale
+  cluster_df <- initial_parameters$class_df
+  
+  
   # Pull samples from the mixture model
   if (type == "MVN") {
     mcmc_output <- sampleMVN(
@@ -116,7 +160,15 @@ batchUnsupervisedMixtureModel <- function(X, R, thin, batch_vec, type,
       concentration,
       m_scale,
       rho,
-      theta
+      theta,
+      cluster_means,
+      cluster_cov,
+      batch_shift,
+      batch_scale,
+      cluster_mean_passed,
+      cluster_covariance_passed,
+      batch_shift_passed,
+      batch_scale_passed
     )
   }
 
@@ -137,7 +189,17 @@ batchUnsupervisedMixtureModel <- function(X, R, thin, batch_vec, type,
       concentration,
       m_scale,
       rho,
-      theta
+      theta,
+      cluster_means,
+      cluster_cov,
+      cluster_df,
+      batch_shift,
+      batch_scale,
+      cluster_mean_passed,
+      cluster_covariance_passed,
+      cluster_df_passed,
+      batch_shift_passed,
+      batch_scale_passed
     )
   }
 

@@ -22,7 +22,12 @@ batchSemiSupervisedMixtureModel(
   phi_proposal_window = 1.2^2,
   m_scale = 0.1,
   rho = 11,
-  theta = 5
+  theta = 5,
+  initial_class_means = NULL,
+  initial_class_covariance = NULL,
+  initial_batch_shift = NULL,
+  initial_batch_scale = NULL,
+  initial_class_df = NULL
 )
 }
 \arguments{
@@ -30,7 +35,7 @@ batchSemiSupervisedMixtureModel(
 
 \item{R}{The number of iterations in the sampler.}
 
-\item{thin}{The factor by which the samples generated are thinned, e.g. if 
+\item{thin}{The factor by which the samples generated are thinned, e.g. if
 ``thin=50`` only every 50th sample is kept.}
 
 \item{initial_labels}{Initial clustering.}
@@ -39,20 +44,20 @@ batchSemiSupervisedMixtureModel(
 
 \item{batch_vec}{Labels identifying which batch each item being clustered is from.}
 
-\item{type}{Character indicating density type to use. One of 'MVN' 
+\item{type}{Character indicating density type to use. One of 'MVN'
 (multivariate normal distribution) or 'MVT' (multivariate t distribution).}
 
 \item{K_max}{The number of components to include (the upper bound on the
-number of clusters in each sample). Defaults to the number of unique labels 
+number of clusters in each sample). Defaults to the number of unique labels
 in ``initial_labels``.}
 
-\item{alpha}{The concentration parameter for the stick-breaking prior and the 
+\item{alpha}{The concentration parameter for the stick-breaking prior and the
 weights in the model.}
 
 \item{mu_proposal_window}{The proposal window for the cluster mean proposal
 kernel.}
 
-\item{cov_proposal_window}{The proposal window for the cluster covariance 
+\item{cov_proposal_window}{The proposal window for the cluster covariance
 proposal kernel.}
 
 \item{m_proposal_window}{The proposal window for the batch mean proposal
@@ -61,18 +66,33 @@ kernel.}
 \item{S_proposal_window}{The proposal window for the batch standard deviation
 proposal kernel.}
 
-\item{t_df_proposal_window}{The proposal window for the degrees of freedom 
+\item{t_df_proposal_window}{The proposal window for the degrees of freedom
 for the multivariate t distribution (not used if type is not 'MVT').}
 
 \item{phi_proposal_window}{The proposal window for the shape parameter for
 the multivariate skew normal distribution (not used if type is not 'MSN').}
 
-\item{m_scale}{The scale hyperparameter for the batch shift prior 
+\item{m_scale}{The scale hyperparameter for the batch shift prior
 distribution.}
 
 \item{rho}{The shape of the prior distribution for the batch scale.}
 
 \item{theta}{The scale of the prior distribution for the batch scale.}
+
+\item{initial_class_means}{A $P x K$ matrix of initial values for the class 
+means. Defaults to draws from the prior distribution.}
+
+\item{initial_class_covariance}{A $P x P x K$ array of initial values for the 
+class covariance matrices. Defaults to draws from the prior distribution.}
+
+\item{initial_batch_shift}{A $P x B$ matrix of initial values for the batch 
+shift effect Defaults to draws from the prior distribution.}
+
+\item{initial_batch_scale}{A $P x B$ matrix of initial values for the batch
+scales Defaults to draws from the prior distribution.}
+
+\item{initial_class_df}{A $K$ vector of initial values for the class degrees
+of freedom. Defaults to draws from the prior distribution.}
 }
 \value{
 A named list containing the sampled partitions, cluster and batch
@@ -87,10 +107,11 @@ A Bayesian mixture model with batch effects.
 X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 
 # Initial labelling
-labels <- c(rep(1, 10), 
-  sample(c(1,2), size = 40, replace = TRUE), 
-  rep(2, 10), 
-  sample(c(1,2), size = 40, replace = TRUE)
+labels <- c(
+  rep(1, 10),
+  sample(c(1, 2), size = 40, replace = TRUE),
+  rep(2, 10),
+  sample(c(1, 2), size = 40, replace = TRUE)
 )
 
 fixed <- c(rep(1, 10), rep(0, 40), rep(1, 10), rep(0, 40))
@@ -103,5 +124,33 @@ R <- 1000
 thin <- 50
 
 # MCMC samples and BIC vector
-samples <- batchSemiSupervisedMixtureModel(X, R, thin, labels, fixed, batch_vec, "MVN")
+samples <- batchSemiSupervisedMixtureModel(X,
+  R, 
+  thin, 
+  labels, 
+  fixed, 
+  batch_vec, 
+  "MVN"
+)
+
+# Given an initial value for the parameters
+initial_class_means <- matrix(c(1, 1, 3, 4), nrow = 2)
+initial_class_covariance <- array(c(1, 0, 0, 1, 1, 0, 0, 1), dim = c(2, 2, 2))
+initial_batch_shift <- samples$batch_shift[, , R/ thin]
+initial_batch_scale <- matrix(c(1.2, 1.3, 1.7, 1.1, 1.4, 1.3, 1.2, 1.2, 1.1, 2.0),
+  nrow = 2
+)
+samples <- batchSemiSupervisedMixtureModel(X,
+  R, 
+  thin, 
+  labels, 
+  fixed, 
+  batch_vec, 
+  "MVN",
+  initial_class_means = initial_class_means,
+  initial_class_covariance = initial_class_covariance,
+  initial_batch_shift = initial_batch_shift,
+  initial_batch_scale = initial_batch_scale
+)
+
 }

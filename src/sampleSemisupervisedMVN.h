@@ -38,6 +38,24 @@
 //' distribution.
 //' @param rho The shape of the prior distribution for the batch scale.
 //' @param theta The scale of the prior distribution for the batch scale.
+//' @param initial_mu A P x K matrix of initial values for the class means.
+//' @param initial_cov A P x P x K cube of initial values for the class 
+//' covariance matrices.
+//' @param initial_m A P x B matrix of initial values for the batch shift 
+//' effects.
+//' @param initial_S A P x B matrix of initial values for the batch scales.
+//' @param mu_initialised Bool indicating if the class means are initialised by
+//' the user. If ``false`` then initial values are drawn from the prior 
+//' distribution.
+//' @param cov_initialised Bool indicating if the class covariance matrices are 
+//' initialised by the user. If ``false`` then initial values are drawn from the
+//' prior distribution.
+//' @param m_initialised Bool indicating if the batch shift effects are 
+//' initialised by the user. If ``false`` then initial values are drawn from the
+//' prior distribution.
+//' @param S_initialised Bool indicating if the batch scales are initialised by 
+//' the user. If ``false`` then initial values are drawn from the prior 
+//' distribution.
 //' @return Named list of the matrix of MCMC samples generated (each row 
 //' corresponds to a different sample) and BIC for each saved iteration.
 // [[Rcpp::export]]
@@ -57,7 +75,15 @@ Rcpp::List sampleSemisupervisedMVN (
     arma::vec concentration,
     double m_scale,
     double rho,
-    double theta
+    double theta,
+    arma::mat initial_mu,
+    arma::cube initial_cov,
+    arma::mat initial_m,
+    arma::mat initial_S,
+    bool mu_initialised,
+    bool cov_initialised,
+    bool m_initialised,
+    bool S_initialised
 ) ;
 
 #endif /* SAMPLESEMISUPERVISEDMVN_H */
