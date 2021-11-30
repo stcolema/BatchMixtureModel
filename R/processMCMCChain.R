@@ -239,6 +239,9 @@ processMCMCChain <- function(mcmc_output, burn, point_estimate_method = "median"
     new_output$pred <- apply(.alloc_prob, 1, which.max)
   } 
   
+  # Record the applied burn in
+  new_output$burn <- burn 
+  
   # Return the MCMC object with burn in applied and point estimates found
   new_output
 }
