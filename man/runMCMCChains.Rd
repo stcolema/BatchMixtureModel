@@ -79,6 +79,10 @@ distribution.}
 
 \item{theta}{The scale of the prior distribution for the batch scale.}
 }
+\value{
+A list of named lists. Each entry is the output of 
+``batchSemiSupervisedMixtureModel``.
+}
 \description{
 Run multiple chains of the semi-supervised batch mixture model
 of the same type and from the same initial clustering.

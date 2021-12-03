@@ -43,6 +43,7 @@
 #'  allocated to the class with the highest probability.
 #'  
 #'  * ``pred``: $N$ vector. The predicted class for each sample.
+#' @export
 #' @examples
 #' 
 #' # Data in a matrix format
@@ -71,7 +72,6 @@
 #' # Process the MCMC samples 
 #' processed_samples <- processMCMCChain(samples, burn)
 #' @importFrom stats median
-#' @export
 processMCMCChain <- function(mcmc_output, burn, point_estimate_method = "median") {
   
   # Dimensions of the dataset

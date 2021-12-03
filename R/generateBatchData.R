@@ -17,6 +17,7 @@
 #' without batch effects, the label indicating the generating group and the
 #' batch label.
 #' @importFrom stats rnorm
+#' @export
 #' @examples
 #' N <- 500
 #' P <- 2

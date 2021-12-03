@@ -28,13 +28,9 @@ getLikelihood <- function(mcmc_output, choice = "complete_likelihood") {
   R <- mcmc_output$R
   thin <- mcmc_output$thin
   burn <- mcmc_output$burn
+  first_recorded_iter <- burn + thin
 
-  no_burn_in_applied <- is.null(burn)
-  if (no_burn_in_applied) {
-    burn <- thin
-  }
-
-  iters <- seq(burn, R, by = thin)
+  iters <- seq(first_recorded_iter, R, by = thin)
 
   invalid_choice <- !(
     choice %in% c(

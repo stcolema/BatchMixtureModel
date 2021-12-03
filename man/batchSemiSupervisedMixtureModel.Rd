@@ -42,7 +42,8 @@ batchSemiSupervisedMixtureModel(
 
 \item{fixed}{Which items are fixed in their initial label.}
 
-\item{batch_vec}{Labels identifying which batch each item being clustered is from.}
+\item{batch_vec}{Labels identifying which batch each item being clustered is 
+from.}
 
 \item{type}{Character indicating density type to use. One of 'MVN'
 (multivariate normal distribution) or 'MVT' (multivariate t distribution).}
@@ -82,8 +83,8 @@ distribution.}
 \item{initial_class_means}{A $P x K$ matrix of initial values for the class 
 means. Defaults to draws from the prior distribution.}
 
-\item{initial_class_covariance}{A $P x P x K$ array of initial values for the 
-class covariance matrices. Defaults to draws from the prior distribution.}
+\item{initial_class_covariance}{A $P x P x K$ array of initial values for 
+the class covariance matrices. Defaults to draws from the prior distribution.}
 
 \item{initial_batch_shift}{A $P x B$ matrix of initial values for the batch 
 shift effect Defaults to draws from the prior distribution.}
@@ -119,6 +120,9 @@ fixed <- c(rep(1, 10), rep(0, 40), rep(1, 10), rep(0, 40))
 # Batch
 batch_vec <- sample(seq(1, 5), replace = TRUE, size = 100)
 
+# Density choice 
+type <- "MVN"
+
 # Sampling parameters
 R <- 1000
 thin <- 50
@@ -130,27 +134,32 @@ samples <- batchSemiSupervisedMixtureModel(X,
   labels, 
   fixed, 
   batch_vec, 
-  "MVN"
+  type
 )
 
 # Given an initial value for the parameters
 initial_class_means <- matrix(c(1, 1, 3, 4), nrow = 2)
-initial_class_covariance <- array(c(1, 0, 0, 1, 1, 0, 0, 1), dim = c(2, 2, 2))
-initial_batch_shift <- samples$batch_shift[, , R/ thin]
-initial_batch_scale <- matrix(c(1.2, 1.3, 1.7, 1.1, 1.4, 1.3, 1.2, 1.2, 1.1, 2.0),
+initial_class_covariance <- array(c(1, 0, 0, 1, 1, 0, 0, 1), 
+  dim = c(2, 2, 2)
+)
+
+# We can use values from a previous chain
+initial_batch_shift <- samples$batch_shift[, , R / thin]
+initial_batch_scale <- matrix(
+  c(1.2, 1.3, 1.7, 1.1, 1.4, 1.3, 1.2, 1.2, 1.1, 2.0),
   nrow = 2
 )
+
 samples <- batchSemiSupervisedMixtureModel(X,
   R, 
   thin, 
   labels, 
   fixed, 
   batch_vec, 
-  "MVN",
+  type,
   initial_class_means = initial_class_means,
   initial_class_covariance = initial_class_covariance,
   initial_batch_shift = initial_batch_shift,
   initial_batch_scale = initial_batch_scale
 )
-
 }

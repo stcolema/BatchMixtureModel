@@ -4,10 +4,10 @@
 #' @param alpha The concentration parameter.
 #' @param K The number of weights to generate.
 #' @return A vector of weights.
+#' @export
 #' @examples
 #' weights <- stickBreakingPrior(1, 50)
 #' @importFrom stats rbeta
-#' @export
 stickBreakingPrior <- function(alpha, K) {
   v <- stats::rbeta(K, alpha, 1)
   stick <- 1

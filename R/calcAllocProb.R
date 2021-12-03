@@ -7,6 +7,7 @@
 #' @param method The point estimate to use. ``method = 'mean'`` or
 #' ``method = 'median'``. ``'median'`` is the default.
 #' @return An N x K matrix of class probabilities.
+#' @export
 #' @examples
 #' # Data in matrix format
 #' X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
@@ -36,7 +37,6 @@
 #' 
 #' # Probability across classes
 #' probs <- calcAllocProb(samples, burn = burn)
-#' @export
 calcAllocProb <- function(mcmc_samples, burn = 0, method = "median") {
   R <- mcmc_samples$R
   thin <- mcmc_samples$thin
