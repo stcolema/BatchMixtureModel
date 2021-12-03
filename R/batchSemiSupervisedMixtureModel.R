@@ -1,10 +1,10 @@
-#!/usr/bin/Rscript
 #' @title Batch semisupervised mixture model
 #' @description A Bayesian mixture model with batch effects.
 #' @param X Data to cluster as a matrix with the items to cluster held in rows.
 #' @param initial_labels Initial clustering.
 #' @param fixed Which items are fixed in their initial label.
-#' @param batch_vec Labels identifying which batch each item being clustered is from.
+#' @param batch_vec Labels identifying which batch each item being clustered is 
+#' from.
 #' @param R The number of iterations in the sampler.
 #' @param thin The factor by which the samples generated are thinned, e.g. if
 #' ``thin=50`` only every 50th sample is kept.
@@ -33,8 +33,8 @@
 #' @param theta The scale of the prior distribution for the batch scale.
 #' @param initial_class_means A $P x K$ matrix of initial values for the class 
 #' means. Defaults to draws from the prior distribution.
-#' @param initial_class_covariance A $P x P x K$ array of initial values for the 
-#' class covariance matrices. Defaults to draws from the prior distribution.
+#' @param initial_class_covariance A $P x P x K$ array of initial values for 
+#' the class covariance matrices. Defaults to draws from the prior distribution.
 #' @param initial_batch_shift A $P x B$ matrix of initial values for the batch 
 #' shift effect Defaults to draws from the prior distribution.
 #' @param initial_batch_scale A $P x B$ matrix of initial values for the batch
@@ -62,6 +62,9 @@
 #' # Batch
 #' batch_vec <- sample(seq(1, 5), replace = TRUE, size = 100)
 #'
+#' # Density choice 
+#' type <- "MVN"
+#'
 #' # Sampling parameters
 #' R <- 1000
 #' thin <- 50
@@ -73,29 +76,34 @@
 #'   labels, 
 #'   fixed, 
 #'   batch_vec, 
-#'   "MVN"
+#'   type
 #' )
 #' 
 #' # Given an initial value for the parameters
 #' initial_class_means <- matrix(c(1, 1, 3, 4), nrow = 2)
-#' initial_class_covariance <- array(c(1, 0, 0, 1, 1, 0, 0, 1), dim = c(2, 2, 2))
-#' initial_batch_shift <- samples$batch_shift[, , R/ thin]
-#' initial_batch_scale <- matrix(c(1.2, 1.3, 1.7, 1.1, 1.4, 1.3, 1.2, 1.2, 1.1, 2.0),
+#' initial_class_covariance <- array(c(1, 0, 0, 1, 1, 0, 0, 1), 
+#'   dim = c(2, 2, 2)
+#' )
+#'
+#' # We can use values from a previous chain
+#' initial_batch_shift <- samples$batch_shift[, , R / thin]
+#' initial_batch_scale <- matrix(
+#'   c(1.2, 1.3, 1.7, 1.1, 1.4, 1.3, 1.2, 1.2, 1.1, 2.0),
 #'   nrow = 2
 #' )
+#' 
 #' samples <- batchSemiSupervisedMixtureModel(X,
 #'   R, 
 #'   thin, 
 #'   labels, 
 #'   fixed, 
 #'   batch_vec, 
-#'   "MVN",
+#'   type,
 #'   initial_class_means = initial_class_means,
 #'   initial_class_covariance = initial_class_covariance,
 #'   initial_batch_shift = initial_batch_shift,
 #'   initial_batch_scale = initial_batch_scale
 #' )
-#' 
 batchSemiSupervisedMixtureModel <- function(X,
                                             R,
                                             thin,
@@ -254,16 +262,27 @@ batchSemiSupervisedMixtureModel <- function(X,
     stop("Type not recognised. Please use one of 'MVN' or 'MVT'.")
   }
 
+  # Record details of model run to output
+  # MCMC details
   mcmc_output$thin <- thin
   mcmc_output$R <- R
+  mcmc_output$burn <- 0
+  
+  # Density choice
   mcmc_output$type <- type
+  
+  # Dimensions of data
   mcmc_output$P <- P
   mcmc_output$N <- nrow(X)
+  
+  # Number of components and batches modelled
   mcmc_output$K_max <- K_max
   mcmc_output$B <- B
 
+  # Indicate if the model was semi-supervised or unsupervised
   mcmc_output$Semisupervised <- TRUE
 
+  # Correct this if we were effectively unsupervised
   actually_unsupervised <- all(fixed == 0)
   if (actually_unsupervised) {
     mcmc_output$Semisupervised <- FALSE

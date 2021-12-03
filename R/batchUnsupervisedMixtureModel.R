@@ -207,14 +207,25 @@ batchUnsupervisedMixtureModel <- function(X, R, thin, batch_vec, type,
     stop("Type not recognised. Please use one of 'MVN' or 'MVT'.")
   }
 
+  
+  # Record details of model run to output
+  # MCMC details
   mcmc_output$thin <- thin
   mcmc_output$R <- R
+  mcmc_output$burn <- 0
+  
+  # Density choice
   mcmc_output$type <- type
-  mcmc_output$P <- ncol(X)
+  
+  # Dimensions of data
+  mcmc_output$P <- P
   mcmc_output$N <- nrow(X)
+  
+  # Number of components and batches modelled
   mcmc_output$K_max <- K_max
   mcmc_output$B <- B
-
+  
+  # Indicate if the model was semi-supervised or unsupervised
   mcmc_output$Semisupervised <- FALSE
   
   mcmc_output
