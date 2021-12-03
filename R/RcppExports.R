@@ -40,7 +40,7 @@ NULL
 #' @return the unnormalised log-likelihood of x in a Gamma with parameters shape 
 #' and rate.
 gammaLogLikelihood <- function(x, shape, rate) {
-    .Call(`_BatchMixtureModel_gammaLogLikelihood`, x, shape, rate)
+    .Call('_BatchMixtureModel_gammaLogLikelihood', PACKAGE = 'BatchMixtureModel', x, shape, rate)
 }
 
 #' @title Inverse gamma log-likelihood
@@ -52,7 +52,7 @@ gammaLogLikelihood <- function(x, shape, rate) {
 #' @return the unnormalised log-likelihood of x in a inverse-Gamma with parameters 
 #' shape and scale.
 invGammaLogLikelihood <- function(x, shape, scale) {
-    .Call(`_BatchMixtureModel_invGammaLogLikelihood`, x, shape, scale)
+    .Call('_BatchMixtureModel_invGammaLogLikelihood', PACKAGE = 'BatchMixtureModel', x, shape, scale)
 }
 
 #' @title Wishart log-likelihood
@@ -65,7 +65,7 @@ invGammaLogLikelihood <- function(x, shape, scale) {
 #' @return the unnormalised log-likelihood of X in a Wishart with parameters V 
 #' and n.
 wishartLogLikelihood <- function(X, V, n, P) {
-    .Call(`_BatchMixtureModel_wishartLogLikelihood`, X, V, n, P)
+    .Call('_BatchMixtureModel_wishartLogLikelihood', PACKAGE = 'BatchMixtureModel', X, V, n, P)
 }
 
 #' @title Inverse-Wishart log-likelihood
@@ -78,7 +78,7 @@ wishartLogLikelihood <- function(X, V, n, P) {
 #' @return the unnormalised log-likelihood of X in a inverse-Wishart with parameters Psi 
 #' and nu.
 invWishartLogLikelihood <- function(X, Psi, nu, P) {
-    .Call(`_BatchMixtureModel_invWishartLogLikelihood`, X, Psi, nu, P)
+    .Call('_BatchMixtureModel_invWishartLogLikelihood', PACKAGE = 'BatchMixtureModel', X, Psi, nu, P)
 }
 
 #' @title Sample mixture of multivariate normal distributions with batch effects
@@ -126,7 +126,7 @@ invWishartLogLikelihood <- function(X, Psi, nu, P) {
 #' @return Named list of the matrix of MCMC samples generated (each row 
 #' corresponds to a different sample) and BIC for each saved iteration.
 sampleMVN <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_m, initial_S, mu_initialised, cov_initialised, m_initialised, S_initialised) {
-    .Call(`_BatchMixtureModel_sampleMVN`, X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_m, initial_S, mu_initialised, cov_initialised, m_initialised, S_initialised)
+    .Call('_BatchMixtureModel_sampleMVN', PACKAGE = 'BatchMixtureModel', X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_m, initial_S, mu_initialised, cov_initialised, m_initialised, S_initialised)
 }
 
 #' @title Sample mixture of multivariate t-distributions with batch effects
@@ -181,7 +181,7 @@ sampleMVN <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_propos
 #' @return Named list of the matrix of MCMC samples generated (each row 
 #' corresponds to a different sample) and BIC for each saved iteration.
 sampleMVT <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_df, initial_m, initial_S, mu_initialised, cov_initialised, df_initialised, m_initialised, S_initialised) {
-    .Call(`_BatchMixtureModel_sampleMVT`, X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_df, initial_m, initial_S, mu_initialised, cov_initialised, df_initialised, m_initialised, S_initialised)
+    .Call('_BatchMixtureModel_sampleMVT', PACKAGE = 'BatchMixtureModel', X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_df, initial_m, initial_S, mu_initialised, cov_initialised, df_initialised, m_initialised, S_initialised)
 }
 
 #' @title Sample semi-supervised MVN Mixture model
@@ -231,7 +231,7 @@ sampleMVT <- function(X, K, B, labels, batch_vec, mu_proposal_window, cov_propos
 #' @return Named list of the matrix of MCMC samples generated (each row 
 #' corresponds to a different sample) and BIC for each saved iteration.
 sampleSemisupervisedMVN <- function(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_m, initial_S, mu_initialised, cov_initialised, m_initialised, S_initialised) {
-    .Call(`_BatchMixtureModel_sampleSemisupervisedMVN`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_m, initial_S, mu_initialised, cov_initialised, m_initialised, S_initialised)
+    .Call('_BatchMixtureModel_sampleSemisupervisedMVN', PACKAGE = 'BatchMixtureModel', X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_m, initial_S, mu_initialised, cov_initialised, m_initialised, S_initialised)
 }
 
 #' @title Sample semi-supervised MVT Mixture model
@@ -280,6 +280,6 @@ sampleSemisupervisedMVN <- function(X, K, B, labels, batch_vec, fixed, mu_propos
 #' @return Named list of the matrix of MCMC samples generated (each row 
 #' corresponds to a different sample) and BIC for each saved iteration.
 sampleSemisupervisedMVT <- function(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_df, initial_m, initial_S, mu_initialised, cov_initialised, df_initialised, m_initialised, S_initialised) {
-    .Call(`_BatchMixtureModel_sampleSemisupervisedMVT`, X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_df, initial_m, initial_S, mu_initialised, cov_initialised, df_initialised, m_initialised, S_initialised)
+    .Call('_BatchMixtureModel_sampleSemisupervisedMVT', PACKAGE = 'BatchMixtureModel', X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_df, initial_m, initial_S, mu_initialised, cov_initialised, df_initialised, m_initialised, S_initialised)
 }
 
