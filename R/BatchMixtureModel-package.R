@@ -4,6 +4,7 @@
 #' for joint clustering or classification and batch correction. Models estimated
 #' via a Gibbs-within-Metropolis algorithm implemented in C++.
 #' @name BatchMixtureModel-package
+#' @aliases BatchMixtureModel
 #' @docType package
 #' @author Stephen Coleman <stcolema@tcd.ie>, Paul D.W. Kirk, Chris Wallace
 #' @keywords package
@@ -12,10 +13,12 @@
 #' ggplot label_both labeller labs
 #' @importFrom stats median rbeta rchisq rnorm
 #' @importFrom tidyr contains pivot_longer
-#' @importFrom Rcpp evalCpp
+#' @importFrom Rcpp evalCpp sourceCpp
+#' @useDynLib BatchMixtureModel
 #' @examples 
 #' # Data in a matrix format
 #' X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
+#' 
 #' # Initial labelling
 #' labels <- c(rep(1, 10), 
 #'   sample(c(1,2), size = 40, replace = TRUE), 

@@ -3,6 +3,7 @@
 \docType{package}
 \name{BatchMixtureModel-package}
 \alias{BatchMixtureModel-package}
+\alias{BatchMixtureModel}
 \title{Bayesian Mixture Modelling for joint Model-Based 
 Clustering/Classification, and Batch Correction}
 \description{
@@ -13,6 +14,7 @@ via a Gibbs-within-Metropolis algorithm implemented in C++.
 \examples{
 # Data in a matrix format
 X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
+
 # Initial labelling
 labels <- c(rep(1, 10), 
   sample(c(1,2), size = 40, replace = TRUE), 

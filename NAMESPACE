@@ -23,7 +23,7 @@ importFrom(stats,
 
 importFrom(tidyr, contains, pivot_longer)
 
-importFrom(Rcpp,evalCpp)
+importFrom(Rcpp,evalCpp, sourceCpp)
 
 export(batchSemiSupervisedMixtureModel,
   batchUnsupervisedMixtureModel,
