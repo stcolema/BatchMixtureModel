@@ -21,7 +21,12 @@ batchUnsupervisedMixtureModel(
   phi_proposal_window = 1.2^2,
   m_scale = 0.1,
   rho = 11,
-  theta = 5
+  theta = 5,
+  initial_cluster_means = NULL,
+  initial_cluster_covariance = NULL,
+  initial_batch_shift = NULL,
+  initial_batch_scale = NULL,
+  initial_cluster_df = NULL
 )
 }
 \arguments{
@@ -71,6 +76,21 @@ distribution.}
 \item{rho}{The shape of the prior distribution for the batch scale.}
 
 \item{theta}{The scale of the prior distribution for the batch scale.}
+
+\item{initial_cluster_means}{A $P x K$ matrix of initial values for the class 
+means. Defaults to draws from the prior distribution.}
+
+\item{initial_cluster_covariance}{A $P x P x K$ array of initial values for the 
+class covariance matrices. Defaults to draws from the prior distribution.}
+
+\item{initial_batch_shift}{A $P x B$ matrix of initial values for the batch 
+shift effect Defaults to draws from the prior distribution.}
+
+\item{initial_batch_scale}{A $P x B$ matrix of initial values for the batch
+scales Defaults to draws from the prior distribution.}
+
+\item{initial_cluster_df}{A $K$ vector of initial values for the class degrees
+of freedom. Defaults to draws from the prior distribution.}
 }
 \value{
 A named list containing the sampled partitions, cluster and batch

@@ -11,6 +11,7 @@
 #' the sampled batch mean array.
 #' @param thin The thinning factor of the sampler. Defaults to 1.
 #' @return A data.frame of three columns; the parameter, the sampled value and the iteration.
+#' @export
 #' @examples
 #' # Data in matrix format
 #' X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
@@ -27,7 +28,6 @@
 #'
 #' batch_shift_df <- getSampledClusterMeans(samples$means, R = R, thin = thin)
 #' @importFrom tidyr pivot_longer contains
-#' @export
 getSampledClusterMeans <- function(sampled_cluster_means,
                                    K = dim(sampled_cluster_means)[2],
                                    P = dim(sampled_cluster_means)[1],

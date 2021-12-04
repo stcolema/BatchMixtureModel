@@ -17,6 +17,7 @@
 #' @return A list of 5 objects; the data generated from the groups with and
 #' without batch effects, the label indicating the generating group, the
 #' batch label and the vector indicating training versus test.
+#' @export
 #' @examples
 #' N <- 500
 #' P <- 2
@@ -43,7 +44,6 @@
 #'   dfs
 #' )
 #' @importFrom stats rnorm rchisq
-#' @export
 generateBatchDataMVT <- function(N,
                                  P,
                                  group_means,

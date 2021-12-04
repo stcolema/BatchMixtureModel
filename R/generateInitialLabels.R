@@ -5,6 +5,7 @@
 #' @param fixed The vector of 0s and 1s indicating which labels are to be held 
 #' fixed.
 #' @return An N vector of labels.
+#' @export
 #' @examples
 #' N <- 500
 #' P <- 2
@@ -31,7 +32,6 @@
 #' )
 #' 
 #' initial_labels <- generateInitialLabels(my_data$group_IDs, my_data$fixed)
-#' @export
 generateInitialLabels <- function(labels, fixed) {
   N <- length(labels)
   N_fixed <- sum(fixed)

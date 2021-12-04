@@ -66,8 +66,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // sampleMVN
-Rcpp::List sampleMVN(arma::mat X, arma::uword K, arma::uword B, arma::uvec labels, arma::uvec batch_vec, double mu_proposal_window, double cov_proposal_window, double m_proposal_window, double S_proposal_window, arma::uword R, arma::uword thin, arma::vec concentration, double m_scale, double rho, double theta);
-RcppExport SEXP _BatchMixtureModel_sampleMVN(SEXP XSEXP, SEXP KSEXP, SEXP BSEXP, SEXP labelsSEXP, SEXP batch_vecSEXP, SEXP mu_proposal_windowSEXP, SEXP cov_proposal_windowSEXP, SEXP m_proposal_windowSEXP, SEXP S_proposal_windowSEXP, SEXP RSEXP, SEXP thinSEXP, SEXP concentrationSEXP, SEXP m_scaleSEXP, SEXP rhoSEXP, SEXP thetaSEXP) {
+Rcpp::List sampleMVN(arma::mat X, arma::uword K, arma::uword B, arma::uvec labels, arma::uvec batch_vec, double mu_proposal_window, double cov_proposal_window, double m_proposal_window, double S_proposal_window, arma::uword R, arma::uword thin, arma::vec concentration, double m_scale, double rho, double theta, arma::mat initial_mu, arma::cube initial_cov, arma::mat initial_m, arma::mat initial_S, bool mu_initialised, bool cov_initialised, bool m_initialised, bool S_initialised);
+RcppExport SEXP _BatchMixtureModel_sampleMVN(SEXP XSEXP, SEXP KSEXP, SEXP BSEXP, SEXP labelsSEXP, SEXP batch_vecSEXP, SEXP mu_proposal_windowSEXP, SEXP cov_proposal_windowSEXP, SEXP m_proposal_windowSEXP, SEXP S_proposal_windowSEXP, SEXP RSEXP, SEXP thinSEXP, SEXP concentrationSEXP, SEXP m_scaleSEXP, SEXP rhoSEXP, SEXP thetaSEXP, SEXP initial_muSEXP, SEXP initial_covSEXP, SEXP initial_mSEXP, SEXP initial_SSEXP, SEXP mu_initialisedSEXP, SEXP cov_initialisedSEXP, SEXP m_initialisedSEXP, SEXP S_initialisedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -86,13 +86,21 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type m_scale(m_scaleSEXP);
     Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
     Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
-    rcpp_result_gen = Rcpp::wrap(sampleMVN(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta));
+    Rcpp::traits::input_parameter< arma::mat >::type initial_mu(initial_muSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type initial_cov(initial_covSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type initial_m(initial_mSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type initial_S(initial_SSEXP);
+    Rcpp::traits::input_parameter< bool >::type mu_initialised(mu_initialisedSEXP);
+    Rcpp::traits::input_parameter< bool >::type cov_initialised(cov_initialisedSEXP);
+    Rcpp::traits::input_parameter< bool >::type m_initialised(m_initialisedSEXP);
+    Rcpp::traits::input_parameter< bool >::type S_initialised(S_initialisedSEXP);
+    rcpp_result_gen = Rcpp::wrap(sampleMVN(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_m, initial_S, mu_initialised, cov_initialised, m_initialised, S_initialised));
     return rcpp_result_gen;
 END_RCPP
 }
 // sampleMVT
-Rcpp::List sampleMVT(arma::mat X, arma::uword K, arma::uword B, arma::uvec labels, arma::uvec batch_vec, double mu_proposal_window, double cov_proposal_window, double m_proposal_window, double S_proposal_window, double t_df_proposal_window, arma::uword R, arma::uword thin, arma::vec concentration, double m_scale, double rho, double theta);
-RcppExport SEXP _BatchMixtureModel_sampleMVT(SEXP XSEXP, SEXP KSEXP, SEXP BSEXP, SEXP labelsSEXP, SEXP batch_vecSEXP, SEXP mu_proposal_windowSEXP, SEXP cov_proposal_windowSEXP, SEXP m_proposal_windowSEXP, SEXP S_proposal_windowSEXP, SEXP t_df_proposal_windowSEXP, SEXP RSEXP, SEXP thinSEXP, SEXP concentrationSEXP, SEXP m_scaleSEXP, SEXP rhoSEXP, SEXP thetaSEXP) {
+Rcpp::List sampleMVT(arma::mat X, arma::uword K, arma::uword B, arma::uvec labels, arma::uvec batch_vec, double mu_proposal_window, double cov_proposal_window, double m_proposal_window, double S_proposal_window, double t_df_proposal_window, arma::uword R, arma::uword thin, arma::vec concentration, double m_scale, double rho, double theta, arma::mat initial_mu, arma::cube initial_cov, arma::vec initial_df, arma::mat initial_m, arma::mat initial_S, bool mu_initialised, bool cov_initialised, bool df_initialised, bool m_initialised, bool S_initialised);
+RcppExport SEXP _BatchMixtureModel_sampleMVT(SEXP XSEXP, SEXP KSEXP, SEXP BSEXP, SEXP labelsSEXP, SEXP batch_vecSEXP, SEXP mu_proposal_windowSEXP, SEXP cov_proposal_windowSEXP, SEXP m_proposal_windowSEXP, SEXP S_proposal_windowSEXP, SEXP t_df_proposal_windowSEXP, SEXP RSEXP, SEXP thinSEXP, SEXP concentrationSEXP, SEXP m_scaleSEXP, SEXP rhoSEXP, SEXP thetaSEXP, SEXP initial_muSEXP, SEXP initial_covSEXP, SEXP initial_dfSEXP, SEXP initial_mSEXP, SEXP initial_SSEXP, SEXP mu_initialisedSEXP, SEXP cov_initialisedSEXP, SEXP df_initialisedSEXP, SEXP m_initialisedSEXP, SEXP S_initialisedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -112,13 +120,23 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type m_scale(m_scaleSEXP);
     Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
     Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
-    rcpp_result_gen = Rcpp::wrap(sampleMVT(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta));
+    Rcpp::traits::input_parameter< arma::mat >::type initial_mu(initial_muSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type initial_cov(initial_covSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type initial_df(initial_dfSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type initial_m(initial_mSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type initial_S(initial_SSEXP);
+    Rcpp::traits::input_parameter< bool >::type mu_initialised(mu_initialisedSEXP);
+    Rcpp::traits::input_parameter< bool >::type cov_initialised(cov_initialisedSEXP);
+    Rcpp::traits::input_parameter< bool >::type df_initialised(df_initialisedSEXP);
+    Rcpp::traits::input_parameter< bool >::type m_initialised(m_initialisedSEXP);
+    Rcpp::traits::input_parameter< bool >::type S_initialised(S_initialisedSEXP);
+    rcpp_result_gen = Rcpp::wrap(sampleMVT(X, K, B, labels, batch_vec, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_df, initial_m, initial_S, mu_initialised, cov_initialised, df_initialised, m_initialised, S_initialised));
     return rcpp_result_gen;
 END_RCPP
 }
 // sampleSemisupervisedMVN
-Rcpp::List sampleSemisupervisedMVN(arma::mat X, arma::uword K, arma::uword B, arma::uvec labels, arma::uvec batch_vec, arma::uvec fixed, double mu_proposal_window, double cov_proposal_window, double m_proposal_window, double S_proposal_window, arma::uword R, arma::uword thin, arma::vec concentration, double m_scale, double rho, double theta);
-RcppExport SEXP _BatchMixtureModel_sampleSemisupervisedMVN(SEXP XSEXP, SEXP KSEXP, SEXP BSEXP, SEXP labelsSEXP, SEXP batch_vecSEXP, SEXP fixedSEXP, SEXP mu_proposal_windowSEXP, SEXP cov_proposal_windowSEXP, SEXP m_proposal_windowSEXP, SEXP S_proposal_windowSEXP, SEXP RSEXP, SEXP thinSEXP, SEXP concentrationSEXP, SEXP m_scaleSEXP, SEXP rhoSEXP, SEXP thetaSEXP) {
+Rcpp::List sampleSemisupervisedMVN(arma::mat X, arma::uword K, arma::uword B, arma::uvec labels, arma::uvec batch_vec, arma::uvec fixed, double mu_proposal_window, double cov_proposal_window, double m_proposal_window, double S_proposal_window, arma::uword R, arma::uword thin, arma::vec concentration, double m_scale, double rho, double theta, arma::mat initial_mu, arma::cube initial_cov, arma::mat initial_m, arma::mat initial_S, bool mu_initialised, bool cov_initialised, bool m_initialised, bool S_initialised);
+RcppExport SEXP _BatchMixtureModel_sampleSemisupervisedMVN(SEXP XSEXP, SEXP KSEXP, SEXP BSEXP, SEXP labelsSEXP, SEXP batch_vecSEXP, SEXP fixedSEXP, SEXP mu_proposal_windowSEXP, SEXP cov_proposal_windowSEXP, SEXP m_proposal_windowSEXP, SEXP S_proposal_windowSEXP, SEXP RSEXP, SEXP thinSEXP, SEXP concentrationSEXP, SEXP m_scaleSEXP, SEXP rhoSEXP, SEXP thetaSEXP, SEXP initial_muSEXP, SEXP initial_covSEXP, SEXP initial_mSEXP, SEXP initial_SSEXP, SEXP mu_initialisedSEXP, SEXP cov_initialisedSEXP, SEXP m_initialisedSEXP, SEXP S_initialisedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -138,13 +156,21 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type m_scale(m_scaleSEXP);
     Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
     Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
-    rcpp_result_gen = Rcpp::wrap(sampleSemisupervisedMVN(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta));
+    Rcpp::traits::input_parameter< arma::mat >::type initial_mu(initial_muSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type initial_cov(initial_covSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type initial_m(initial_mSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type initial_S(initial_SSEXP);
+    Rcpp::traits::input_parameter< bool >::type mu_initialised(mu_initialisedSEXP);
+    Rcpp::traits::input_parameter< bool >::type cov_initialised(cov_initialisedSEXP);
+    Rcpp::traits::input_parameter< bool >::type m_initialised(m_initialisedSEXP);
+    Rcpp::traits::input_parameter< bool >::type S_initialised(S_initialisedSEXP);
+    rcpp_result_gen = Rcpp::wrap(sampleSemisupervisedMVN(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_m, initial_S, mu_initialised, cov_initialised, m_initialised, S_initialised));
     return rcpp_result_gen;
 END_RCPP
 }
 // sampleSemisupervisedMVT
-Rcpp::List sampleSemisupervisedMVT(arma::mat X, arma::uword K, arma::uword B, arma::uvec labels, arma::uvec batch_vec, arma::uvec fixed, double mu_proposal_window, double cov_proposal_window, double m_proposal_window, double S_proposal_window, double t_df_proposal_window, arma::uword R, arma::uword thin, arma::vec concentration, double m_scale, double rho, double theta);
-RcppExport SEXP _BatchMixtureModel_sampleSemisupervisedMVT(SEXP XSEXP, SEXP KSEXP, SEXP BSEXP, SEXP labelsSEXP, SEXP batch_vecSEXP, SEXP fixedSEXP, SEXP mu_proposal_windowSEXP, SEXP cov_proposal_windowSEXP, SEXP m_proposal_windowSEXP, SEXP S_proposal_windowSEXP, SEXP t_df_proposal_windowSEXP, SEXP RSEXP, SEXP thinSEXP, SEXP concentrationSEXP, SEXP m_scaleSEXP, SEXP rhoSEXP, SEXP thetaSEXP) {
+Rcpp::List sampleSemisupervisedMVT(arma::mat X, arma::uword K, arma::uword B, arma::uvec labels, arma::uvec batch_vec, arma::uvec fixed, double mu_proposal_window, double cov_proposal_window, double m_proposal_window, double S_proposal_window, double t_df_proposal_window, arma::uword R, arma::uword thin, arma::vec concentration, double m_scale, double rho, double theta, arma::mat initial_mu, arma::cube initial_cov, arma::vec initial_df, arma::mat initial_m, arma::mat initial_S, bool mu_initialised, bool cov_initialised, bool df_initialised, bool m_initialised, bool S_initialised);
+RcppExport SEXP _BatchMixtureModel_sampleSemisupervisedMVT(SEXP XSEXP, SEXP KSEXP, SEXP BSEXP, SEXP labelsSEXP, SEXP batch_vecSEXP, SEXP fixedSEXP, SEXP mu_proposal_windowSEXP, SEXP cov_proposal_windowSEXP, SEXP m_proposal_windowSEXP, SEXP S_proposal_windowSEXP, SEXP t_df_proposal_windowSEXP, SEXP RSEXP, SEXP thinSEXP, SEXP concentrationSEXP, SEXP m_scaleSEXP, SEXP rhoSEXP, SEXP thetaSEXP, SEXP initial_muSEXP, SEXP initial_covSEXP, SEXP initial_dfSEXP, SEXP initial_mSEXP, SEXP initial_SSEXP, SEXP mu_initialisedSEXP, SEXP cov_initialisedSEXP, SEXP df_initialisedSEXP, SEXP m_initialisedSEXP, SEXP S_initialisedSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -165,7 +191,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type m_scale(m_scaleSEXP);
     Rcpp::traits::input_parameter< double >::type rho(rhoSEXP);
     Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
-    rcpp_result_gen = Rcpp::wrap(sampleSemisupervisedMVT(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta));
+    Rcpp::traits::input_parameter< arma::mat >::type initial_mu(initial_muSEXP);
+    Rcpp::traits::input_parameter< arma::cube >::type initial_cov(initial_covSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type initial_df(initial_dfSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type initial_m(initial_mSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type initial_S(initial_SSEXP);
+    Rcpp::traits::input_parameter< bool >::type mu_initialised(mu_initialisedSEXP);
+    Rcpp::traits::input_parameter< bool >::type cov_initialised(cov_initialisedSEXP);
+    Rcpp::traits::input_parameter< bool >::type df_initialised(df_initialisedSEXP);
+    Rcpp::traits::input_parameter< bool >::type m_initialised(m_initialisedSEXP);
+    Rcpp::traits::input_parameter< bool >::type S_initialised(S_initialisedSEXP);
+    rcpp_result_gen = Rcpp::wrap(sampleSemisupervisedMVT(X, K, B, labels, batch_vec, fixed, mu_proposal_window, cov_proposal_window, m_proposal_window, S_proposal_window, t_df_proposal_window, R, thin, concentration, m_scale, rho, theta, initial_mu, initial_cov, initial_df, initial_m, initial_S, mu_initialised, cov_initialised, df_initialised, m_initialised, S_initialised));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -175,10 +211,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_BatchMixtureModel_invGammaLogLikelihood", (DL_FUNC) &_BatchMixtureModel_invGammaLogLikelihood, 3},
     {"_BatchMixtureModel_wishartLogLikelihood", (DL_FUNC) &_BatchMixtureModel_wishartLogLikelihood, 4},
     {"_BatchMixtureModel_invWishartLogLikelihood", (DL_FUNC) &_BatchMixtureModel_invWishartLogLikelihood, 4},
-    {"_BatchMixtureModel_sampleMVN", (DL_FUNC) &_BatchMixtureModel_sampleMVN, 15},
-    {"_BatchMixtureModel_sampleMVT", (DL_FUNC) &_BatchMixtureModel_sampleMVT, 16},
-    {"_BatchMixtureModel_sampleSemisupervisedMVN", (DL_FUNC) &_BatchMixtureModel_sampleSemisupervisedMVN, 16},
-    {"_BatchMixtureModel_sampleSemisupervisedMVT", (DL_FUNC) &_BatchMixtureModel_sampleSemisupervisedMVT, 17},
+    {"_BatchMixtureModel_sampleMVN", (DL_FUNC) &_BatchMixtureModel_sampleMVN, 23},
+    {"_BatchMixtureModel_sampleMVT", (DL_FUNC) &_BatchMixtureModel_sampleMVT, 26},
+    {"_BatchMixtureModel_sampleSemisupervisedMVN", (DL_FUNC) &_BatchMixtureModel_sampleSemisupervisedMVN, 24},
+    {"_BatchMixtureModel_sampleSemisupervisedMVT", (DL_FUNC) &_BatchMixtureModel_sampleSemisupervisedMVT, 27},
     {NULL, NULL, 0}
 };
 

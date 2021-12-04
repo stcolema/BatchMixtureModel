@@ -35,6 +35,9 @@
 #' distribution.
 #' @param rho The shape of the prior distribution for the batch scale.
 #' @param theta The scale of the prior distribution for the batch scale.
+#' @returns A list of named lists. Each entry is the output of 
+#' ``batchSemiSupervisedMixtureModel``.
+#' @export
 #' @examples
 #'
 #' # Data in a matrix format
@@ -60,7 +63,6 @@
 #'
 #' # MCMC samples and BIC vector
 #' samples <- runMCMCChains(X, n_chains, R, thin, labels, fixed, batch_vec, "MVN")
-#' @export
 runMCMCChains <- function(X,
                           n_chains,
                           R,

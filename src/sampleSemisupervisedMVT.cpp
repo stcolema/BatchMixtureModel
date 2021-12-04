@@ -29,7 +29,17 @@ Rcpp::List sampleSemisupervisedMVT (
     arma::vec concentration,
     double m_scale,
     double rho,
-    double theta
+    double theta,
+    arma::mat initial_mu,
+    arma::cube initial_cov,
+    arma::vec initial_df,
+    arma::mat initial_m,
+    arma::mat initial_S,
+    bool mu_initialised,
+    bool cov_initialised,
+    bool df_initialised,
+    bool m_initialised,
+    bool S_initialised
 ) {
 
   mvtPredictive my_sampler(K,
@@ -85,6 +95,24 @@ Rcpp::List sampleSemisupervisedMVT (
   
   // Sampler from priors
   my_sampler.sampleFromPriors();
+  
+  // Pass initial values if any are given
+  if(mu_initialised) {
+    my_sampler.mu = initial_mu;
+  }
+  if(cov_initialised) {
+    my_sampler.cov = initial_cov;
+  }
+  if(df_initialised) {
+    my_sampler.t_df = initial_df;
+  }
+  if(m_initialised) {
+    my_sampler.m = initial_m;
+  }
+  if(S_initialised) {
+    my_sampler.S = initial_S;
+  }
+  
   my_sampler.matrixCombinations();
   
   // Iterate over MCMC moves

@@ -6,6 +6,7 @@
 #' @param type The type of mixture model used; this changes which parameters
 #' the function expects to find.
 #' @return A wide data.frame of all the sampled parameters and the iteration.
+#' @export
 #' @examples
 #' 
 #' # Data in a matrix format
@@ -32,7 +33,6 @@
 #' 
 #' # Acceptance rates
 #' collectAcceptanceRates(samples, "MVN")
-#' @export
 collectAcceptanceRates <- function(samples, type) {
   
   # Number of classes and batches

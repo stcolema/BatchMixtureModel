@@ -11,6 +11,7 @@
 #' the sampled batch mean array.
 #' @param thin The thinning factor of the sampler. Defaults to 1. 
 #' @return A data.frame of three columns; the parameter, the sampled value and the iteration.
+#' @export
 #' @examples
 #' # Data in matrix format
 #' X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
@@ -27,7 +28,6 @@
 #'
 #' batch_scale_df <- getSampledBatchShift(samples$batch_scale, R = R, thin = thin)
 #' @importFrom tidyr pivot_longer contains
-#' @export
 getSampledBatchScale <- function(sampled_batch_scale, 
                                  B = dim(sampled_batch_scale)[2], 
                                  P = dim(sampled_batch_scale)[1],

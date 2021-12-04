@@ -3,7 +3,6 @@ Type: Package
 Title: Semi-supervised Bayesian mixture models incorporating batch correction
 License: GPL-3 + file LICENSE
 Version: 1.0.1
-Date: 2021-01-15
 Authors@R: c(person(given = "Stephen", family = "Coleman",
                     email = "stephen.coleman@mrc-bsu.cam.ac.uk",
                     role = c("aut","cre")),
@@ -18,7 +17,7 @@ Description: This package includes a C++ implementation of both semi- and
   correction. Denities available are the multivariate normal and the multivariate 
   t. This package is aimed at analysis of low-dimensional assay data generated
   across several batches such as Enzyme-Linked Immunosorbent Assay data.
-Imports: Rcpp (>= 1.0.5), RcppArmadillo, tidyr, ggplot2, stringr
+Imports: Rcpp (>= 1.0.5), RcppArmadillo, tidyr, ggplot2
 LinkingTo: Rcpp, RcppArmadillo, testthat
 Suggests: xml2
 SystemRequirements: GNU make

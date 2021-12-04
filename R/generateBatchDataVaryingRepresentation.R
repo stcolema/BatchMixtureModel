@@ -1,5 +1,4 @@
 #!/usr/bin/Rscript
-#
 #' @title Generate batch data
 #' @description Generate data from groups across batches. Assumes independence
 #' across columns. In each column the parameters are randomly permuted for both
@@ -17,6 +16,7 @@
 #' @return A list of 4 objects; the data generated from the groups with and
 #' without batch effects, the label indicating the generating group and the
 #' batch label.
+#' @export
 #' @examples
 #' N <- 500
 #' P <- 2
@@ -47,7 +47,6 @@
 #'   batch_weights
 #' )
 #' @importFrom stats rnorm
-#' @export
 generateBatchDataVaryingRepresentation <- function(N,
                                                    P,
                                                    group_means,
@@ -93,7 +92,7 @@ generateBatchDataVaryingRepresentation <- function(N,
     N_b <- length(batch_ind)
     
     labels[batch_ind] <- sample(seq(1, K), N_b, 
-      replace = T, 
+      replace = TRUE, 
       prob = group_weights[, b]
     )
     

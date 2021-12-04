@@ -21,7 +21,17 @@ sampleSemisupervisedMVT(
   concentration,
   m_scale,
   rho,
-  theta
+  theta,
+  initial_mu,
+  initial_cov,
+  initial_df,
+  initial_m,
+  initial_S,
+  mu_initialised,
+  cov_initialised,
+  df_initialised,
+  m_initialised,
+  S_initialised
 )
 }
 \arguments{
@@ -59,6 +69,39 @@ distribution.}
 \item{rho}{The shape of the prior distribution for the batch scale.}
 
 \item{theta}{The scale of the prior distribution for the batch scale.}
+
+\item{initial_mu}{A P x K matrix of initial values for the class means.}
+
+\item{initial_cov}{A P x P x K cube of initial values for the class 
+covariance matrices.}
+
+\item{initial_df}{A K vector of initial values for the class degrees of
+freedom.}
+
+\item{initial_m}{A P x B matrix of initial values for the batch shift 
+effects.}
+
+\item{initial_S}{A P x B matrix of initial values for the batch scales.}
+
+\item{mu_initialised}{Bool indicating if the class means are initialised by
+the user. If ``false`` then initial values are drawn from the prior 
+distribution.}
+
+\item{cov_initialised}{Bool indicating if the class covariance matrices are 
+initialised by the user. If ``false`` then initial values are drawn from the
+prior distribution.}
+
+\item{df_initialised}{Bool indicating if the class degrees of freedom are 
+initialised by the user. If ``false`` then initial values are drawn from the 
+prior distribution.}
+
+\item{m_initialised}{Bool indicating if the batch shift effects are 
+initialised by the user. If ``false`` then initial values are drawn from the
+prior distribution.}
+
+\item{S_initialised}{Bool indicating if the batch scales are initialised by 
+the user. If ``false`` then initial values are drawn from the prior 
+distribution.}
 }
 \value{
 Named list of the matrix of MCMC samples generated (each row 

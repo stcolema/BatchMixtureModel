@@ -39,6 +39,7 @@
 #'  allocated to the class with the highest probability.
 #'  
 #'  * ``pred``: $N$ vector. The predicted class for each sample.
+#' @export
 #' @examples
 #' 
 #' # Data in a matrix format
@@ -67,7 +68,6 @@
 #' 
 #' # Process the MCMC samples 
 #' processed_samples <- processMCMCChains(samples, burn)
-#' @export
 processMCMCChains <- function(mcmc_lst, burn) {
   
   new_output <- lapply(mcmc_lst, processMCMCChain, burn)

@@ -1,0 +1,11 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+vignettes/cache
+vignettes/figure/
+README.md
+.gitignore
+docs
+^docs$
+.editorconfig
+.github
+.git/*

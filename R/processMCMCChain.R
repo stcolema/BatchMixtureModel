@@ -43,6 +43,7 @@
 #'  allocated to the class with the highest probability.
 #'  
 #'  * ``pred``: $N$ vector. The predicted class for each sample.
+#' @export
 #' @examples
 #' 
 #' # Data in a matrix format
@@ -70,7 +71,7 @@
 #' 
 #' # Process the MCMC samples 
 #' processed_samples <- processMCMCChain(samples, burn)
-#' @export
+#' @importFrom stats median
 processMCMCChain <- function(mcmc_output, burn, point_estimate_method = "median") {
   
   # Dimensions of the dataset
@@ -143,9 +144,9 @@ processMCMCChain <- function(mcmc_output, burn, point_estimate_method = "median"
   }
   
   if(use_median) {
-    mean_est <- apply(new_output$means, c(1, 2), median)
-    shift_est <- apply(new_output$batch_shift, c(1, 2), median)
-    scale_est <- apply(new_output$batch_scale, c(1, 2), median)
+    mean_est <- apply(new_output$means, c(1, 2), stats::median)
+    shift_est <- apply(new_output$batch_shift, c(1, 2), stats::median)
+    scale_est <- apply(new_output$batch_scale, c(1, 2), stats::median)
   }
   
   if(type == "MVT") {
@@ -153,7 +154,7 @@ processMCMCChain <- function(mcmc_output, burn, point_estimate_method = "median"
     if(use_mean) 
       new_output$t_df_est <- colMeans(new_output$t_df)
     if(use_median) 
-      new_output$t_df_est <-apply(new_output$t_df, 2, median)
+      new_output$t_df_est <-apply(new_output$t_df, 2, stats::median)
   }
   
   # The covariance is represented as a matrix for reasons, but is more naturally 
@@ -161,7 +162,7 @@ processMCMCChain <- function(mcmc_output, burn, point_estimate_method = "median"
   if(use_mean)
     cov_est <- rowMeans(new_output$covariance, dims = 2L)
   if(use_median)
-    cov_est <- apply(new_output$covariance, c(1, 2), median)
+    cov_est <- apply(new_output$covariance, c(1, 2), stats::median)
   
   cov_est_better_format <- array(0, c(P, P, K_max))
   
@@ -181,14 +182,14 @@ processMCMCChain <- function(mcmc_output, burn, point_estimate_method = "median"
   if(use_mean)
     mean_sum_est <- rowMeans(new_output$mean_sum, dims = 2L)
   if(use_median)
-    mean_sum_est <- apply(new_output$mean_sum, c(1, 2), median)
+    mean_sum_est <- apply(new_output$mean_sum, c(1, 2), stats::median)
   
   mean_sum_better_format <- array(0, c(P, K_max, B))
   
   if(use_mean)
     cov_comb_est <- rowMeans(new_output$cov_comb, dims = 2L)
   if(use_median)
-    cov_comb_est <- apply(new_output$cov_comb, c(1, 2), median)
+    cov_comb_est <- apply(new_output$cov_comb, c(1, 2), stats::median)
   
   cov_comb_better_format <- vector("list", B)
   cov_comb_better_format_entry <- array(0, c(P, P, K_max))
@@ -224,7 +225,7 @@ processMCMCChain <- function(mcmc_output, burn, point_estimate_method = "median"
   if(use_mean)
     inferred_dataset <- rowMeans(new_output$batch_corrected_data, dims = 2L)
   if(use_median)
-    inferred_dataset <- apply(new_output$batch_corrected_data, c(1, 2), median)
+    inferred_dataset <- apply(new_output$batch_corrected_data, c(1, 2), stats::median)
   
   new_output$inferred_dataset <- inferred_dataset
   
@@ -238,6 +239,9 @@ processMCMCChain <- function(mcmc_output, burn, point_estimate_method = "median"
     new_output$prob <- apply(.alloc_prob, 1, max)
     new_output$pred <- apply(.alloc_prob, 1, which.max)
   } 
+  
+  # Record the applied burn in
+  new_output$burn <- burn 
   
   # Return the MCMC object with burn in applied and point estimates found
   new_output
