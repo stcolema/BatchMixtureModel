@@ -39,7 +39,7 @@
 #' ``batchSemiSupervisedMixtureModel``.
 #' @export
 #' @examples
-#'
+#' 
 #' # Data in a matrix format
 #' X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 #'
@@ -63,6 +63,7 @@
 #'
 #' # MCMC samples and BIC vector
 #' samples <- runMCMCChains(X, n_chains, R, thin, labels, fixed, batch_vec, "MVN")
+#' 
 runMCMCChains <- function(X,
                           n_chains,
                           R,
@@ -105,4 +106,11 @@ runMCMCChains <- function(X,
       theta = theta
     )
   })
+  
+  # Record chain number 
+  for(ii in seq(n_chains)) {
+    mcmc_lst[[ii]]$Chain <- ii
+  }
+  
+  mcmc_lst
 }
