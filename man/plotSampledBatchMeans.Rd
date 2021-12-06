@@ -21,6 +21,7 @@ dimension from the output of the mixture model functions. Not recommended
 for large B or P.
 }
 \examples{
+
 # Data in matrix format
 X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 
@@ -36,4 +37,5 @@ samples <- batchUnsupervisedMixtureModel(X, R, thin, batch_vec, "MVN")
 
 # Plot the sampled value of the batch mean shift against MCMC iteration 
 plotSampledBatchMeans(samples)
+
 }

@@ -4,7 +4,7 @@
 #' allocation probabilities.
 #' @param prob Output from the ``calcAllocProb`` function, a N x K matrix of 
 #' allocation probabilities.
-#' @return An N vecotr of class allocations.
+#' @return An N vector of class allocations.
 #' @export
 #' @examples
 #' 
@@ -46,6 +46,7 @@
 #' 
 #' # Predict the class
 #' preds <- predictClass(probs)
+#' 
 predictClass <- function(prob) {
   
   pred_cl <- apply(prob, 1, which.max)

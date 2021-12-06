@@ -33,6 +33,7 @@
 #' 
 #' # Acceptance rates
 #' collectAcceptanceRates(samples, "MVN")
+#' 
 collectAcceptanceRates <- function(samples, type) {
   
   # Number of classes and batches

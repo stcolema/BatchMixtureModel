@@ -6,39 +6,41 @@
 #' @param burn The number of MCMC samples to drop as part of a burn in.
 #' @returns A named list similar to the output of 
 #' ``batchSemiSupervisedMixtureModel`` with some additional entries:
+#' \describe{
 #' 
-#'  * ``mean_est``: $(P x K)$ matrix. The point estimate of the cluster 
-#'  means with columns  corresponding to clusters.
+#'  \item {``mean_est``}{$(P x K)$ matrix. The point estimate of the cluster 
+#'  means with columns  corresponding to clusters.}
 #'  
-#'  * ``cov_est``: $(P x P x K)$ array. The point estimate of the 
-#'  cluster covariance matrices with slices corresponding to clusters.
+#'  \item {``cov_est``}{$(P x P x K)$ array. The point estimate of the 
+#'  cluster covariance matrices with slices corresponding to clusters.}
 #'  
-#'  * ``shift_est``: $(P x B)$ matrix. The point estimate of the batch 
-#'  shift effect with columns  corresponding to batches
+#'  \item {``shift_est``} {$(P x B)$ matrix. The point estimate of the batch 
+#'  shift effect with columns  corresponding to batches.}
 #'  
-#'  * ``scale_est``: $(P x B)$ matrix. The point estimate of the batch
+#'  \item {``scale_est``} {$(P x B)$ matrix. The point estimate of the batch
 #'  scale effects. The $bth$ column contains the diagonal entries of the scaling 
-#'  matrix for the $bth£ batch.
+#'  matrix for the $bth£ batch.}
 #'  
-#'  * ``mean_sum_est``: $(P x K x B)$ array. The point estimate of the
+#'  \item {``mean_sum_est``} {$(P x K x B)$ array. The point estimate of the
 #'  sum of the cluster  means and the batch shift effect with columns 
-#'  corresponding to clusters and slices to batches.
+#'  corresponding to clusters and slices to batches.}
 #'  
-#'  * ``cov_comb_est``: List oflength $B$, with each entry being a 
+#'  \item {``cov_comb_est``} {List of length $B$, with each entry being a 
 #'  $(P x P x K)$ array. The point estimate of the combination of the 
 #'  cluster covariance matrices and the batch scale effect with list entries
-#'  corresponding to batches and slices of each array corresponding to clusters.
+#'  corresponding to batches and slices of each array corresponding to clusters.}
 #'  
-#'  * ``inferred_dataset``: $(N x P)$ matrix. The inferred ``batch-free''
-#'  dataset.
+#'  \item {``inferred_dataset``} {$(N x P)$ matrix. The inferred ``batch-free''
+#'  dataset.}
 #'  
-#'  * ``allocation_probability``: $(N x K)$ matrix. The point estimate of 
-#'  the allocation probabilities for each datapoint to each class.
+#'  \item {``allocation_probability``} {$(N x K)$ matrix. The point estimate of 
+#'  the allocation probabilities for each data point to each class.}
 #'  
-#'  * ``prob``: $N$ vector. The point estimate of the probability of being 
-#'  allocated to the class with the highest probability.
+#'  \item {``prob``} {$N$ vector. The point estimate of the probability of being 
+#'  allocated to the class with the highest probability.}
 #'  
-#'  * ``pred``: $N$ vector. The predicted class for each sample.
+#'  \item {``pred``} {$N$ vector. The predicted class for each sample.}
+#'  }
 #' @export
 #' @examples
 #' 
@@ -68,6 +70,7 @@
 #' 
 #' # Process the MCMC samples 
 #' processed_samples <- processMCMCChains(samples, burn)
+#' 
 processMCMCChains <- function(mcmc_lst, burn) {
   
   new_output <- lapply(mcmc_lst, processMCMCChain, burn)

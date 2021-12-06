@@ -13,6 +13,7 @@
 #' @return A data.frame of three columns; the parameter, the sampled value and the iteration.
 #' @export
 #' @examples
+#' 
 #' # Data in matrix format
 #' X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 #'
@@ -27,6 +28,7 @@
 #' samples <- batchUnsupervisedMixtureModel(X, R, thin, batch_vec, "MVN")
 #'
 #' batch_shift_df <- getSampledClusterMeans(samples$means, R = R, thin = thin)
+#' 
 #' @importFrom tidyr pivot_longer contains
 getSampledClusterMeans <- function(sampled_cluster_means,
                                    K = dim(sampled_cluster_means)[2],

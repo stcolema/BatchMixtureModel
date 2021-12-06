@@ -12,6 +12,7 @@ for joint clustering or classification and batch correction. Models estimated
 via a Gibbs-within-Metropolis algorithm implemented in C++.
 }
 \examples{
+
 # Data in a matrix format
 X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 

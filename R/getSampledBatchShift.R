@@ -13,6 +13,7 @@
 #' @return A data.frame of three columns; the parameter, the sampled value and the iteration.
 #' @export
 #' @examples
+#' 
 #' # Data in matrix format
 #' X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 #' 
@@ -30,6 +31,7 @@
 #'   R = R, 
 #'   thin = thin
 #' )
+#' 
 #' @importFrom tidyr pivot_longer contains
 getSampledBatchShift <- function(sampled_batch_shift, 
                                  B = dim(sampled_batch_shift)[2], 

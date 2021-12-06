@@ -45,7 +45,7 @@
 #' parameters, model fit measures and some details on the model call.
 #' @export
 #' @examples
-#'
+#' 
 #' # Data in a matrix format
 #' X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 #'
@@ -104,6 +104,7 @@
 #'   initial_batch_shift = initial_batch_shift,
 #'   initial_batch_scale = initial_batch_scale
 #' )
+#' 
 batchSemiSupervisedMixtureModel <- function(X,
                                             R,
                                             thin,
@@ -279,6 +280,20 @@ batchSemiSupervisedMixtureModel <- function(X,
   mcmc_output$K_max <- K_max
   mcmc_output$B <- B
 
+  # Record hyperparameter choice
+  mcmc_output$alpha <- alpha
+  mcmc_output$m_scale <- m_scale
+  mcmc_output$rho <- rho
+  mcmc_output$theta <- theta
+  
+  # Proposal windows
+  mcmc_output$mu_proposal_window <- mu_proposal_window
+  mcmc_output$cov_proposal_window <- cov_proposal_window
+  mcmc_output$m_proposal_window <- m_proposal_window
+  mcmc_output$S_proposal_window <- S_proposal_window
+  mcmc_output$t_df_proposal_window <- t_df_proposal_window
+  mcmc_output$phi_proposal_window <- phi_proposal_window
+  
   # Indicate if the model was semi-supervised or unsupervised
   mcmc_output$Semisupervised <- TRUE
 

@@ -22,6 +22,7 @@ Calculate the empirical allocation probability for each class
 based on the sampled allocation probabilities.
 }
 \examples{
+
 # Data in matrix format
 X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 
@@ -50,4 +51,5 @@ eff_burn <- burn / thin
 
 # Probability across classes
 probs <- calcAllocProb(samples, burn = burn)
+
 }
