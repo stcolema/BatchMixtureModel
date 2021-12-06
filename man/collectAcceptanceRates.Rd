@@ -45,4 +45,5 @@ samples <- batchSemiSupervisedMixtureModel(X, R, thin, labels, fixed, batch_vec,
 
 # Acceptance rates
 collectAcceptanceRates(samples, "MVN")
+
 }

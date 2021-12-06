@@ -4,7 +4,11 @@
 \alias{plotLikelihoods}
 \title{Plot likelihoods}
 \usage{
-plotLikelihoods(mcmc_outputs, choice = "complete_likelihood")
+plotLikelihoods(
+  mcmc_outputs,
+  choice = "complete_likelihood",
+  colour_by_chain = TRUE
+)
 }
 \arguments{
 \item{mcmc_outputs}{The output from ``runMCMCChains``.}
@@ -12,6 +16,9 @@ plotLikelihoods(mcmc_outputs, choice = "complete_likelihood")
 \item{choice}{The model fit score to use. Must be one of
 ``'observed_likelihood'``, ``'complete_likelihood'`` or ``'BIC'``. Defaults
 to ``'complete_likelihood'``.}
+
+\item{colour_by_chain}{Logical indcating if plots should be coloured by chain
+or all the same colour. Defaults to ``TRUE``.}
 }
 \value{
 A ggplot2 object. Line plot of likelihood across iteration.
@@ -46,4 +53,5 @@ n_chains <- 4
 samples <- runMCMCChains(X, n_chains, R, thin, labels, fixed, batch_vec, "MVN")
 
 p <- plotLikelihoods(samples)
+
 }

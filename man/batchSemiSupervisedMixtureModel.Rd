@@ -162,4 +162,5 @@ samples <- batchSemiSupervisedMixtureModel(X,
   initial_batch_shift = initial_batch_shift,
   initial_batch_scale = initial_batch_scale
 )
+
 }

@@ -36,4 +36,5 @@ thin <- 5
 samples <- batchUnsupervisedMixtureModel(X, R, thin, batch_vec, "MVN")
 
 lkl_df <- getLikelihood(samples)
+
 }

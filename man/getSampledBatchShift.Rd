@@ -34,6 +34,7 @@ Given an array of sampled batch mean shifts from the
 ``mixtureModel`` function, acquire a tidy version ready for ``ggplot2`` use.
 }
 \examples{
+
 # Data in matrix format
 X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 
@@ -51,4 +52,5 @@ batch_shift_df <- getSampledBatchShift(samples$batch_shift,
   R = R, 
   thin = thin
 )
+
 }

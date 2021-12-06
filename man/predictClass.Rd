@@ -11,7 +11,7 @@ predictClass(prob)
 allocation probabilities.}
 }
 \value{
-An N vecotr of class allocations.
+An N vector of class allocations.
 }
 \description{
 Predicts a final class for each item given a matrix of 
@@ -57,4 +57,5 @@ probs <- calcAllocProb(samples, burn = burn)
 
 # Predict the class
 preds <- predictClass(probs)
+
 }

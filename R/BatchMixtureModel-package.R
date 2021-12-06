@@ -16,6 +16,7 @@
 #' @importFrom Rcpp evalCpp sourceCpp
 #' @useDynLib BatchMixtureModel
 #' @examples 
+#' 
 #' # Data in a matrix format
 #' X <- matrix(c(rnorm(100, 0, 1), rnorm(100, 3, 1)), ncol = 2, byrow = TRUE)
 #' 
