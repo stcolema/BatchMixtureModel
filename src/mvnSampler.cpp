@@ -207,10 +207,9 @@ void mvnSampler::matrixCombinations() {
 arma::vec mvnSampler::itemLogLikelihood(arma::vec x, arma::uword b) {
   
   double exponent = 0.0;
-  vec ll(K), dist_to_mean(P), m_b(B);
+  vec ll(K), dist_to_mean(P);
   ll.zeros();
   dist_to_mean.zeros();
-  m_b = m.col(b);
   
   for(uword k = 0; k < K; k++){
     
