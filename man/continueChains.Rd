@@ -4,15 +4,7 @@
 \alias{continueChains}
 \title{Continue chains}
 \usage{
-continueChains(
-  mcmc_output,
-  X,
-  labels,
-  fixed,
-  batch_vec,
-  R,
-  keep_old_samples = TRUE
-)
+continueChains(mcmc_output, X, fixed, batch_vec, R, keep_old_samples = TRUE)
 }
 \arguments{
 \item{mcmc_output}{Chains to be continued.}
