@@ -131,7 +131,7 @@ arma::vec mvtSampler::itemLogLikelihood(arma::vec x, arma::uword b) {
     v = (t_df(k) + P) * log(1.0 + (1/t_df(k)) * u);
     
     // MVT Likelihood for cluster k
-    ll(k) = pdf_coef(k) - 0.5 * (cov_comb_log_det(k, b) + v + P * log(PI));
+    ll(k) = pdf_coef(k) - 0.5 * (cov_comb_log_det(k, b) + v + P * log(M_PI));
     
   }
   
