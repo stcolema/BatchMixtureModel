@@ -8,9 +8,9 @@ generateBatchDataMVT(
   N,
   P,
   group_means,
-  std_dev,
+  group_std_devs,
   batch_shift,
-  batch_var,
+  batch_scale,
   group_weights,
   batch_weights,
   dfs,
@@ -24,11 +24,7 @@ generateBatchDataMVT(
 
 \item{group_means}{A vector of the group means for a column.}
 
-\item{std_dev}{A vector of group standard deviations for a column.}
-
 \item{batch_shift}{A vector of batch means in a column.}
-
-\item{batch_var}{A vector of batch standard deviations within a column.}
 
 \item{group_weights}{A K x B matrix of the expected proportion of N in each group in each batch.}
 
@@ -37,6 +33,10 @@ generateBatchDataMVT(
 \item{dfs}{A K-vector of the group specific degrees of freedom.}
 
 \item{frac_known}{The number of items with known labels.}
+
+\item{std_dev}{A vector of group standard deviations for a column.}
+
+\item{batch_var}{A vector of batch standard deviations within a column.}
 }
 \value{
 A list of 5 objects; the data generated from the groups with and
