@@ -50,9 +50,9 @@
 generateBatchDataVaryingRepresentation <- function(N,
                                                    P,
                                                    group_means,
-                                                   std_dev,
+                                                   group_std_dev,
                                                    batch_shift,
-                                                   batch_var,
+                                                   batch_scale,
                                                    group_weights,
                                                    batch_weights,
                                                    frac_known = 0.2) {
@@ -104,10 +104,10 @@ generateBatchDataVaryingRepresentation <- function(N,
     # To provide different information in each column, randomly sample the
     # parameters with each group and batch
     reordered_group_means <- sample(group_means)
-    reordered_std_devs <- sample(std_dev)
+    reordered_group_std_devs <- sample(group_std_dev)
 
     reordered_batch_shift <- sample(batch_shift)
-    reordered_batch_var <- sample(batch_var)
+    reordered_batch_scale <- sample(batch_scale)
 
     for (n in seq(1, N)) {
 
@@ -120,9 +120,9 @@ generateBatchDataVaryingRepresentation <- function(N,
 
       # For ease of reading the following lines, create group and batch parameters
       .mu <- reordered_group_means[k]
-      .sd <- reordered_std_devs[k]
+      .sd <- reordered_group_std_devs[k]
       .m <- reordered_batch_shift[b]
-      .s <- reordered_batch_var[b]
+      .s <- reordered_batch_scale[b]
       
       # Corrected and observed data point
       true_data[n, p] <- x * .sd + .mu
