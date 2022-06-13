@@ -3,13 +3,14 @@ title: "BatchMixtureModel workflow"
 author: "Stephen Coleman"
 date: "12/5/2021"
 output: pdf_document
+%\VignetteEngine{knitr::knitr}
+%\VignetteIndexEntry{Using BatchMixtureModel}
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
 set.seed(1)
-mdiHelpR::setMyTheme()
 ```
 
 ## Introduction
@@ -24,9 +25,6 @@ There are three functions for generating data included in the package. ``generat
 
 ```{r dataGen}
 library(ggplot2)
-library(ggthemes)
-library(patchwork)
-library(magrittr)
 library(BatchMixtureModel)
 
 # Data dimensions
@@ -167,31 +165,25 @@ plot_df <- data.frame(
   batch = factor(batch_vec)
 )
 
-plot_df %>%
+plot_df |> 
   ggplot(aes(
     x = PC1,
     y = PC2,
     colour = true_labels,
     alpha = prob
   )) +
-  geom_point() +
-  scale_color_colorblind()
+  geom_point()
 
-plot_df %>%
+plot_df |> 
   ggplot(aes(
     x = PC1_bf,
     y = PC2_bf,
     colour = pred_labels,
     alpha = prob
   )) +
-  geom_point() +
-  scale_color_colorblind()
+  geom_point()
 
 test_inds <- which(fixed == 0)
-mcclust::arandi(
-  true_labels[test_inds],
-  chain_used$pred[test_inds]
-)
 
 sum(true_labels[test_inds] == chain_used$pred[test_inds])/length(test_inds)
 
