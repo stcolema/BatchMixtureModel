@@ -12,14 +12,14 @@ Authors@R: c(person(given = "Stephen", family = "Coleman",
              person(given = "Chris", family ="Wallace",
                     email = "cew54@cam.ac.uk",
                     role = "aut"))
-Description: This package includes a C++ implementation of both semi- and 
-  un-supervised Bayesian mixture models that jointly infer the group and a batch
-  correction. Densities available are the multivariate normal and the multivariate 
-  t. This package is aimed at analysis of low-dimensional data generated
-  across several batches such as Enzyme-Linked Immunosorbent Assay data. See 
-  Coleman et al. (2022) <https://doi.org/10.1101/2022.01.14.476352> for details
-  of the model.
-Imports: Rcpp (>= 1.0.5), tidyr, ggplot2
+Description: This package includes a C++ implementation of both semi-supervised
+  and un-supervised Bayesian mixture models that jointly infer the group
+  structure and a batch correction. Densities available are the multivariate 
+  normal and the multivariate t. This package is aimed at analysis of 
+  low-dimensional data generated across several batches such as Enzyme-Linked 
+  Immunosorbent Assay data. See Coleman et al. (2022) 
+  <https://doi.org/10.1101/2022.01.14.476352> for details of the model.
+Imports: Rcpp (>= 1.0.5), RcppArmadillo, tidyr, ggplot2
 LinkingTo: Rcpp, RcppArmadillo, testthat
 Suggests: xml2, knitr, rmarkdown
 SystemRequirements: GNU make
