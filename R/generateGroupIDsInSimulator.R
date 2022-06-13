@@ -9,12 +9,15 @@
 #' @param group_weights One of either a K x B matrix of the expected proportion 
 #' of each batch in each group or a K-vector of the expected proportion of the
 #' entire dataset in each group.
+#' @param varying_group_within_batch Flag indicating if the groups are vvarying 
+#' across batches.
 #' @return A N-vector of group membership.
 #' @examples
 #' N <- 500
 #' K <- 2
 #' B <- 5
 #' group_weights <- rep(1 / K, K)
+#' batch_weights <- rep(1 / B, B)
 #' batch_IDs <- sample(seq(1, B), N, replace = TRUE, prob = batch_weights)
 #' varying_group_within_batch <- FALSE
 #' group_IDs <- generateGroupIDsInSimulator(

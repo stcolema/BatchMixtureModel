@@ -14,15 +14,17 @@ Authors@R: c(person(given = "Stephen", family = "Coleman",
                     role = "aut"))
 Description: This package includes a C++ implementation of both semi- and 
   un-supervised Bayesian mixture models that jointly infer the group and a batch
-  correction. Denities available are the multivariate normal and the multivariate 
-  t. This package is aimed at analysis of low-dimensional assay data generated
-  across several batches such as Enzyme-Linked Immunosorbent Assay data.
-Imports: Rcpp (>= 1.0.5), RcppArmadillo, tidyr, ggplot2
+  correction. Densities available are the multivariate normal and the multivariate 
+  t. This package is aimed at analysis of low-dimensional data generated
+  across several batches such as Enzyme-Linked Immunosorbent Assay data. See 
+  Coleman et al. (2022) <https://doi.org/10.1101/2022.01.14.476352> for details
+  of the model.
+Imports: Rcpp (>= 1.0.5), tidyr, ggplot2
 LinkingTo: Rcpp, RcppArmadillo, testthat
-Suggests: xml2, utils
+Suggests: xml2, knitr, rmarkdown
 SystemRequirements: GNU make
 Encoding: UTF-8
 URL: https://github.com/stcolema/BatchMixtureModel
 BugReports: https://github.com/stcolema/BatchMixtureModel/issues
 RoxygenNote: 7.2.0
-VignetteBuilder: utils
+VignetteBuilder: knitr, rmarkdown

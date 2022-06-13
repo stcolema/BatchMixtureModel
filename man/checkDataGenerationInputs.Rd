@@ -27,7 +27,11 @@ checkDataGenerationInputs(
 
 \item{group_means}{A vector of the group means for a column.}
 
+\item{group_std_devs}{A vector of group standard deviations for a column.}
+
 \item{batch_shift}{A vector of batch means in a column.}
+
+\item{batch_scale}{A vector of batch standard deviations within a column.}
 
 \item{group_weights}{A K x B matrix of the expected proportion of N in each group in each batch.}
 
@@ -45,10 +49,6 @@ standard deviations should be permuted in each column or not.}
 
 \item{scale_data}{Logical indicating if data should be mean centred and 
 standardised.}
-
-\item{std_dev}{A vector of group standard deviations for a column.}
-
-\item{batch_var}{A vector of batch standard deviations within a column.}
 }
 \description{
 Checks that the inputs for the ``generateBatchData`` function 
@@ -71,6 +71,8 @@ type <- "MVT"
 group_dfs <- c(4, 7)
 frac_known <- 0.3
 permute_variables <- TRUE
+scale_data <- FALSE
+
 checkDataGenerationInputs(N,
   P,
   group_means,
@@ -82,6 +84,7 @@ checkDataGenerationInputs(N,
   type,
   group_dfs,
   frac_known,
-  permute_variables
+  permute_variables,
+  scale_data
 )
 }

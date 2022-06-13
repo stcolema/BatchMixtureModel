@@ -7,9 +7,9 @@
 #' @param N The number of items (rows) to generate.
 #' @param P The number of columns in the generated dataset.
 #' @param group_means A vector of the group means for a column.
-#' @param std_dev A vector of group standard deviations for a column.
+#' @param group_std_devs A vector of group standard deviations for a column.
 #' @param batch_shift A vector of batch means in a column.
-#' @param batch_var A vector of batch standard deviations within a column.
+#' @param batch_scale A vector of batch standard deviations within a column.
 #' @param group_weights A K x B matrix of the expected proportion of N in each group in each batch.
 #' @param batch_weights A vector of the expected proportion of N in each batch.
 #' @param frac_known The number of items with known labels.

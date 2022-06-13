@@ -27,7 +27,11 @@ generateBatchData(
 
 \item{group_means}{A vector of the group means for a column.}
 
+\item{group_std_devs}{A vector of group standard deviations for a column.}
+
 \item{batch_shift}{A vector of batch means in a column.}
+
+\item{batch_scale}{A vector of batch standard deviations within a column.}
 
 \item{group_weights}{One of either a K x B matrix of the expected proportion 
 of each batch in each group or a K-vector of the expected proportion of the
@@ -49,10 +53,6 @@ standard deviations should be permuted in each column or not (defaults to
 
 \item{scale_data}{Logical indicating if data should be mean centred and 
 standardised (defaults to ``FALSE``).}
-
-\item{std_dev}{A vector of group standard deviations for a column.}
-
-\item{batch_var}{A vector of batch standard deviations within a column.}
 }
 \value{
 A list of 5 objects; the data generated from the groups with and
