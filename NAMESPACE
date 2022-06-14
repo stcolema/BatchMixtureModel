@@ -1,7 +1,5 @@
 useDynLib(BatchMixtureModel)
 
-import(RcppArmadillo)
-
 importFrom(ggplot2,
   aes_string, 
   facet_grid, 
