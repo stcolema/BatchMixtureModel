@@ -7,6 +7,7 @@
 // =============================================================================
 // included dependencies
 # include <RcppArmadillo.h>
+# include <memory>
 # include "mvnSampler.h"
 # include "msnSampler.h"
 # include "mvtSampler.h"
